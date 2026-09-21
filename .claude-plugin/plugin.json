@@ -1,0 +1,10 @@
+{
+  "name": "tour-changes",
+  "description": "Walks you through a diff one logical change at a time, driving VS Code to open and highlight the code under discussion.",
+  "version": "0.1.0",
+  "author": { "name": "erstaples", "url": "https://github.com/erstaples" },
+  "homepage": "https://github.com/erstaples/claude-code-review-walkthrough",
+  "repository": "https://github.com/erstaples/claude-code-review-walkthrough",
+  "license": "MIT",
+  "keywords": ["code-review", "walkthrough", "diff", "vscode", "tour"]
+}
