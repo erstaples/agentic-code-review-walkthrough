@@ -23,7 +23,9 @@ function createIntentStore() {
       return stop ? stop.stopId : null;
     },
     currentFocus() {
-      return focus;
+      return focus
+        ? { path: focus.path, side: focus.side, startLine: focus.startLine, endLine: focus.endLine, note: focus.note }
+        : null;
     },
     rangesFor({ path, side }) {
       const file = stop && (stop.files || []).find((f) => f.path === path);

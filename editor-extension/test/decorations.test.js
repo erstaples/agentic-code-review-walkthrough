@@ -69,3 +69,31 @@ test("setFocus without a stop still yields the focus range", () => {
   s.setFocus({ path: "a.go", side: "working", startLine: 4, endLine: 4 });
   assert.deepStrictEqual(s.rangesFor({ path: "a.go", side: "working" }).focus, { startLine: 4, endLine: 4, note: undefined });
 });
+
+test("currentFocus returns null before any setFocus", () => {
+  const s = createIntentStore();
+  assert.strictEqual(s.currentFocus(), null);
+});
+
+test("currentFocus returns the focus fields after setFocus", () => {
+  const s = createIntentStore();
+  s.setFocus({ path: "a.go", side: "head", startLine: 31, endLine: 35, note: "test note" });
+  assert.deepStrictEqual(s.currentFocus(), { path: "a.go", side: "head", startLine: 31, endLine: 35, note: "test note" });
+});
+
+test("mutating currentFocus return value does not change subsequent calls", () => {
+  const s = createIntentStore();
+  s.setFocus({ path: "a.go", side: "head", startLine: 31, endLine: 35, note: "original" });
+  const first = s.currentFocus();
+  first.note = "mutated";
+  const second = s.currentFocus();
+  assert.strictEqual(second.note, "original");
+});
+
+test("setStop clears currentFocus back to null", () => {
+  const s = createIntentStore();
+  s.setFocus({ path: "a.go", side: "head", startLine: 31, endLine: 35 });
+  assert.notStrictEqual(s.currentFocus(), null);
+  s.setStop(stop);
+  assert.strictEqual(s.currentFocus(), null);
+});
