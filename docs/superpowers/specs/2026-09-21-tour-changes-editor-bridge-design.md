@@ -20,12 +20,12 @@ read back whatever the reviewer highlights when they interrupt with a question.
 - A stop spanning multiple files renders in VS Code's native multi-file diff editor.
 - Within a stop, the skill can point at successively narrower ranges without re-opening files.
 - When the reviewer highlights code and asks "what's this?", the skill can read the selection.
-- Ships as an installable Claude Code marketplace plugin.
+- Ships as an installable marketplace plugin that works across agentic coding tools, not Claude Code alone.
 
 ## Non-goals
 
 - Graceful degradation when the extension is absent. The tour refuses to start instead.
-- Editors other than VS Code.
+- Editors other than VS Code. The *agent* is portable; the *editor* is not.
 - A sidebar or tree view of stops. Reviewer-driven navigation is a later addition.
 - Any write path. The bridge displays code; it never modifies it.
 
@@ -298,6 +298,65 @@ shape of the author's existing `claudecode-taskw` repository.
 }
 ```
 
+## Cross-agent compatibility
+
+The bridge is a standard stdio MCP server, so any MCP-capable agent can drive
+it. What varies between agents is how the *procedure* — the skill — gets
+loaded, and how the server gets registered.
+
+### Verified: Codex installs this plugin as-is
+
+Probed against Codex CLI 0.155.1 by installing a synthetic plugin and
+inspecting the result:
+
+- `.claude-plugin/marketplace.json` is the manifest Codex accepts. `.codex-plugin/marketplace.json`, bare `marketplace.json`, and `.agent-plugin/marketplace.json` are all rejected with "marketplace root does not contain a supported manifest". No second manifest is needed, and adding one would not help.
+- `skills/<name>/SKILL.md` loads unchanged. Codex namespaces entries as `plugin_name:skill_name` and surfaces them in the same skills list Claude Code uses.
+- `.mcp.json` servers are registered and appear in `codex mcp list`.
+- `commands/*.md`, if present, are auto-migrated into `.codex-plugin/migrated-command-skills/`.
+
+The consequence is that the repository layout below needs no per-agent
+duplication. One manifest, one skill file, one MCP registration.
+
+### The `${CLAUDE_PLUGIN_ROOT}` question
+
+`codex mcp get` displays the variable unexpanded, but the `codex` binary
+contains the string `CLAUDE_PLUGIN_ROOT` (and no `CODEX_PLUGIN_ROOT`), which
+suggests it substitutes at launch. **This is the one unverified assumption in
+the cross-agent story** and must be confirmed during implementation by
+launching a server that logs its own resolved path.
+
+If it does not substitute, `install.sh` registers the server explicitly with an
+absolute path resolved at install time:
+
+```
+codex mcp add tour-bridge -- node "$PLUGIN_ROOT/mcp/server.js"
+```
+
+This fallback is cheap, so it is worth shipping the check in `install.sh`
+regardless: detect a literal `${CLAUDE_PLUGIN_ROOT}` in `codex mcp get
+tour-bridge` output and re-register if found.
+
+### Agents without a plugin system
+
+Cursor, Gemini CLI, Windsurf, and similar tools have no plugin manifest but do
+support stdio MCP servers. Their install path is two manual steps: register
+`node <abs>/mcp/server.js` in the tool's MCP config, and point the tool's rules
+file at `skills/tour-changes/SKILL.md`.
+
+`SKILL.md` is the single source of truth for the procedure. It is not
+duplicated into `AGENTS.md`, `.cursor/rules`, or any per-agent variant —
+the README instructs users to reference the file rather than copy it, so there
+is nothing to drift.
+
+### Constraints this places on the skill body
+
+The skill must not assume Claude Code specifics. Concretely: no references to
+sibling Claude skills by slash name (the current draft points at
+`/code-review` and `address-coderabbit`), no assumptions about Claude Code's
+tool names beyond the `tour_*` MCP tools, and no reliance on terminal rendering
+behavior. Path citations stay, since every agent's terminal renders them
+usefully or harmlessly.
+
 ### Zero dependencies on both sides
 
 Plugin installation does not run `npm install`, so depending on
@@ -307,8 +366,10 @@ repository. MCP over stdio is line-delimited JSON-RPC 2.0 with three methods
 150 lines. The extension side has no dependencies either, matching
 `git-vscode-diff`.
 
-Consequence: `node` must be on `PATH` for Claude Code. `install.sh` checks for
-it and for the `code` CLI, then installs the packaged `.vsix`.
+Consequence: `node` must be on `PATH` for whichever agent launches the server.
+`install.sh` checks for `node` and the `code` CLI, installs the packaged
+`.vsix`, and then — for each agent it detects — verifies the MCP registration,
+re-registering with an absolute path if variable substitution did not happen.
 
 ## Skill changes
 
@@ -316,7 +377,8 @@ it and for the `code` CLI, then installs the packaged `.vsix`.
 lint warning that the skill name must match its containing folder.
 
 Voice generalizes from "Eric" to second person, and trigger phrases in the
-frontmatter `description` become generic.
+frontmatter `description` become generic. References to sibling Claude Code
+skills are removed per the cross-agent constraints above.
 
 Workflow changes:
 
