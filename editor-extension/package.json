@@ -1,0 +1,13 @@
+{
+  "name": "claude-tour",
+  "displayName": "Claude Tour",
+  "description": "Lets an agentic coding tool drive this editor during a guided diff walkthrough.",
+  "version": "0.1.0",
+  "publisher": "estaples",
+  "license": "MIT",
+  "repository": { "type": "git", "url": "git+https://github.com/erstaples/claude-code-review-walkthrough.git" },
+  "engines": { "vscode": "^1.90.0" },
+  "categories": ["Other"],
+  "activationEvents": ["onStartupFinished"],
+  "main": "./extension.js"
+}
