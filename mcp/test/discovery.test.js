@@ -1,0 +1,104 @@
+const { test } = require("node:test");
+const assert = require("node:assert");
+const { resolveLock } = require("../lib/discovery.js");
+
+const lock = (over = {}) => ({
+  protocolVersion: 1, port: 53411, authToken: "tok", pid: 100,
+  ideName: "Visual Studio Code", extensionVersion: "0.1.0",
+  workspaceFolders: ["/repo"], ...over,
+});
+
+function fakeFs(files) {
+  const unlinked = [];
+  return {
+    unlinked,
+    readdirSync: () => Object.keys(files),
+    readFileSync: (p) => {
+      const name = p.split("/").pop();
+      if (!(name in files)) { const e = new Error("ENOENT"); e.code = "ENOENT"; throw e; }
+      return JSON.stringify(files[name]);
+    },
+    unlinkSync: (p) => { unlinked.push(p.split("/").pop()); delete files[p.split("/").pop()]; },
+  };
+}
+
+const alive = () => true;
+const call = (files, cwd, isAlive = alive) =>
+  resolveLock({ dir: "/locks", cwd, fs: fakeFs(files), isAlive, protocolVersion: 1 });
+
+test("resolves the single lock whose workspace contains cwd", () => {
+  const r = call({ "53411.lock": lock() }, "/repo/internal/retry");
+  assert.strictEqual(r.port, 53411);
+  assert.strictEqual(r.authToken, "tok");
+});
+
+test("cwd equal to the workspace root resolves", () => {
+  assert.strictEqual(call({ "53411.lock": lock() }, "/repo").port, 53411);
+});
+
+test("a sibling directory sharing a name prefix does not match", () => {
+  assert.throws(() => call({ "53411.lock": lock() }, "/repo-other/src"), /no_bridge|not open/i);
+});
+
+test("nested workspaces resolve to the longest matching prefix", () => {
+  const files = {
+    "1.lock": lock({ port: 1, workspaceFolders: ["/repo"] }),
+    "2.lock": lock({ port: 2, workspaceFolders: ["/repo/sub"] }),
+  };
+  assert.strictEqual(call(files, "/repo/sub/pkg").port, 2);
+});
+
+test("two equally specific matches are ambiguous and never guessed", () => {
+  const files = {
+    "1.lock": lock({ port: 1, workspaceFolders: ["/repo"] }),
+    "2.lock": lock({ port: 2, workspaceFolders: ["/repo"] }),
+  };
+  let err;
+  try {
+    call(files, "/repo");
+    assert.fail("should have thrown");
+  } catch (e) {
+    err = e;
+  }
+  assert.strictEqual(err.code, "ambiguous_bridge");
+});
+
+test("locks whose process is dead are skipped and unlinked", () => {
+  const files = { "1.lock": lock({ port: 1, pid: 999 }), "2.lock": lock({ port: 2, pid: 100 }) };
+  const fs = fakeFs(files);
+  const r = resolveLock({ dir: "/locks", cwd: "/repo", fs, isAlive: (pid) => pid === 100, protocolVersion: 1 });
+  assert.strictEqual(r.port, 2);
+  assert.deepStrictEqual(fs.unlinked, ["1.lock"]);
+});
+
+test("no locks at all reports no_bridge", () => {
+  let err;
+  try {
+    call({}, "/repo");
+    assert.fail("should have thrown");
+  } catch (e) {
+    err = e;
+  }
+  assert.strictEqual(err.code, "no_bridge");
+});
+
+test("a protocol version mismatch names both versions", () => {
+  let err;
+  try {
+    call({ "1.lock": lock({ protocolVersion: 2 }) }, "/repo");
+    assert.fail("should have thrown");
+  } catch (e) {
+    err = e;
+  }
+  assert.strictEqual(err.code, "protocol_mismatch");
+  assert.match(err.message, /2/);
+  assert.match(err.message, /1/);
+});
+
+test("unparseable lock files are ignored rather than fatal", () => {
+  const fs = fakeFs({ "1.lock": lock() });
+  const orig = fs.readFileSync;
+  fs.readdirSync = () => ["bad.lock", "1.lock"];
+  fs.readFileSync = (p) => (p.endsWith("bad.lock") ? "{{{" : orig(p));
+  assert.strictEqual(resolveLock({ dir: "/locks", cwd: "/repo", fs, isAlive: alive, protocolVersion: 1 }).port, 53411);
+});
