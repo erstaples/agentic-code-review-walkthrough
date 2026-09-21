@@ -753,7 +753,7 @@ test("cwd equal to the workspace root resolves", () => {
 });
 
 test("a sibling directory sharing a name prefix does not match", () => {
-  assert.throws(() => call({ "53411.lock": lock() }, "/repo-other/src"), /no_bridge|not open/i);
+  assert.throws(() => call({ "53411.lock": lock() }, "/repo-other/src"), (err) => err.code === "no_bridge");
 });
 
 test("nested workspaces resolve to the longest matching prefix", () => {
@@ -769,8 +769,7 @@ test("two equally specific matches are ambiguous and never guessed", () => {
     "1.lock": lock({ port: 1, workspaceFolders: ["/repo"] }),
     "2.lock": lock({ port: 2, workspaceFolders: ["/repo"] }),
   };
-  const err = assert.throws(() => call(files, "/repo"));
-  assert.strictEqual(err.code, "ambiguous_bridge");
+  assert.throws(() => call(files, "/repo"), (err) => err.code === "ambiguous_bridge");
 });
 
 test("locks whose process is dead are skipped and unlinked", () => {
@@ -782,15 +781,16 @@ test("locks whose process is dead are skipped and unlinked", () => {
 });
 
 test("no locks at all reports no_bridge", () => {
-  const err = assert.throws(() => call({}, "/repo"));
-  assert.strictEqual(err.code, "no_bridge");
+  assert.throws(() => call({}, "/repo"), (err) => err.code === "no_bridge");
 });
 
 test("a protocol version mismatch names both versions", () => {
-  const err = assert.throws(() => call({ "1.lock": lock({ protocolVersion: 2 }) }, "/repo"));
-  assert.strictEqual(err.code, "protocol_mismatch");
-  assert.match(err.message, /2/);
-  assert.match(err.message, /1/);
+  assert.throws(() => call({ "1.lock": lock({ protocolVersion: 2 }) }, "/repo"), (err) => {
+    assert.strictEqual(err.code, "protocol_mismatch");
+    assert.match(err.message, /2/);
+    assert.match(err.message, /1/);
+    return true;
+  });
 });
 
 test("unparseable lock files are ignored rather than fatal", () => {
@@ -2521,10 +2521,12 @@ test("a matching later stop is accepted", () => {
 test("a different sha is rejected with diff_identity_mismatch", () => {
   const id = createIdentity();
   id.check({ base, head });
-  const err = assert.throws(() => id.check({ base, head: { sha: "cccc333", name: "HEAD" } }));
-  assert.strictEqual(err.code, "diff_identity_mismatch");
-  assert.match(err.message, /bbbb222/);
-  assert.match(err.message, /cccc333/);
+  assert.throws(() => id.check({ base, head: { sha: "cccc333", name: "HEAD" } }), (err) => {
+    assert.strictEqual(err.code, "diff_identity_mismatch");
+    assert.match(err.message, /bbbb222/);
+    assert.match(err.message, /cccc333/);
+    return true;
+  });
 });
 
 test("sideFor maps a ref back to its side", () => {
@@ -3305,10 +3307,12 @@ test("check throws content_drift naming only the changed files", () => {
   const { s, files } = store({ "a.go": "one", "b.go": "two" });
   s.baseline(["a.go", "b.go"]);
   files["a.go"] = "changed";
-  const err = assert.throws(() => s.check(["a.go", "b.go"]));
-  assert.strictEqual(err.code, "content_drift");
-  assert.match(err.message, /a\.go/);
-  assert.doesNotMatch(err.message, /b\.go/);
+  assert.throws(() => s.check(["a.go", "b.go"]), (err) => {
+    assert.strictEqual(err.code, "content_drift");
+    assert.match(err.message, /a\.go/);
+    assert.doesNotMatch(err.message, /b\.go/);
+    return true;
+  });
 });
 
 test("paths with no baseline are ignored by check", () => {
@@ -3329,7 +3333,7 @@ test("a file deleted after baselining is drift, not a crash", () => {
   const { s, files } = store({ "a.go": "one" });
   s.baseline(["a.go"]);
   delete files["a.go"];
-  assert.strictEqual(assert.throws(() => s.check(["a.go"])).code, "content_drift");
+  assert.throws(() => s.check(["a.go"]), (err) => err.code === "content_drift");
 });
 
 test("reset forgets every baseline", () => {
