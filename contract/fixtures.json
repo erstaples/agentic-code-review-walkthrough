@@ -20,7 +20,8 @@
       { "ok": true, "opened": ["internal/retry/policy.go"], "deferred": [] },
       { "ok": true, "opened": ["internal/client/do.go", "internal/retry/policy.go"], "deferred": ["internal/retry/policy.go"] },
       { "ok": false, "error": { "code": "diff_identity_mismatch", "message": "this tour is pinned to 4f2a9c1..8b71e03; got 4f2a9c1..cccc333" } },
-      { "ok": false, "error": { "code": "content_drift", "message": "changed since this tour started: internal/retry/policy.go" } }
+      { "ok": false, "error": { "code": "content_drift", "message": "changed since this tour started: internal/retry/policy.go" } },
+      { "ok": false, "error": { "code": "git_failed", "message": "git diff --name-status -z --find-renames 4f2a9c1 8b71e03 -- failed: fatal: bad object 4f2a9c1" } }
     ]
   },
   "tour_focus": {

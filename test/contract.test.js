@@ -44,8 +44,11 @@ test("every route has at least one request fixture and one response fixture", ()
 test("every request fixture carries the protocol version", () => {
   for (const [tool, f] of Object.entries(fixtures)) {
     for (const req of f.requests) {
-      if (contract.ROUTES[tool].method === "GET") continue;
-      assert.strictEqual(req.body.protocolVersion, contract.PROTOCOL_VERSION, `${tool} request fixture is missing protocolVersion`);
+      if (contract.ROUTES[tool].method === "GET") {
+        assert.strictEqual(req.query.protocolVersion, contract.PROTOCOL_VERSION, `${tool} request fixture is missing query.protocolVersion`);
+      } else {
+        assert.strictEqual(req.body.protocolVersion, contract.PROTOCOL_VERSION, `${tool} request fixture is missing body.protocolVersion`);
+      }
     }
   }
 });
