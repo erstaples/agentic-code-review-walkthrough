@@ -38,8 +38,10 @@ this?", the agent reads your selection and answers about that code.
 - **Node.js** on the `PATH` of whichever agent launches the MCP server
 - One of the supported agents below
 
-The VS Code extension is required, not optional. Without it the tour refuses to
-start rather than silently degrading to a worse experience.
+The VS Code extension is what makes the tour *driven*. Without it the tour
+still runs as text and clickable `path:line` links, and says plainly which
+capabilities are unavailable — useful over SSH, in containers, or in editors
+that aren't VS Code.
 
 ## Installation
 
@@ -161,20 +163,26 @@ APIs free of transport concerns.
 | `tour_stop` | Opens a stop's files, as a multi-file diff or as working-tree files, and highlights its ranges |
 | `tour_focus` | Points at one range inside the current stop, with an optional inline note |
 | `tour_clear` | Removes highlights |
-| `tour_selection` | Reads what you've highlighted, so deictic questions land on the right code |
+| `tour_context` | Reads what you're looking at — selection, cursor, enclosing symbol, visible range — so deictic questions land on the right code |
 
 **There is no write path.** The protocol has no verb that modifies a file, so
 "this plugin never edits your code" is a property of its shape rather than a
 promise in a prompt.
 
 Highlighting never moves your cursor or changes your selection. That would
-overwrite the thing `tour_selection` reads, and the selection belongs to you.
+overwrite the thing `tour_context` reads, and the selection belongs to you.
 
 ## Known gaps
 
 - **`${CLAUDE_PLUGIN_ROOT}` substitution in Codex is unverified.** The `codex` binary references the variable, but `codex mcp get` displays it unexpanded. The Codex install instructions above include a check and a manual fallback. This is the one place the cross-agent story rests on an assumption rather than a probe.
-- **`vscode.changes`** — the command driving the multi-file diff editor is built-in but has no formal API contract. A breaking change would mean falling back to per-file `vscode.diff`.
-- **Large stops** may open more tabs than is comfortable. The skill's grouping rules push toward small stops; no hard cap is implemented.
+- **`vscode.changes`** — the command driving the multi-file diff editor is built-in but has no formal API contract. Verified working against 1.138.0; a breaking change would mean falling back to per-file `vscode.diff`.
+- **Lazy decoration.** The multi-file diff editor materializes each file's editors only when you scroll to them, so a stop's highlights land progressively rather than all at once. A file you never scroll to is never highlighted.
+- **Large stops** may open more tabs than is comfortable. The skill classifies bulk and generated changes and samples representatively instead; no hard cap is implemented.
+
+This is the first of two documents. The
+[product spec](docs/superpowers/specs/2026-09-21-tour-changes-product-spec.md)
+records what a tour needs beyond navigation — review state, evidence, rationale
+provenance, and a closeout receipt — and is currently a stub.
 
 ## Development
 

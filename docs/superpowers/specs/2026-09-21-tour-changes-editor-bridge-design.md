@@ -1,6 +1,12 @@
-# tour-changes: editor bridge design
+# tour-changes: VS Code editor bridge v1
 
 Date: 2026-09-21
+
+This document owns transport, pairing, editor operations, and tests. It does
+not own the larger product claim that a tour closes the reviewer's
+understanding gap — see
+[`tour-changes: product spec`](2026-09-21-tour-changes-product-spec.md) for
+review outcomes, tour state, evidence, provenance, and success metrics.
 
 ## Problem
 
@@ -19,15 +25,22 @@ read back whatever the reviewer highlights when they interrupt with a question.
 - The skill opens and highlights code as it narrates, without the reviewer clicking anything.
 - A stop spanning multiple files renders in VS Code's native multi-file diff editor.
 - Within a stop, the skill can point at successively narrower ranges without re-opening files.
-- When the reviewer highlights code and asks "what's this?", the skill can read the selection.
+- When the reviewer asks "what's this?", the skill can read what they are looking at — selection, cursor, or enclosing symbol.
+- Every coordinate the bridge carries is unambiguous about which side of which revision it names.
 - Ships as an installable marketplace plugin that works across agentic coding tools, not Claude Code alone.
+- Degrades to a text-and-links tour, with the loss stated plainly, when the extension is unavailable.
 
 ## Non-goals
 
-- Graceful degradation when the extension is absent. The tour refuses to start instead.
 - Editors other than VS Code. The *agent* is portable; the *editor* is not.
-- A sidebar or tree view of stops. Reviewer-driven navigation is a later addition.
-- Any write path. The bridge displays code; it never modifies it.
+- A sidebar or tree view of stops. The reviewer-facing agenda ships as terminal text in v1.
+- Modifying repository source or configuration as part of a tour.
+
+That last non-goal is deliberately narrower than "no write path." Ephemeral
+decorations, local review state, comment threads, and exportable review
+receipts are all compatible with it; none of them touch the repository. The
+bridge protocol in v1 has no verb that writes anything at all, but that is a v1
+scope decision rather than a permanent invariant.
 
 ## Prior art and rejected approaches
 
@@ -134,6 +147,45 @@ extension boundary and nowhere else.
 **Paths are repository-relative**, resolved against the matched workspace folder
 by the extension. This matches the skill's existing citation convention.
 
+### Diff identity and coordinates
+
+A line number alone does not identify code in a diff. On a modified file, line
+40 of the base and line 40 of the head are different content, and a range over
+deleted lines exists only on the base side. Every coordinate in this protocol
+therefore carries a `side`:
+
+| `side` | Content |
+|---|---|
+| `base` | The file at the pinned base commit |
+| `head` | The file at the pinned head commit |
+| `working` | The file on disk, including uncommitted changes |
+
+**Refs are pinned to immutable commit IDs.** The skill resolves `main`/`HEAD`
+through `git rev-parse` once, at tour start, and the protocol carries only the
+resulting SHAs. Names are retained alongside for display. A commit, rebase, or
+checkout mid-tour cannot silently repoint a stop.
+
+The pinned pair is the **tour's diff identity**, established by the first
+`tour_stop` call and constant for the tour's life. `/stop` rejects a request
+whose `base`/`head` differ from the established identity.
+
+### Uncommitted work
+
+A tour of uncommitted changes has no stable "after" side. v1 resolves this
+explicitly rather than silently:
+
+- `head` may be the literal string `"WORKTREE"` instead of a SHA.
+- When it is, the extension records a SHA-256 of each file it opens, at the moment it opens it.
+- Every subsequent `/stop`, `/focus`, and `/context` re-hashes the files it touches. A mismatch returns `content_drift` naming the changed files.
+
+The skill's response to `content_drift` is to stop and tell the reviewer, not
+to re-resolve silently. Detecting drift is in v1 scope; *recovering* from it by
+rebuilding the tour is deferred to the product spec.
+
+Snapshotting dirty content to a temp ref was considered and rejected for v1: it
+doubles the state to manage and the failure it prevents — the reviewer editing
+during their own review — is better surfaced than hidden.
+
 ### `POST /stop`
 
 Sets the scene for a tour stop.
@@ -141,16 +193,29 @@ Sets the scene for a tour stop.
 ```json
 {
   "protocolVersion": 1,
-  "label": "Stop 2 — extract the retry policy",
+  "stopId": "s2",
+  "index": 2,
+  "total": 7,
+  "label": "Extract the retry policy",
+  "type": "implementation",
   "mode": "diff",
-  "base": "main",
-  "head": "HEAD",
+  "base": { "sha": "4f2a9c1…", "name": "main" },
+  "head": { "sha": "8b71e03…", "name": "HEAD" },
   "files": [
-    { "path": "internal/retry/policy.go", "ranges": [{ "startLine": 12, "endLine": 48 }] },
-    { "path": "internal/client/do.go",    "ranges": [{ "startLine": 88, "endLine": 94 }] }
+    { "path": "internal/retry/policy.go",
+      "ranges": [{ "side": "head", "startLine": 12, "endLine": 48 }] },
+    { "path": "internal/client/do.go",
+      "ranges": [{ "side": "base", "startLine": 88, "endLine": 94 },
+                 { "side": "head", "startLine": 88, "endLine": 91 }] }
   ]
 }
 ```
+
+`type` is one of `context`, `implementation`, `risk`, `evidence`, or
+`limitation`. v1 records it and lets the extension vary the decoration; the
+narration semantics belong to the product spec.
+
+`index`/`total` let the extension render progress without holding tour state.
 
 - `mode: "diff"` — opens the listed files in the native multi-file diff editor via the `vscode.changes` command, titled `label`. Requires `base` and `head`. Left side is a `git:` URI at `base`, right side at `head`; added files omit the left, deleted files omit the right.
 - `mode: "file"` — opens the working-tree files as normal editors and applies the stop decoration to `ranges`.
@@ -171,6 +236,7 @@ decoration.
 {
   "protocolVersion": 1,
   "path": "internal/retry/policy.go",
+  "side": "head",
   "startLine": 31,
   "endLine": 35,
   "note": "backoff is capped here, not in the caller"
@@ -180,31 +246,45 @@ decoration.
 `note`, when present, renders as inline `after`-text at the end of `endLine`.
 
 Focus does not move the cursor or set `editor.selection`. The selection belongs
-to the reviewer; overwriting it would corrupt what `GET /selection` reports.
+to the reviewer; overwriting it would corrupt what `GET /context` reports.
 
 ### `POST /clear`
 
 Clears both decoration types across all visible editors. Does not close tabs.
 
-### `GET /selection`
+### `GET /context`
+
+Answers "what is the reviewer looking at?" — not "what did they select?"
+Reviewers park a cursor, scroll to a region, or say "this function" without
+highlighting anything, so a selection-only endpoint would fail the common case.
 
 ```json
 {
   "ok": true,
-  "selection": {
+  "context": {
     "path": "internal/retry/policy.go",
-    "startLine": 31,
-    "endLine": 35,
-    "text": "…",
-    "contextBefore": "…",
-    "contextAfter": "…"
+    "side": "head",
+    "cursor": { "line": 33, "character": 8 },
+    "selection": { "startLine": 31, "endLine": 35, "text": "…" },
+    "symbol": { "name": "capBackoff", "kind": "function", "startLine": 28, "endLine": 41 },
+    "visibleRange": { "startLine": 18, "endLine": 52 },
+    "nearby": { "before": "…", "after": "…" },
+    "stopId": "s2",
+    "focus": { "path": "internal/retry/policy.go", "side": "head", "startLine": 31, "endLine": 35 }
   }
 }
 ```
 
-`selection` is `null` when the active editor has an empty selection.
-`contextBefore`/`contextAfter` carry 10 lines either side so the skill can
-answer without a separate file read.
+`selection` is `null` when nothing is highlighted; every other field is still
+populated. `symbol` comes from `vscode.executeDocumentSymbolProvider` and is
+`null` when no language server is available.
+
+`nearby` carries 10 lines either side **as a fast path, not as context.** The
+skill is expected to read definitions, callers, tests, or history when the
+question needs them. Proximity is not semantic relevance, and the protocol
+should not tempt the model into treating it as such.
+
+Returns `no_active_editor` when no editor is focused.
 
 ### `GET /status`
 
@@ -222,7 +302,8 @@ answer without a separate file read.
 
 Non-2xx responses carry `{ "ok": false, "error": { "code": "...", "message": "..." } }`.
 Codes: `unauthorized`, `protocol_mismatch`, `bad_request`, `file_not_found`,
-`range_out_of_bounds`, `git_failed`, `no_active_editor`.
+`range_out_of_bounds`, `git_failed`, `no_active_editor`, `content_drift`,
+`diff_identity_mismatch`.
 
 ## Decorations
 
@@ -237,6 +318,28 @@ disposed at deactivation. Clearing is `setDecorations(type, [])`.
 Colors come from `ThemeColor` references rather than literals, so the
 highlights track the reviewer's theme in both light and dark.
 
+### Decorating the multi-file diff editor
+
+`setDecorations` requires a concrete `TextEditor`, and the multi-file diff
+editor does not obviously provide them. A throwaway extension was built to
+settle this against VS Code 1.138.0. Findings:
+
+- `vscode.changes` produces a `TabInputTextMultiDiff` tab whose `textDiffs` array carries an `original`/`modified` `git:` URI pair per file. The `ref` in each URI's query is the authoritative side marker, so `side` maps to a ref and an editor is identified by `(path, ref)`.
+- `setDecorations` **succeeds** on the diff editor's editors. Both sides accept decorations, and `revealRange` works.
+- **Editors materialize lazily.** With two files in the diff, only one file's pair appeared in `window.visibleTextEditors` after the tab opened. The other had no editor at all.
+
+That last point is the load-bearing one. The extension cannot decorate a stop's
+files eagerly. It must:
+
+1. Store the stop's decoration intent — `(path, side, ranges)` — in extension state.
+2. Apply to whatever editors currently exist.
+3. Subscribe to `window.onDidChangeVisibleTextEditors` and apply to matching editors as they materialize.
+4. Drop the intent on `/clear` or on the next `/stop`.
+
+The response to `/stop` reports which files were decorated immediately versus
+deferred, so the skill never claims to be pointing at something the reviewer
+cannot see.
+
 ## MCP tool surface
 
 Five tools, exposed by `mcp/server.js` over stdio.
@@ -247,7 +350,7 @@ Five tools, exposed by `mcp/server.js` over stdio.
 | `tour_stop` | `label`, `mode`, `base?`, `head?`, `files[{path, ranges[{startLine, endLine}]}]` | `POST /stop` |
 | `tour_focus` | `path`, `startLine`, `endLine`, `note?` | `POST /focus` |
 | `tour_clear` | — | `POST /clear` |
-| `tour_selection` | — | `GET /selection` |
+| `tour_context` | — | `GET /context` |
 
 `tour_focus` exists separately from `tour_stop` because re-opening a file for
 every sentence is not what a human walkthrough looks like. The author opens once
@@ -382,14 +485,55 @@ skills are removed per the cross-agent constraints above.
 
 Workflow changes:
 
-- **Step 1** gains a `tour_status` preflight. If the bridge is unreachable, the tour refuses to start and reports the reason. No text-only fallback.
-- **Step 4** calls `tour_stop` before narrating each stop, and `tour_focus` when zooming into a specific construct mid-narration.
-- **Question handling** calls `tour_selection` first when the reviewer's question is deictic ("what's this?", "why here?", "what does that call do?"), so the answer lands on the code they are looking at.
+- **Step 1 — range.** Inspect the repository and *propose* the likely review range with its resolved SHAs, rather than asking the reviewer to formulate a git range. Ask only when genuinely ambiguous. Then `git rev-parse` both ends and pin them for the tour.
+- **Step 1 — preflight.** Call `tour_status`. On success, run the driven tour. On failure, state which capabilities are unavailable, give the one-line install path, and continue as a text-and-links tour. The tour is never blocked on the extension.
+- **Step 3 — agenda.** Present a compact agenda before the first stop: the problem and intended outcome, the stops with types, which are foundational versus supporting, which carry risk or uncertainty, and a rough sense of depth. The previous instruction to build the list silently is reversed. Detail per stop is still deferred until that stop is reached.
+- **Step 4** calls `tour_stop` before narrating and `tour_focus` when zooming into a specific construct mid-narration.
+- **Question handling** calls `tour_context` first when the reviewer's question is deictic ("what's this?", "why here?"). `nearby` is a fast path; read definitions, callers, tests, or history when the question needs them.
 - **Step 5** ends with `tour_clear`.
 
-The `path:line` citation rule is retained. Terminal links and driven editor
-serve different moments: the citation survives scrollback, the highlight does
-not.
+Navigation is reviewer-available, not reviewer-required: `next`, `back`,
+`jump <stop>`, `skip`, `pause`, `resume`, and `overview` are all honored at any
+pause. The agent still drives by default. Persisting this across sessions
+belongs to the product spec; honoring it within one conversation does not.
+
+### Rationale provenance
+
+Every "why" is labeled as one of: **stated** by the user or specification,
+**recorded** by the coding agent during implementation, **repository-derived**
+from commits, comments, or docs, or **reconstructed** by the presenting agent.
+The existing two-way stated/inferred distinction is not enough when the tour
+guide may be a different agent invocation than the author — a reconstructed
+rationale can be fluent and wrong. Capturing the *recorded* category at
+authoring time is deferred; labeling it when present is not.
+
+### Stop types and concerns
+
+Stops are typed (`context`, `implementation`, `risk`, `evidence`,
+`limitation`), and the agenda shows the types. A tour that is entirely
+`implementation` stops is a signal the framing and evidence phases were
+skipped.
+
+The concerns guidance broadens beyond repository-convention violations to
+behavior and failure handling, observability, migration and rollout safety,
+and maintainability. The instruction not to manufacture concerns stands.
+
+### Bulk and generated changes
+
+A stop spanning dozens of files usually means the unit is too broad or the
+change is mechanical. Classify it, explain what generated or transformed it,
+walk one or two representative examples, and state explicitly what was not
+individually reviewed. Do not silently narrate 40 files as one stop, and do not
+pad it into 40 stops.
+
+### Citations
+
+The every-mention citation rule is relaxed. With the editor being driven,
+`path:line` is required for stop headers, jumps to code outside the visible
+stop, answers the reviewer may want to revisit, and the closeout. The editor
+carries moment-to-moment pointing; the transcript carries durable references.
+Under the text-only fallback the original every-mention rule applies, since
+citations are then the only navigation the reviewer has.
 
 ## Testing
 
@@ -401,7 +545,7 @@ workspace folders, a stale lock whose pid is dead, a lock with a mismatched
 **Extension** — `@vscode/test-electron` integration tests driving the HTTP
 surface in a real Extension Development Host: `/status` shape, `/stop` in both
 modes opening the expected tabs, `/focus` range conversion at file boundaries
-(line 1 and last line), `/selection` with and without an active selection,
+(line 1 and last line), `/context` with and without an active selection,
 `/clear` removing decorations. Auth is tested by asserting a missing or wrong
 bearer token yields `unauthorized`.
 
@@ -412,6 +556,29 @@ Development follows TDD per the repository's superpowers workflow.
 
 ## Open risks
 
-- `vscode.changes` is a built-in command without a formal API contract. It has been stable across releases and is already relied on by `git-vscode-diff`, but a breaking change would require falling back to per-file `vscode.diff`.
-- Large stops (dozens of files) may open more tabs than is usable. Deferred: the skill's grouping rules already push toward small stops, and a cap can be added if it becomes a problem in practice.
+- `vscode.changes` and `TabInputTextMultiDiff` are built-ins without a formal API contract. Both were verified against 1.138.0, and `git-vscode-diff` already depends on the former, but a breaking change would require falling back to per-file `vscode.diff`.
+- Lazy editor materialization means a stop's decorations land over time rather than at once. The `/stop` response distinguishes applied from deferred, but a file the reviewer never scrolls to is never decorated. Acceptable for v1; a signal that stops should stay small.
+- `${CLAUDE_PLUGIN_ROOT}` substitution in Codex remains unverified. `install.sh` carries the check and fallback.
 - Remote/WSL split installs. The extension must run on the same side as the workspace. `install.sh` installs into the active remote and `tour_status` reports the resolved workspace so a mismatch is visible immediately.
+
+## Explicitly deferred
+
+Raised in the design review and deliberately out of v1 scope. Each needs a
+state model or a UI subsystem rather than a protocol field, and each is owned
+by the product spec.
+
+| Deferred | v1 enabler already in place |
+|---|---|
+| Review ledger and exportable receipt | Non-goal narrowed to "no repository writes", so nothing blocks it |
+| Cross-session pause/resume | Pinned SHAs and `content_drift` give it a stable identity to resume against |
+| Evidence stops — tests, diagnostics, runtime | `type: "evidence"` exists; the skill can cite tests textually |
+| Narration inside the editor (Comment API or webview) | `note` on `/focus` covers short pointing text |
+| Sidebar tree view with progress | `stopId`, `index`, `total` are on the wire; the agenda ships as terminal text |
+| Provenance captured during the authoring session | The four-way provenance labels apply as soon as an artifact exists |
+| Adversarial review merged into each stop | Concerns guidance already broadened beyond conventions |
+| Comprehension and ownership checks | — |
+| Success metrics and comparative study | — |
+
+The v1 protocol is designed so none of these requires a breaking change: they
+add endpoints, fields, or skill behavior on top of a diff identity that is
+already immutable and coordinates that are already unambiguous.
