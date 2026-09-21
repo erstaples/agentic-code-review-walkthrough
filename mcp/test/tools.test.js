@@ -70,6 +70,15 @@ test("an unknown tool name is rejected", async () => {
   await assert.rejects(() => callTool("tour_nope", {}), /unknown tool/);
 });
 
+test("caller-supplied protocolVersion in args does not override the enforced constant", async () => {
+  const b = await stubBridge({ "POST /stop": [200, { ok: true, opened: ["a.go"], deferred: [] }] });
+  const callTool = createCallTool({ resolveLock: () => ({ port: b.port, authToken: "tok" }) });
+  const args = { stopId: "s1", label: "L", type: "implementation", mode: "file", files: [], protocolVersion: 999 };
+  await callTool("tour_stop", args);
+  assert.strictEqual(b.seen[0].body.protocolVersion, 1, "protocolVersion must be 1, not 999");
+  b.close();
+});
+
 test("every phase-1 tool consumes its contract response fixtures", async () => {
   const fixtures = require("../../contract/fixtures.json");
   const { ROUTES } = require("../../contract/protocol.js");

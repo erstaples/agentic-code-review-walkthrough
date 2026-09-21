@@ -6,7 +6,7 @@ const RANGE = {
   type: "object",
   required: ["side", "startLine", "endLine"],
   properties: {
-    side: { type: "string", enum: ["base", "head", "working"], description: "Which side of the diff these line numbers belong to." },
+    side: { type: "string", enum: ["base", "head", "working"], description: "base: file at the pinned base commit; head: file at the pinned head commit; working: file on disk with uncommitted changes. Use head for added or changed code, base for deleted code, working when touring the working tree." },
     startLine: { type: "integer", description: "1-based inclusive." },
     endLine: { type: "integer", description: "1-based inclusive." },
   },

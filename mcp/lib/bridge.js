@@ -9,7 +9,7 @@ async function request(lock, method, route, body) {
     res = await fetch(url, {
       method,
       headers: { "content-type": "application/json", authorization: `Bearer ${lock.authToken}` },
-      body: method === "GET" ? undefined : JSON.stringify({ protocolVersion: PROTOCOL_VERSION, ...body }),
+      body: method === "GET" ? undefined : JSON.stringify({ ...body, protocolVersion: PROTOCOL_VERSION }),
     });
   } catch (err) {
     throw Object.assign(new Error(`tour bridge at port ${lock.port} did not answer: ${err.message}`), { code: "no_bridge" });
