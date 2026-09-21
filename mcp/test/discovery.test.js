@@ -37,7 +37,7 @@ test("cwd equal to the workspace root resolves", () => {
 });
 
 test("a sibling directory sharing a name prefix does not match", () => {
-  assert.throws(() => call({ "53411.lock": lock() }, "/repo-other/src"), /no_bridge|not open/i);
+  assert.throws(() => call({ "53411.lock": lock() }, "/repo-other/src"), (err) => err.code === "no_bridge");
 });
 
 test("nested workspaces resolve to the longest matching prefix", () => {
@@ -53,14 +53,10 @@ test("two equally specific matches are ambiguous and never guessed", () => {
     "1.lock": lock({ port: 1, workspaceFolders: ["/repo"] }),
     "2.lock": lock({ port: 2, workspaceFolders: ["/repo"] }),
   };
-  let err;
-  try {
-    call(files, "/repo");
-    assert.fail("should have thrown");
-  } catch (e) {
-    err = e;
-  }
-  assert.strictEqual(err.code, "ambiguous_bridge");
+  assert.throws(() => call(files, "/repo"), (err) => {
+    assert.strictEqual(err.code, "ambiguous_bridge");
+    return true;
+  });
 });
 
 test("locks whose process is dead are skipped and unlinked", () => {
@@ -72,27 +68,19 @@ test("locks whose process is dead are skipped and unlinked", () => {
 });
 
 test("no locks at all reports no_bridge", () => {
-  let err;
-  try {
-    call({}, "/repo");
-    assert.fail("should have thrown");
-  } catch (e) {
-    err = e;
-  }
-  assert.strictEqual(err.code, "no_bridge");
+  assert.throws(() => call({}, "/repo"), (err) => {
+    assert.strictEqual(err.code, "no_bridge");
+    return true;
+  });
 });
 
 test("a protocol version mismatch names both versions", () => {
-  let err;
-  try {
-    call({ "1.lock": lock({ protocolVersion: 2 }) }, "/repo");
-    assert.fail("should have thrown");
-  } catch (e) {
-    err = e;
-  }
-  assert.strictEqual(err.code, "protocol_mismatch");
-  assert.match(err.message, /2/);
-  assert.match(err.message, /1/);
+  assert.throws(() => call({ "1.lock": lock({ protocolVersion: 2 }) }, "/repo"), (err) => {
+    assert.strictEqual(err.code, "protocol_mismatch");
+    assert.match(err.message, /2/);
+    assert.match(err.message, /1/);
+    return true;
+  });
 });
 
 test("unparseable lock files are ignored rather than fatal", () => {
