@@ -22,6 +22,14 @@ resolved `git diff` command and proceed unless corrected.
 
 If the diff is empty, report that and stop.
 
+### 1b. Preflight the editor bridge
+
+Call `tour_status`. On success, run a **driven tour**: the editor opens and
+highlights code as you narrate. On failure, say in one line which capabilities
+are unavailable and how to install the extension, then run a **text tour** —
+identical narration, `path:line` citations only. Never block the tour on the
+bridge.
+
 ### 2. Read for context, not just the diff
 
 Read full changed files, not just hunks — grouping and narration both need
@@ -36,11 +44,19 @@ hunk. A rename that touches five files is one stop. A file with two unrelated
 changes is two stops. Order stops so dependencies come first (e.g. a new type
 before the code that uses it) and related stops stay adjacent.
 
-Build the full stop list before narrating the first one, so the tour has a
-known shape (silently — don't dump the list on the reviewer up front, that's
-the narration's job).
+Build the full stop list before narrating, then present a compact agenda: the
+problem and intended outcome, each stop's label and type, which stops are
+foundational versus supporting, and which carry risk or uncertainty. Defer each
+stop's detail until you reach it.
+
+Stop types: `context`, `implementation`, `risk`, `evidence`, `limitation`.
 
 ### 4. Narrate one stop at a time
+
+In a driven tour, call `tour_stop` with the stop's files and ranges before
+narrating, then `tour_focus` as you zoom into a specific construct. Use
+`side: "working"` for ranges in the working tree. Do not call `tour_stop` again
+mid-stop — that is what `tour_focus` is for.
 
 For each stop, cover:
 - **What changed** — concise, not a restatement of the diff the reviewer can
@@ -66,16 +82,20 @@ After the last stop, give a short closing summary: the overall shape of the
 change (what problem it solves end to end), and a roll-up of any concerns
 flagged along the way. Don't repeat the per-stop narration.
 
+End a driven tour with `tour_clear`.
+
 ## Constraints
 
 - Never edit files, run `git add`/`commit`, or post review comments — this
   skill only narrates.
-- Cite code as `<path>:<line>` every time you name a file, function, type, or
-  construct — `<path>:<start>-<end>` for a range. Paths are relative to the
-  repository root, not the module, so they resolve from the reviewer's working
-  directory. This holds everywhere: every part of a stop, the close-out, answers
-  to the reviewer's questions, and references to code outside the diff. The
-  terminal renders them clickable, so a bare name costs the reviewer a search.
+- In a driven tour, cite `<path>:<line>` for stop headers, jumps to code
+  outside the current stop, answers worth revisiting, and the close-out. The
+  editor carries moment-to-moment pointing. In a text tour, cite every file,
+  function, type, or construct you name, since citations are the only
+  navigation available. Use `<path>:<start>-<end>` for a range. Paths are
+  relative to the repository root, not the module, so they resolve from the
+  reviewer's working directory. The terminal renders them clickable, so a bare
+  name costs the reviewer a search.
 - Don't pad stops to hit a target count, and don't merge unrelated changes
   into one stop just to shorten the tour.
 - If a "concern" is really just a style preference with no rule behind it,
