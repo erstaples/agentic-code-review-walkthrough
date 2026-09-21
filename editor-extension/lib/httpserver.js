@@ -1,6 +1,7 @@
 "use strict";
 
 const http = require("node:http");
+const crypto = require("node:crypto");
 const { ERROR_CODES } = require("./contract.js");
 
 const KNOWN_CODES = new Set(ERROR_CODES);
@@ -19,13 +20,15 @@ function readBody(req) {
   return new Promise((resolve, reject) => {
     const chunks = [];
     let size = 0;
+    let limitExceeded = false;
     req.on("data", (c) => {
       size += c.length;
       // A tour payload is kilobytes. Anything larger is a bug or an attack.
-      if (size > 1024 * 1024) { reject(Object.assign(new Error("request too large"), { code: "bad_request" })); req.destroy(); return; }
+      if (size > 1024 * 1024) { limitExceeded = true; return; }
       chunks.push(c);
     });
     req.on("end", () => {
+      if (limitExceeded) return reject(Object.assign(new Error("request too large"), { code: "bad_request" }));
       if (chunks.length === 0) return resolve({});
       try { resolve(JSON.parse(Buffer.concat(chunks).toString("utf8"))); }
       catch { reject(Object.assign(new Error("body is not valid JSON"), { code: "bad_request" })); }
@@ -40,7 +43,18 @@ function startServer({ handlers, authToken, protocolVersion }) {
       if (req.headers.origin !== undefined) {
         return sendError(res, 403, "unauthorized", "browser-originated requests are not accepted");
       }
-      if (req.headers.authorization !== `Bearer ${authToken}`) {
+
+      const expectedToken = `Bearer ${authToken}`;
+      const receivedAuth = req.headers.authorization || "";
+      const expectedHash = crypto.createHash("sha256").update(expectedToken).digest();
+      const receivedHash = crypto.createHash("sha256").update(receivedAuth).digest();
+      let authValid = false;
+      try {
+        authValid = crypto.timingSafeEqual(expectedHash, receivedHash);
+      } catch {
+        authValid = false;
+      }
+      if (!authValid) {
         return sendError(res, 401, "unauthorized", "missing or invalid bearer token");
       }
 

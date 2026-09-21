@@ -112,3 +112,18 @@ test("recognised error codes come from the shared contract, not a local copy", a
     });
   }
 });
+
+test("a request body over 1 MiB is rejected with a proper error response, not connection reset", async () => {
+  await withServer({ "POST /upload": async () => ({}) }, async (base) => {
+    const oversized = Buffer.alloc(1024 * 1024 + 1, "x").toString();
+    const res = await fetch(`${base}/upload`, {
+      method: "POST",
+      headers: { "content-type": "application/json", authorization: `Bearer ${TOKEN}` },
+      body: oversized,
+    });
+    assert.strictEqual(res.status, 400);
+    const body = await res.json();
+    assert.strictEqual(body.ok, false);
+    assert.strictEqual(body.error.code, "bad_request");
+  });
+});
