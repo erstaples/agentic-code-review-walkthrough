@@ -29,8 +29,15 @@ function workspaceRoot() {
 }
 
 function absolute(relPath) {
-  const abs = path.join(workspaceRoot(), relPath);
-  if (!fs.existsSync(abs)) throw fail("file_not_found", `${relPath} does not exist in this workspace`);
+  const root = workspaceRoot();
+  const abs = path.resolve(root, relPath);
+  const rel = path.relative(root, abs);
+  const inside = rel !== "" && rel !== ".." && !rel.startsWith(`..${path.sep}`) && !path.isAbsolute(rel);
+  // A path escaping the workspace reports as missing so the caller learns
+  // nothing about files outside the repository.
+  if (!inside || !fs.existsSync(abs)) {
+    throw fail("file_not_found", `${relPath} does not exist in this workspace`);
+  }
   return abs;
 }
 
@@ -65,7 +72,28 @@ async function openFile(relPath) {
   return doc;
 }
 
+function clearEditor(editor) {
+  try {
+    editor.setDecorations(STOP, []);
+    editor.setDecorations(FOCUS, []);
+  } catch {
+    // the editor was disposed between the lookup and the update
+  }
+}
+
+// Ranges are validated against the file on disk when the request arrives, but
+// decorations apply to the live document. A range the reviewer has since edited
+// away drops that editor's decorations instead of throwing into applyAll's caller.
 function applyTo(editor, store, sideResolver) {
+  try {
+    return decorate(editor, store, sideResolver);
+  } catch {
+    clearEditor(editor);
+    return false;
+  }
+}
+
+function decorate(editor, store, sideResolver) {
   const d = describe(editor);
   if (!d) return false;
   const side = d.side || sideResolver(d.ref);
@@ -94,10 +122,7 @@ function applyAll(store, sideResolver) {
 }
 
 function clearAll() {
-  for (const editor of vscode.window.visibleTextEditors) {
-    editor.setDecorations(STOP, []);
-    editor.setDecorations(FOCUS, []);
-  }
+  for (const editor of vscode.window.visibleTextEditors) clearEditor(editor);
 }
 
 async function reveal(relPath, side, startLine, endLine, sideResolver) {

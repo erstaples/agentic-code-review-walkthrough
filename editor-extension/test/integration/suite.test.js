@@ -64,19 +64,18 @@ module.exports = function register({ test, before, after }) {
   });
 
   test("POST /focus succeeds and leaves the reviewer's selection alone", async () => {
-    const editor = vscode.window.visibleTextEditors.find((e) => e.document.uri.fsPath.endsWith("package.json"));
-    editor.selection = new vscode.Selection(0, 0, 0, 4);
+    const target = () => vscode.window.visibleTextEditors.find((e) => e.document.uri.fsPath.endsWith("package.json"));
+    const snapshot = (s) => [s.start.line, s.start.character, s.end.line, s.end.character];
+    target().selection = new vscode.Selection(0, 0, 0, 4);
     // VS Code clamps a selection to the line's real length asynchronously, so the
     // baseline is only trustworthy once that round trip has landed.
     await sleep(200);
-    const before = editor.selection;
+    const before = snapshot(target().selection);
     const res = await call("POST", "/focus", { path: "package.json", side: "working", startLine: 2, endLine: 2, note: "here" });
     assert.strictEqual(res.ok, true);
+    assert.strictEqual(res.revealed, true, "focus fell back to opening a new editor");
     await sleep(200);
-    assert.strictEqual(editor.selection.start.line, before.start.line);
-    assert.strictEqual(editor.selection.start.character, before.start.character);
-    assert.strictEqual(editor.selection.end.line, before.end.line);
-    assert.strictEqual(editor.selection.end.character, before.end.character);
+    assert.deepStrictEqual(snapshot(target().selection), before);
   });
 
   test("a range past the end of the file is range_out_of_bounds", async () => {
@@ -89,6 +88,40 @@ module.exports = function register({ test, before, after }) {
     const res = await call("POST", "/focus", { path: "does/not/exist.go", side: "working", startLine: 1, endLine: 1 });
     assert.strictEqual(res.ok, false);
     assert.strictEqual(res.error.code, "file_not_found");
+  });
+
+  test("a path escaping the workspace is file_not_found", async () => {
+    const res = await call("POST", "/focus", {
+      path: "../".repeat(12) + "etc/passwd", side: "working", startLine: 1, endLine: 1,
+    });
+    assert.strictEqual(res.ok, false);
+    assert.strictEqual(res.error.code, "file_not_found");
+  });
+
+  // A stop range recorded before the reviewer shortened the file must not escape
+  // applyAll and fail the next unrelated request.
+  test("a stop range left stale by an edit does not fail later requests", async () => {
+    const rel = "tour-stale-range.tmp";
+    const abs = path.join(fixture(), rel);
+    fs.writeFileSync(abs, "a\nb\nc\nd\ne\n");
+    try {
+      const stop = await call("POST", "/stop", {
+        stopId: "s2", index: 1, total: 1, label: "Stale", type: "implementation", mode: "file",
+        files: [{ path: rel, ranges: [{ side: "working", startLine: 1, endLine: 5 }] }],
+      });
+      assert.strictEqual(stop.ok, true);
+
+      const doc = await vscode.workspace.openTextDocument(vscode.Uri.file(abs));
+      const edit = new vscode.WorkspaceEdit();
+      edit.replace(doc.uri, new vscode.Range(0, 0, doc.lineCount, 0), "a\n");
+      assert.strictEqual(await vscode.workspace.applyEdit(edit), true);
+      await doc.save();
+
+      const res = await call("POST", "/focus", { path: rel, side: "working", startLine: 1, endLine: 1 });
+      assert.strictEqual(res.ok, true, JSON.stringify(res));
+    } finally {
+      fs.rmSync(abs, { force: true });
+    }
   });
 
   test("POST /clear succeeds without closing tabs", async () => {
