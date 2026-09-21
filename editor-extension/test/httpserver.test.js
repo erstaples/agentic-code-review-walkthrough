@@ -127,3 +127,27 @@ test("a request body over 1 MiB is rejected with a proper error response, not co
     assert.strictEqual(body.error.code, "bad_request");
   });
 });
+
+test("close() resolves even when a client is holding a half-sent request", async () => {
+  const net = require("node:net");
+  const server = await startServer({ handlers: {}, authToken: TOKEN, protocolVersion: 1 });
+  const sock = net.connect(server.port, "127.0.0.1");
+  try {
+    await new Promise((resolve, reject) => { sock.once("connect", resolve); sock.once("error", reject); });
+    sock.write("GET /status?protocolVersion=1 HTTP/1.1\r\nHost: x\r\n");
+    await new Promise((resolve) => setTimeout(resolve, 100));
+    await Promise.race([
+      server.close(),
+      new Promise((_, reject) => setTimeout(() => reject(new Error("close() did not resolve")), 3000)),
+    ]);
+  } finally {
+    sock.destroy();
+  }
+});
+
+test("a listening server does not on its own keep its host process alive", () => {
+  const { execFileSync } = require("node:child_process");
+  const script = `require(${JSON.stringify(require.resolve("../lib/httpserver.js"))})
+    .startServer({ handlers: {}, authToken: "t", protocolVersion: 1 });`;
+  execFileSync(process.execPath, ["-e", script], { timeout: 5000 });
+});

@@ -77,14 +77,28 @@ function startServer({ handlers, authToken, protocolVersion }) {
     }
   });
 
+  const sockets = new Set();
+  server.on("connection", (socket) => {
+    sockets.add(socket);
+    socket.once("close", () => sockets.delete(socket));
+  });
+
   return new Promise((resolve, reject) => {
     server.once("error", reject);
     server.listen(0, "127.0.0.1", () => {
+      // An idle tour server must not keep its host process alive; in-flight
+      // requests still hold the loop open through their accepted sockets.
+      server.unref();
       const addr = server.address();
       resolve({
         port: addr.port,
         address: addr.address,
-        close: () => new Promise((done) => server.close(done)),
+        close: () =>
+          new Promise((done) => {
+            // close() alone waits forever on a client holding a half-sent request.
+            server.close(() => done());
+            for (const socket of sockets) socket.destroy();
+          }),
       });
     });
   });

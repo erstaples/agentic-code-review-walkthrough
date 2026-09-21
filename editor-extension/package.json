@@ -9,5 +9,14 @@
   "engines": { "vscode": "^1.90.0" },
   "categories": ["Other"],
   "activationEvents": ["onStartupFinished"],
-  "main": "./extension.js"
+  "main": "./extension.js",
+  "devDependencies": {
+    "@vscode/test-electron": "^2.4.1",
+    "@vscode/vsce": "^3.2.1"
+  },
+  "scripts": {
+    "test:unit": "node --test 'test/*.test.js'",
+    "test:integration": "xvfb-run -a node test/integration/runner.js",
+    "package": "vsce package --allow-missing-repository --out claude-tour-0.1.0.vsix"
+  }
 }
