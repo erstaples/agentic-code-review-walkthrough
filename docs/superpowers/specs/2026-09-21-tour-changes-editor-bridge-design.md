@@ -29,18 +29,21 @@ read back whatever the reviewer highlights when they interrupt with a question.
 - Every coordinate the bridge carries is unambiguous about which side of which revision it names.
 - Ships as an installable marketplace plugin that works across agentic coding tools, not Claude Code alone.
 - Degrades to a text-and-links tour, with the loss stated plainly, when the extension is unavailable.
+- The reviewer can request a change in the moment and have it applied, confirmed and recorded, without losing the tour.
 
 ## Non-goals
 
 - Editors other than VS Code. The *agent* is portable; the *editor* is not.
 - A sidebar or tree view of stops. The reviewer-facing agenda ships as terminal text in v1.
-- Modifying repository source or configuration as part of a tour.
+- **Any write verb in the bridge protocol.** The extension cannot modify a file, and no endpoint asks it to.
 
-That last non-goal is deliberately narrower than "no write path." Ephemeral
-decorations, local review state, comment threads, and exportable review
-receipts are all compatible with it; none of them touch the repository. The
-bridge protocol in v1 has no verb that writes anything at all, but that is a v1
-scope decision rather than a permanent invariant.
+That last non-goal survives mid-review edits intact, because the bridge is not
+what performs them. The agent already has file-editing tools; the bridge's job
+is to show code, not to change it. Keeping the protocol write-free means
+"installing this extension cannot alter your repository" stays a property of
+the software rather than a promise in a prompt, while the edit capability lives
+in the skill where it is governed by explicit confirmation and recorded in the
+ledger.
 
 ## Prior art and rejected approaches
 
@@ -185,6 +188,51 @@ rebuilding the tour is deferred to the product spec.
 Snapshotting dirty content to a temp ref was considered and rejected for v1: it
 doubles the state to manage and the failure it prevents — the reviewer editing
 during their own review — is better surfaced than hidden.
+
+### Mid-review edits
+
+Giving feedback in the moment is part of what makes an over-the-shoulder review
+work. Deferring every requested change to the end loses the context that
+prompted it. The skill may therefore apply changes during a tour, subject to
+three constraints.
+
+**The tour narrates the pinned base/head throughout.** Stops anchored to `base`
+or `head` reference git blobs, which no working-tree edit can perturb. The
+reviewed artifact stays still while it is being annotated. Only `working`-side
+anchors are affected by an edit, and the skill recomputes those before using
+them again.
+
+The cost of an edit is therefore conditional, and worth stating plainly: **cheap
+when touring committed work, expensive when touring a dirty tree**, because in
+the dirty-tree case the tour's "after" side is the thing being edited.
+
+**Deliberate change is distinguished from drift.** `content_drift` exists to
+catch the ground moving under a tour. An applied edit moves it on purpose, so
+after applying, the skill calls `/rebaseline` for the affected paths. Drift
+reported without a preceding rebaseline is unexpected and still stops the tour.
+
+**Every edit is confirmed and recorded.** The skill states what it proposes to
+change and why, in terms of the stop that prompted it, and applies only on an
+explicit yes. The edit then becomes a ledger entry — file, range, rationale,
+and the stop it came from — so the closeout receipt can distinguish code that
+was reviewed from code that was written during the review.
+
+Edits land in the working tree as normal changes. They are not staged,
+committed, or branched by the tour. Attribution lives in the ledger rather than
+in git, which keeps the feature working on a detached HEAD, on someone else's
+branch, and alongside the reviewer's own uncommitted work.
+
+### `POST /rebaseline`
+
+Re-hashes the named paths and returns the new digests, clearing `content_drift`
+for them. Called by the skill immediately after applying an edit.
+
+```json
+{ "protocolVersion": 1, "paths": ["internal/retry/policy.go"], "reason": "applied review edit at stop 2" }
+```
+
+`reason` is recorded in the extension's log for diagnosis. The endpoint reads
+and hashes; it does not write.
 
 ### `POST /stop`
 
@@ -342,22 +390,25 @@ cannot see.
 
 ## MCP tool surface
 
-Five tools, exposed by `mcp/server.js` over stdio.
+Six tools, exposed by `mcp/server.js` over stdio.
 
 | Tool | Args | Maps to |
 |---|---|---|
 | `tour_status` | — | `GET /status` |
-| `tour_stop` | `label`, `mode`, `base?`, `head?`, `files[{path, ranges[{startLine, endLine}]}]` | `POST /stop` |
-| `tour_focus` | `path`, `startLine`, `endLine`, `note?` | `POST /focus` |
+| `tour_stop` | `stopId`, `label`, `type`, `mode`, `base`, `head`, `files[{path, ranges[{side, startLine, endLine}]}]` | `POST /stop` |
+| `tour_focus` | `path`, `side`, `startLine`, `endLine`, `note?` | `POST /focus` |
 | `tour_clear` | — | `POST /clear` |
 | `tour_context` | — | `GET /context` |
+| `tour_rebaseline` | `paths`, `reason` | `POST /rebaseline` |
 
 `tour_focus` exists separately from `tour_stop` because re-opening a file for
 every sentence is not what a human walkthrough looks like. The author opens once
 and points repeatedly.
 
-The protocol has no write verbs, so the skill's "never edit files" constraint
-holds by construction rather than by instruction.
+No tool in this surface writes to a file. `tour_rebaseline` reads and hashes;
+everything else displays. Mid-review edits are performed by the agent's own
+editing tools under the confirmation and recording rules above, which keeps the
+bridge's read-only property structural rather than instructional.
 
 ## Repository layout
 
@@ -526,6 +577,52 @@ walk one or two representative examples, and state explicitly what was not
 individually reviewed. Do not silently narrate 40 files as one stop, and do not
 pad it into 40 stops.
 
+### The ledger and the receipt
+
+An edit with nowhere to be recorded is the untracked follow-up item this
+feature exists to prevent, so v1 carries a minimal ledger. It is in-session
+state the agent maintains — not a persisted subsystem — holding:
+
+- Stops visited, skipped, or partially covered.
+- Questions asked and the answers given.
+- Concerns raised and their disposition.
+- Edits applied: file, range, rationale, and the stop that prompted them.
+- Requested follow-up the reviewer chose not to make now.
+- What was not covered.
+
+At closeout the skill renders a **receipt** from it, distinguishing at minimum:
+understood and reviewed; reviewed with a concern; changed during review;
+deferred by the reviewer; not covered. The receipt is printed. Writing it to a
+file or publishing it to a forge is a separate action the reviewer asks for
+explicitly.
+
+Cross-session persistence, drift detection on resume, and forge publishing
+remain deferred to the product spec. What v1 guarantees is that nothing said or
+changed during a tour is lost by the end of it.
+
+### Mid-review edits
+
+When the reviewer asks for a change:
+
+1. State what will change and why, in terms of the stop that prompted it.
+2. Show the proposed change.
+3. Apply only on an explicit yes.
+4. Call `tour_rebaseline` for the touched paths.
+5. Record the edit in the ledger.
+6. Recompute any `working`-side anchors in later stops before using them.
+7. Return to the tour at the point it paused.
+
+If the reviewer declines, or defers, the request still becomes a ledger entry —
+a deferred change is exactly the thing that gets lost otherwise.
+
+The skill does not stage, commit, or branch. Edits land in the working tree as
+ordinary changes, and attribution lives in the ledger, so this works on a
+detached HEAD, on someone else's branch, and alongside the reviewer's own
+uncommitted work.
+
+Under the text-only fallback this behavior is unchanged except that step 4 is
+skipped, since there is no bridge holding hashes.
+
 ### Citations
 
 The every-mention citation rule is relaxed. With the editor being driven,
@@ -569,10 +666,11 @@ by the product spec.
 
 | Deferred | v1 enabler already in place |
 |---|---|
-| Review ledger and exportable receipt | Non-goal narrowed to "no repository writes", so nothing blocks it |
-| Cross-session pause/resume | Pinned SHAs and `content_drift` give it a stable identity to resume against |
+| Cross-session ledger persistence and resume | Minimal in-session ledger and printed receipt ship in v1; pinned SHAs and `content_drift` give resume a stable identity |
+| Publishing the receipt to GitHub/GitLab | The receipt exists and is rendered; only the export path is missing |
 | Evidence stops — tests, diagnostics, runtime | `type: "evidence"` exists; the skill can cite tests textually |
 | Narration inside the editor (Comment API or webview) | `note` on `/focus` covers short pointing text |
+| Proposed edits previewed as an editor diff | v1 shows them in the terminal before confirming |
 | Sidebar tree view with progress | `stopId`, `index`, `total` are on the wire; the agenda ships as terminal text |
 | Provenance captured during the authoring session | The four-way provenance labels apply as soon as an artifact exists |
 | Adversarial review merged into each stop | Concerns guidance already broadened beyond conventions |

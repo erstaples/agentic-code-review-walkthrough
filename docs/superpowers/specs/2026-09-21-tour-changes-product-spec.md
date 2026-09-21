@@ -56,21 +56,37 @@ v1 is strongest in the middle. This spec owns the ends.
 
 ### Tour state and lifecycle
 
-A durable record of a tour: stops visited, skipped, or partially covered;
-reviewer questions and the answers given; concerns and their disposition;
-assumptions and inferred rationale; requested follow-up; evidence examined;
-what remains unreviewed.
+**Partially in v1.** Mid-review edits pulled a minimal in-session ledger into
+the bridge spec: stops covered, questions and answers, concerns and
+disposition, edits applied, deferred follow-up, what was not covered. It is
+state the agent maintains within one conversation, rendered as a printed
+receipt at closeout.
 
-Requires deciding where state lives, its schema, its lifecycle, and what
-happens when it goes stale. The bridge's pinned SHAs and `content_drift` error
-give it a stable identity to attach to.
+What remains here is making it durable — where state lives, its schema, its
+lifecycle, and what happens when it goes stale. The bridge's pinned SHAs and
+`content_drift` error give resume a stable identity to attach to.
 
 ### Review receipt
 
-A closeout artifact distinguishing at least: understood and reviewed; reviewed
-with a concern; deferred by the reviewer; not covered; blocked by missing
-evidence. Local by default. Publishing to a forge is a separate, explicitly
-authorized action.
+**Partially in v1.** The receipt is rendered at closeout, distinguishing
+understood and reviewed; reviewed with a concern; changed during review;
+deferred by the reviewer; not covered.
+
+What remains here is export: writing it as a durable artifact, adding a
+"blocked by missing evidence" category once evidence stops exist, and
+publishing to a forge as a separate, explicitly authorized action.
+
+### Mid-review changes beyond confirm-then-apply
+
+v1 applies reviewer-requested changes to the working tree on explicit
+confirmation, recording each in the ledger. Attribution lives in the ledger
+rather than in git, which keeps it working on a detached HEAD and on branches
+the reviewer does not own.
+
+Open beyond v1: previewing a proposed change as an editor diff rather than
+terminal text; landing review edits as a separable commit or patch; and the
+question of who reviews changes an agent made during a review — a trust
+inversion v1 answers only by requiring confirmation.
 
 ### Evidence model
 

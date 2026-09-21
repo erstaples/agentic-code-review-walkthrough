@@ -29,8 +29,14 @@ As it zooms in on a particular function it highlights that range specifically,
 so you're always looking at the code being discussed.
 
 Then it stops and waits. You can ask a question, say "next", go back, or jump
-to a named stop. If you highlight something in the editor and ask "what's
-this?", the agent reads your selection and answers about that code.
+to a named stop. If you point at something in the editor and ask "what's
+this?", the agent reads where you're looking — selection, cursor, or enclosing
+symbol — and answers about that code.
+
+You can also ask for a change on the spot. The agent shows what it proposes,
+applies it once you agree, and logs it. At the end you get a receipt covering
+what was reviewed, what was changed, what you deferred, and what wasn't
+covered.
 
 ## Requirements
 
@@ -164,10 +170,20 @@ APIs free of transport concerns.
 | `tour_focus` | Points at one range inside the current stop, with an optional inline note |
 | `tour_clear` | Removes highlights |
 | `tour_context` | Reads what you're looking at — selection, cursor, enclosing symbol, visible range — so deictic questions land on the right code |
+| `tour_rebaseline` | Re-hashes files after an approved mid-review edit, so a deliberate change isn't reported as drift |
 
-**There is no write path.** The protocol has no verb that modifies a file, so
-"this plugin never edits your code" is a property of its shape rather than a
-promise in a prompt.
+**The bridge has no write verb.** No endpoint modifies a file, so "installing
+this extension cannot alter your repository" is a property of the software
+rather than a promise in a prompt.
+
+Mid-review edits are performed by your agent's own editing tools, not by the
+bridge. When you ask for a change during a tour, the agent says what it will
+change and why, shows it, and applies it only on an explicit yes — then records
+it in the review ledger. Declined and deferred requests are recorded too, since
+those are the ones that otherwise get lost.
+
+Throughout, the tour keeps narrating the pinned base/head commits, so the code
+under review stays still while you annotate it.
 
 Highlighting never moves your cursor or changes your selection. That would
 overwrite the thing `tour_context` reads, and the selection belongs to you.
