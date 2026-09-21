@@ -52,3 +52,23 @@ test("unknown methods return JSON-RPC error -32601", async () => {
   const res = await make().handle({ jsonrpc: "2.0", id: 5, method: "nope", params: {} });
   assert.strictEqual(res.error.code, -32601);
 });
+
+test("a tool error with .code serializes both code and message", async () => {
+  const err = new Error("content drift");
+  err.code = "content_drift";
+  const d = make(async () => { throw err; });
+  const res = await d.handle({ jsonrpc: "2.0", id: 6, method: "tools/call", params: { name: "tour_status", arguments: {} } });
+  assert.strictEqual(res.result.isError, true);
+  const content = JSON.parse(res.result.content[0].text);
+  assert.strictEqual(content.code, "content_drift");
+  assert.strictEqual(content.message, "content drift");
+});
+
+test("a tool error without .code uses a generic code", async () => {
+  const d = make(async () => { throw new Error("unexpected failure"); });
+  const res = await d.handle({ jsonrpc: "2.0", id: 7, method: "tools/call", params: { name: "tour_status", arguments: {} } });
+  assert.strictEqual(res.result.isError, true);
+  const content = JSON.parse(res.result.content[0].text);
+  assert.ok(content.code);
+  assert.strictEqual(content.message, "unexpected failure");
+});

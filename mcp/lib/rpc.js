@@ -38,7 +38,11 @@ function createDispatcher({ serverInfo, tools, callTool }) {
           const result = await callTool(name, args || {});
           return reply({ content: [{ type: "text", text: JSON.stringify(result, null, 2) }] });
         } catch (err) {
-          return reply({ content: [{ type: "text", text: String(err && err.message ? err.message : err) }], isError: true });
+          const errorObj = {
+            code: err?.code || "internal_error",
+            message: err?.message || String(err)
+          };
+          return reply({ content: [{ type: "text", text: JSON.stringify(errorObj) }], isError: true });
         }
       }
       default:
