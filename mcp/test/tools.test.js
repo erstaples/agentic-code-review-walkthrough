@@ -101,3 +101,26 @@ test("every phase-1 tool consumes its contract response fixtures", async () => {
     }
   }
 });
+
+test("tour_stop accepts both modes and requires pinned refs", () => {
+  const stop = TOOLS.find((t) => t.name === "tour_stop");
+  assert.deepStrictEqual(stop.inputSchema.properties.mode.enum, ["file", "diff"]);
+  for (const key of ["base", "head"]) {
+    assert.deepStrictEqual(stop.inputSchema.properties[key].required, ["sha", "name"]);
+  }
+  assert.ok(stop.inputSchema.required.includes("base"));
+  assert.ok(stop.inputSchema.required.includes("head"));
+});
+
+test("the diff-mode fixture round-trips through tour_stop", async () => {
+  const fixtures = require("../../contract/fixtures.json");
+  const diffRequest = fixtures.tour_stop.requests.find((r) => r.body.mode === "diff");
+  assert.ok(diffRequest, "contract has no diff-mode request fixture");
+  const b = await stubBridge({ "POST /stop": [200, { ok: true, opened: ["internal/client/do.go"], deferred: [] }] });
+  const callTool = createCallTool({ resolveLock: () => ({ port: b.port, authToken: "tok" }) });
+  const { protocolVersion, ...args } = diffRequest.body;
+  await callTool("tour_stop", args);
+  assert.strictEqual(b.seen[0].body.base.sha, diffRequest.body.base.sha);
+  assert.strictEqual(b.seen[0].body.head.sha, diffRequest.body.head.sha);
+  b.close();
+});

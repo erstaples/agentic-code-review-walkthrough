@@ -23,14 +23,16 @@ const TOOLS = [
     description: "Open a tour stop's files and highlight its ranges. Replaces the previous stop's highlights. Call once per stop, before narrating it.",
     inputSchema: {
       type: "object",
-      required: ["stopId", "label", "type", "mode", "files"],
+      required: ["stopId", "label", "type", "mode", "base", "head", "files"],
       properties: {
         stopId: { type: "string" },
         index: { type: "integer", description: "1-based position of this stop in the tour." },
         total: { type: "integer" },
         label: { type: "string" },
         type: { type: "string", enum: ["context", "implementation", "risk", "evidence", "limitation"] },
-        mode: { type: "string", enum: ["file"], description: "Phase 1 supports file mode only." },
+        mode: { type: "string", enum: ["file", "diff"], description: "Use \"diff\" to render the stop in the native multi-file diff editor -- correct for touring committed work. Use \"file\" for working-tree files." },
+        base: { type: "object", required: ["sha", "name"], properties: { sha: { type: "string" }, name: { type: "string" } }, description: "Pinned base commit. Resolve with git rev-parse before the first stop and reuse it for every stop in the tour." },
+        head: { type: "object", required: ["sha", "name"], properties: { sha: { type: "string" }, name: { type: "string" } }, description: "Pinned head commit, or sha \"WORKTREE\" for a tour of uncommitted work." },
         files: {
           type: "array",
           items: {
