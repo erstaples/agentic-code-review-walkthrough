@@ -20,6 +20,14 @@ the reviewer to formulate one. Common shapes: current branch vs the default
 branch, working tree vs `HEAD`, a commit range, or a fetched MR/PR. State the
 resolved `git diff` command and proceed unless corrected.
 
+Then **pin it**. Run `git rev-parse --verify <ref>^{commit}` on both ends and
+carry the resulting SHAs for the rest of the tour, keeping the human-readable
+names for display. For a tour of uncommitted work, use the literal head sha
+`"WORKTREE"`.
+
+Pinning is what keeps a commit, rebase, or checkout during the tour from
+silently repointing a stop you have already narrated.
+
 If the diff is empty, report that and stop.
 
 ### 1b. Preflight the editor bridge
@@ -53,10 +61,19 @@ Stop types: `context`, `implementation`, `risk`, `evidence`, `limitation`.
 
 ### 4. Narrate one stop at a time
 
-In a driven tour, call `tour_stop` with the stop's files and ranges before
-narrating, then `tour_focus` as you zoom into a specific construct. Use
-`side: "working"` for ranges in the working tree. Do not call `tour_stop` again
-mid-stop — that is what `tour_focus` is for.
+In a driven tour, call `tour_stop` before narrating, passing the pinned `base`
+and `head` on every call. Use `mode: "diff"` when touring committed work — the
+stop renders as a real side-by-side diff — and `mode: "file"` when touring the
+working tree. Anchor ranges with `side: "head"` for added or changed code,
+`side: "base"` for code that was deleted, and `side: "working"` only in file
+mode.
+
+Then `tour_focus` as you zoom into a specific construct. Do not call
+`tour_stop` again mid-stop; that is what `tour_focus` is for.
+
+If `tour_stop` returns a non-empty `deferred` list, those files have not been
+highlighted yet — the diff editor materializes them on scroll. Do not claim to
+be pointing at code in a deferred file.
 
 For each stop, cover:
 - **What changed** — concise, not a restatement of the diff the reviewer can
