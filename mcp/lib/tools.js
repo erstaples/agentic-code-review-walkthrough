@@ -15,7 +15,7 @@ const RANGE = {
 const TOOLS = [
   {
     name: "tour_status",
-    description: "Preflight the editor bridge. Returns the extension version and the workspace folders of the VS Code window that owns the current directory. Call this before starting a tour; if it fails, run the tour as text and links instead.",
+    description: "Preflight the editor bridge. Returns the extension version, the workspace folders of the VS Code window that owns the current directory, and the current stop's deferred (path, side) pairs -- files not yet decorated because their editor hasn't materialized. Call this before starting a tour; if it fails, run the tour as text and links instead.",
     inputSchema: { type: "object", properties: {} },
   },
   {

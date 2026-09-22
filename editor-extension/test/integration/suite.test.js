@@ -81,6 +81,28 @@ module.exports = function register({ test, before, after }) {
     return { dir, base, head, padCount };
   }
 
+  // updateWorkspaceFolders resolving doesn't mean the git extension has
+  // attached a Repository for the new folder; every git: URI read against it
+  // 404s until that scan completes. Passively waiting on the extension's own
+  // onDidOpenRepository (auto-detection) was tried first and empirically
+  // times out on a real fraction of runs, not just slow -- openRepository()'s
+  // returned promise is the authoritative "it's open" signal instead.
+  async function waitForGitRepository(fsPath, timeoutMs = 10000) {
+    const gitExtension = vscode.extensions.getExtension("vscode.git");
+    assert.ok(gitExtension, "the vscode.git extension is not available in this test host");
+    const exports = await gitExtension.activate();
+    const api = exports.getAPI(1);
+
+    const matches = (repo) => repo.rootUri.fsPath === fsPath;
+    if (api.repositories.some(matches)) return;
+
+    const timeout = new Promise((_, reject) =>
+      setTimeout(() => reject(new Error(`timed out after ${timeoutMs}ms waiting for the git extension to open a repository at ${fsPath}`)), timeoutMs)
+    );
+    const repo = await Promise.race([api.openRepository(vscode.Uri.file(fsPath)), timeout]);
+    assert.ok(repo, `the git extension could not open a repository at ${fsPath}`);
+  }
+
   test("GET /status reports the workspace this window owns", async () => {
     const res = await call("GET", "/status");
     assert.strictEqual(res.ok, true);
@@ -262,6 +284,7 @@ module.exports = function register({ test, before, after }) {
     assert.ok(swapped, "failed to swap the fixture repo in as the workspace root");
     await sleep(500);
     assert.strictEqual(vscode.workspace.workspaceFolders[0].uri.fsPath, diff.dir);
+    await waitForGitRepository(diff.dir);
   });
 
   test("POST /stop in diff mode opens the multi-file diff editor covering added, modified, deleted, and renamed files", async () => {

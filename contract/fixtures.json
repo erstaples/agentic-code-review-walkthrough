@@ -2,7 +2,7 @@
   "tour_status": {
     "requests": [{ "query": { "protocolVersion": 1 }, "body": {} }],
     "responses": [
-      { "ok": true, "protocolVersion": 1, "extensionVersion": "0.1.0", "ideName": "Visual Studio Code", "workspaceFolders": ["/repo"] },
+      { "ok": true, "protocolVersion": 1, "extensionVersion": "0.1.0", "ideName": "Visual Studio Code", "workspaceFolders": ["/repo"], "deferred": [] },
       { "ok": false, "error": { "code": "unauthorized", "message": "missing or invalid bearer token" } }
     ]
   },
@@ -29,7 +29,7 @@
       { "body": { "protocolVersion": 1, "path": "internal/retry/policy.go", "side": "head", "startLine": 31, "endLine": 35, "note": "backoff is capped here, not in the caller" } }
     ],
     "responses": [
-      { "ok": true, "revealed": true },
+      { "ok": true, "revealed": true, "deferred": [{ "path": "internal/client/do.go", "side": "head" }] },
       { "ok": false, "error": { "code": "range_out_of_bounds", "message": "lines 99999-99999 fall outside 48-line file" } },
       { "ok": false, "error": { "code": "file_not_found", "message": "does/not/exist.go does not exist in this workspace" } }
     ]
