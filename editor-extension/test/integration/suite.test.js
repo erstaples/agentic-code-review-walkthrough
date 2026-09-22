@@ -18,10 +18,6 @@ module.exports = function register({ test, before, after }) {
   let base;
 
   before(async () => {
-    // The fixture workspace is a subfolder of this project's own repo, so the
-    // bundled git extension's default "prompt" leaves the enclosing repo
-    // undetected in a headless run. This only touches the throwaway test profile.
-    await vscode.workspace.getConfiguration("git").update("openRepositoryInParentFolders", "always", vscode.ConfigurationTarget.Global);
     await vscode.extensions.getExtension("estaples.claude-tour").activate();
     const dir = path.join(os.homedir(), ".claude", "tour");
     for (let i = 0; i < 40 && !lock; i++) {
@@ -49,7 +45,41 @@ module.exports = function register({ test, before, after }) {
     }).then((r) => r.json());
 
   const fixture = () => vscode.workspace.workspaceFolders[0].uri.fsPath;
-  const gitIn = (...args) => cp.execFileSync("git", args, { cwd: fixture(), encoding: "utf8" }).trim();
+
+  // Diff-mode tests need known A/D/M/R commits, not whatever this project's own
+  // history happens to contain when the suite runs (unrelated commits on this
+  // branch touch nothing under editor-extension/, which starves that coupling).
+  //
+  // padCount pads the diff with extra modified files. A 4-file diff of tiny
+  // files renders every pane synchronously in this environment, which starves
+  // the reactive-materialization test; 30 padding files reliably leaves most
+  // panes deferred (observed ~27/34 immediately after /stop).
+  function buildDiffFixtureRepo(padCount = 0) {
+    const dir = fs.mkdtempSync(path.join(os.tmpdir(), "tour-diff-fixture-"));
+    const git = (...args) => cp.execFileSync("git", args, { cwd: dir, encoding: "utf8" }).trim();
+    git("init", "-q", "-b", "main");
+    git("config", "user.email", "t@example.com");
+    git("config", "user.name", "T");
+
+    fs.writeFileSync(path.join(dir, "modified.txt"), "one\n");
+    fs.writeFileSync(path.join(dir, "deleted.txt"), "bye\n");
+    fs.writeFileSync(path.join(dir, "old-name.txt"), "renamed content\n");
+    for (let i = 0; i < padCount; i++) fs.writeFileSync(path.join(dir, `pad${i}.txt`), "x".repeat(200) + "\n".repeat(50));
+    git("add", "-A");
+    git("commit", "-qm", "base");
+    const base = git("rev-parse", "HEAD");
+
+    fs.writeFileSync(path.join(dir, "modified.txt"), "one\ntwo\n");
+    fs.rmSync(path.join(dir, "deleted.txt"));
+    fs.renameSync(path.join(dir, "old-name.txt"), path.join(dir, "new-name.txt"));
+    fs.writeFileSync(path.join(dir, "added.txt"), "brand new\n");
+    for (let i = 0; i < padCount; i++) fs.writeFileSync(path.join(dir, `pad${i}.txt`), "y".repeat(200) + "\n".repeat(50));
+    git("add", "-A");
+    git("commit", "-qm", "head");
+    const head = git("rev-parse", "HEAD");
+
+    return { dir, base, head, padCount };
+  }
 
   test("GET /status reports the workspace this window owns", async () => {
     const res = await call("GET", "/status");
@@ -170,44 +200,180 @@ module.exports = function register({ test, before, after }) {
     assert.strictEqual(openTabs(), before);
   });
 
-  test("POST /stop in diff mode opens the multi-file diff editor", async () => {
-    const head = gitIn("rev-parse", "HEAD");
-    const base = gitIn("rev-parse", "HEAD~1");
-    // fixture() is a subdirectory of the outer repo, so plain --name-only would
-    // report repo-root-relative paths; --relative matches what changedFiles() returns.
-    const changed = gitIn("diff", "--name-only", "--relative", base, head).split("\n").filter(Boolean);
-    assert.ok(changed.length > 0, "fixture repo needs at least one changed file");
+  let diff;
 
+  test("swaps in a dedicated fixture repo covering added, modified, deleted, and renamed files", async () => {
+    diff = buildDiffFixtureRepo(30);
+    diff.originalFolderUri = vscode.workspace.workspaceFolders[0].uri;
+    const swapped = vscode.workspace.updateWorkspaceFolders(0, 1, { uri: vscode.Uri.file(diff.dir) });
+    assert.ok(swapped, "failed to swap the fixture repo in as the workspace root");
+    await sleep(500);
+    assert.strictEqual(vscode.workspace.workspaceFolders[0].uri.fsPath, diff.dir);
+  });
+
+  test("POST /stop in diff mode opens the multi-file diff editor covering added, modified, deleted, and renamed files", async () => {
     await call("POST", "/clear", {});
+    const padFiles = Array.from({ length: diff.padCount }, (_, i) => ({ path: `pad${i}.txt`, ranges: [{ side: "head", startLine: 1, endLine: 1 }] }));
     const res = await call("POST", "/stop", {
       stopId: "d1", index: 1, total: 1, label: "Diff smoke", type: "implementation", mode: "diff",
-      base: { sha: base, name: "HEAD~1" }, head: { sha: head, name: "HEAD" },
-      files: changed.map((p) => ({ path: p, ranges: [{ side: "head", startLine: 1, endLine: 1 }] })),
+      base: { sha: diff.base, name: "base" }, head: { sha: diff.head, name: "head" },
+      files: [
+        { path: "modified.txt", ranges: [{ side: "base", startLine: 1, endLine: 1 }, { side: "head", startLine: 1, endLine: 1 }] },
+        { path: "added.txt", ranges: [{ side: "head", startLine: 1, endLine: 1 }] },
+        { path: "deleted.txt", ranges: [{ side: "base", startLine: 1, endLine: 1 }] },
+        { path: "new-name.txt", ranges: [{ side: "base", startLine: 1, endLine: 1 }, { side: "head", startLine: 1, endLine: 1 }] },
+        ...padFiles,
+      ],
     });
-    assert.strictEqual(res.ok, true);
+    assert.strictEqual(res.ok, true, JSON.stringify(res));
+    const expectedOpened = ["added.txt", "deleted.txt", "modified.txt", "new-name.txt", ...padFiles.map((f) => f.path)];
+    assert.deepStrictEqual(res.opened.sort(), expectedOpened.sort());
+    diff.lastRes = res;
     await sleep(1500);
 
     const multi = vscode.window.tabGroups.all
       .flatMap((g) => g.tabs)
       .find((t) => t.input instanceof vscode.TabInputTextMultiDiff);
     assert.ok(multi, "no multi-diff tab opened");
-    assert.strictEqual(multi.input.textDiffs.length, changed.length);
+    assert.strictEqual(multi.input.textDiffs.length, expectedOpened.length);
+    diff.multi = multi;
+  });
+
+  test("a base range on an added file is rejected with bad_request naming the file and side", async () => {
+    await call("POST", "/clear", {});
+    const res = await call("POST", "/stop", {
+      stopId: "d2", index: 1, total: 1, label: "Bad side", type: "implementation", mode: "diff",
+      base: { sha: diff.base, name: "base" }, head: { sha: diff.head, name: "head" },
+      files: [{ path: "added.txt", ranges: [{ side: "base", startLine: 1, endLine: 1 }] }],
+    });
+    assert.strictEqual(res.ok, false);
+    assert.strictEqual(res.error.code, "bad_request");
+    assert.match(res.error.message, /added\.txt/);
+    assert.match(res.error.message, /base/);
+  });
+
+  test("a head range on a deleted file is rejected with bad_request naming the file and side", async () => {
+    await call("POST", "/clear", {});
+    const res = await call("POST", "/stop", {
+      stopId: "d3", index: 1, total: 1, label: "Bad side", type: "implementation", mode: "diff",
+      base: { sha: diff.base, name: "base" }, head: { sha: diff.head, name: "head" },
+      files: [{ path: "deleted.txt", ranges: [{ side: "head", startLine: 1, endLine: 1 }] }],
+    });
+    assert.strictEqual(res.ok, false);
+    assert.strictEqual(res.error.code, "bad_request");
+    assert.match(res.error.message, /deleted\.txt/);
+    assert.match(res.error.message, /head/);
+  });
+
+  test("a path absent from the diff is rejected with bad_request", async () => {
+    await call("POST", "/clear", {});
+    const res = await call("POST", "/stop", {
+      stopId: "d4", index: 1, total: 1, label: "Absent path", type: "implementation", mode: "diff",
+      base: { sha: diff.base, name: "base" }, head: { sha: diff.head, name: "head" },
+      files: [{ path: "never-existed.txt", ranges: [{ side: "head", startLine: 1, endLine: 1 }] }],
+    });
+    assert.strictEqual(res.ok, false);
+    assert.strictEqual(res.error.code, "bad_request");
+    assert.match(res.error.message, /never-existed\.txt/);
+  });
+
+  test("a WORKTREE head in diff mode is rejected with bad_request", async () => {
+    await call("POST", "/clear", {});
+    const res = await call("POST", "/stop", {
+      stopId: "d7", index: 1, total: 1, label: "Worktree head", type: "implementation", mode: "diff",
+      base: { sha: diff.base, name: "base" }, head: { sha: "WORKTREE", name: "working tree" },
+      files: [],
+    });
+    assert.strictEqual(res.ok, false);
+    assert.strictEqual(res.error.code, "bad_request");
+    assert.match(res.error.message, /committed head/);
   });
 
   test("a second stop with a different base is diff_identity_mismatch", async () => {
-    const head = gitIn("rev-parse", "HEAD");
+    await call("POST", "/clear", {});
+    await call("POST", "/stop", {
+      stopId: "d5a", index: 1, total: 2, label: "First", type: "implementation", mode: "diff",
+      base: { sha: diff.base, name: "base" }, head: { sha: diff.head, name: "head" },
+      files: [{ path: "modified.txt", ranges: [{ side: "head", startLine: 1, endLine: 1 }] }],
+    });
     const res = await call("POST", "/stop", {
-      stopId: "d2", index: 2, total: 2, label: "Wrong identity", type: "implementation", mode: "diff",
-      base: { sha: "0".repeat(40), name: "bogus" }, head: { sha: head, name: "HEAD" },
+      stopId: "d5b", index: 2, total: 2, label: "Wrong identity", type: "implementation", mode: "diff",
+      base: { sha: "0".repeat(40), name: "bogus" }, head: { sha: diff.head, name: "head" },
       files: [],
     });
     assert.strictEqual(res.ok, false);
     assert.strictEqual(res.error.code, "diff_identity_mismatch");
   });
 
-  test("decorations reach diff-editor editors as they materialize", async () => {
+  test("a renamed file's base and head ranges both resolve under the canonical (target) path", async () => {
+    await call("POST", "/clear", {});
+    const res = await call("POST", "/stop", {
+      stopId: "d6", index: 1, total: 1, label: "Rename", type: "implementation", mode: "diff",
+      base: { sha: diff.base, name: "base" }, head: { sha: diff.head, name: "head" },
+      files: [{ path: "new-name.txt", ranges: [{ side: "base", startLine: 1, endLine: 1 }, { side: "head", startLine: 1, endLine: 1 }] }],
+    });
+    assert.strictEqual(res.ok, true, JSON.stringify(res));
+    assert.deepStrictEqual(res.opened, ["new-name.txt"]);
+    await sleep(1500);
+
+    const described = vscode.window.visibleTextEditors
+      .filter((e) => e.document.uri.scheme === "git")
+      .map((e) => editorLib.describe(e))
+      .filter(Boolean);
+    assert.ok(described.some((d) => d.path === "new-name.txt"), `expected an editor describing to new-name.txt, saw ${JSON.stringify(described)}`);
+    assert.ok(!described.some((d) => d.path === "old-name.txt"), "the base pane must resolve to the canonical (target) name, not the historical source name");
+  });
+
+  test("requesting a renamed file by its old (source) name is rejected", async () => {
+    await call("POST", "/clear", {});
+    const res = await call("POST", "/stop", {
+      stopId: "d8", index: 1, total: 1, label: "Old name", type: "implementation", mode: "diff",
+      base: { sha: diff.base, name: "base" }, head: { sha: diff.head, name: "head" },
+      files: [{ path: "old-name.txt", ranges: [{ side: "base", startLine: 1, endLine: 1 }] }],
+    });
+    assert.strictEqual(res.ok, false);
+    assert.strictEqual(res.error.code, "bad_request");
+  });
+
+  // window.setDecorations has no public getter, so decoration state itself
+  // cannot be observed from the extension host. This instead proves the
+  // reactive contract: a pane deferred at /stop time, once opened (simulating
+  // the reviewer scrolling to it), is recognized by the same describe/side
+  // resolution decorate() depends on.
+  test("a deferred pane is recognized once it materializes, proving the reactive subscription works", async () => {
+    const deferred = diff.lastRes.deferred;
+    assert.ok(Array.isArray(deferred), "deferred must be an array");
+    assert.ok(deferred.length > 0, "expected at least one (path, side) pair to be deferred immediately after opening the padded diff");
+    assert.ok(
+      deferred.every((d) => typeof d.path === "string" && (d.side === "base" || d.side === "head")),
+      `deferred entries must be {path, side} pairs, got ${JSON.stringify(deferred)}`
+    );
+
+    const target = deferred[0];
+    const entry = diff.multi.input.textDiffs.find((t) => {
+      const uri = target.side === "base" ? t.original : t.modified;
+      return uri && editorLib.describe({ document: { uri } })?.path === target.path;
+    });
+    assert.ok(entry, `expected a textDiffs entry for ${target.side}:${target.path}`);
+    const uri = target.side === "base" ? entry.original : entry.modified;
+    assert.ok(uri, `${target.side} side of ${target.path} has no URI to open`);
+
+    await vscode.window.showTextDocument(uri, { preview: false, preserveFocus: true });
+    await sleep(300);
+
+    const res = await call("POST", "/focus", { path: target.path, side: target.side, startLine: 1, endLine: 1 });
+    assert.strictEqual(res.ok, true, JSON.stringify(res));
+    assert.strictEqual(res.revealed, true, `expected the now-open ${target.side} side of ${target.path} to be revealable`);
+  });
+
+  // updateWorkspaceFolders' own single-folder-to-workspace-mode transition makes
+  // a second, symmetric call unreliable in this harness (observed returning
+  // false even with a valid target), so restoration is best-effort; removing
+  // the fixture directory is the outcome this suite can actually verify.
+  test("cleans up the fixture repository", async () => {
+    vscode.workspace.updateWorkspaceFolders(0, 1, { uri: diff.originalFolderUri });
     await sleep(500);
-    const gitEditors = vscode.window.visibleTextEditors.filter((e) => e.document.uri.scheme === "git");
-    assert.ok(gitEditors.length > 0, "expected at least one git: editor from the diff view");
+    fs.rmSync(diff.dir, { recursive: true, force: true });
+    assert.strictEqual(fs.existsSync(diff.dir), false, "fixture repo directory should be removed");
   });
 };

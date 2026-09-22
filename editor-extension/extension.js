@@ -35,11 +35,12 @@ async function activate(context) {
     "POST /stop": async (body) => {
       if (body.mode === "diff") {
         if (!body.base || !body.head) throw Object.assign(new Error("diff mode requires base and head"), { code: "bad_request" });
+        if (body.head.sha === "WORKTREE") throw Object.assign(new Error("diff mode requires a committed head"), { code: "bad_request" });
         identity.check({ base: body.base, head: body.head });
         store.setStop({ stopId: body.stopId, files: body.files || [] });
         const opened = await editor.openMultiDiff(body.label, body.files || [], body.base, body.head);
         editor.applyAll(store, sideResolver);
-        return { opened, deferred: store.pendingPaths() };
+        return { opened, deferred: store.pending() };
       }
 
       if (body.mode !== "file") {
@@ -56,7 +57,7 @@ async function activate(context) {
         opened.push(file.path);
       }
       editor.applyAll(store, sideResolver);
-      return { opened, deferred: store.pendingPaths() };
+      return { opened, deferred: store.pending() };
     },
 
     "POST /focus": async (body) => {

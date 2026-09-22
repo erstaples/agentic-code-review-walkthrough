@@ -61,7 +61,9 @@ function describe(editor) {
   if (uri.scheme === "git") {
     try {
       const q = JSON.parse(uri.query);
-      return { path: path.relative(workspaceRoot(), q.path), side: null, ref: q.ref };
+      // A rename's base side is read from its old on-disk path (canonicalPath
+      // absent there); canonicalPath re-keys it to the file's current name.
+      return { path: path.relative(workspaceRoot(), q.canonicalPath || q.path), side: null, ref: q.ref };
     } catch {
       return null;
     }
@@ -106,7 +108,7 @@ function decorate(editor, store, sideResolver) {
   editor.setDecorations(STOP, stop.map((r) => toRange(editor.document, r.startLine, r.endLine)));
   editor.setDecorations(FOCUS, focus ? focusDecorations(editor.document, focus) : []);
 
-  if (stop.length > 0 || focus) store.markApplied(d.path);
+  if (stop.length > 0 || focus) store.markApplied(d.path, side);
   return true;
 }
 
@@ -158,29 +160,51 @@ function dispose() {
   FOCUS.dispose();
 }
 
+// The hash of an empty git tree, constant across every repository. Pointing an
+// added/deleted file's absent side at it (rather than at null/undefined, which
+// vscode.changes silently drops from the rendered diff) resolves to empty
+// content via the git extension's own empty-tree fallback.
+const EMPTY_TREE = "4b825dc642cb6eb9a060e54bf8d69288fbee4904";
+
+// Renamed files carry the same target path on both sides of the wire (opened,
+// deferred, and stop.files keys) even though the base side reads git content
+// from the old path; gitUri's canonicalRel argument re-keys that side.
 async function openMultiDiff(title, files, base, head) {
   const { changedFiles, gitUriQuery } = require("./git.js");
   const root = workspaceRoot();
-  const wanted = new Set(files.map((f) => f.path));
-  const changes = (await changedFiles(root, base.sha, head.sha)).filter(
-    (c) => wanted.has(c.targetPath) || wanted.has(c.sourcePath)
-  );
+  const byTarget = new Map((await changedFiles(root, base.sha, head.sha)).map((c) => [c.targetPath, c]));
 
-  const gitUri = (rel, ref) => {
+  for (const f of files) {
+    const c = byTarget.get(f.path);
+    if (!c) throw fail("bad_request", `${f.path} does not differ between ${base.sha} and ${head.sha}`);
+    for (const r of f.ranges || []) {
+      if (c.status === "A" && r.side === "base") throw fail("bad_request", `${f.path} was added by this diff; it has no "base" side`);
+      if (c.status === "D" && r.side === "head") throw fail("bad_request", `${f.path} was deleted by this diff; it has no "head" side`);
+    }
+  }
+
+  const wanted = new Set(files.map((f) => f.path));
+  const changes = [...byTarget.values()].filter((c) => wanted.has(c.targetPath));
+
+  const gitUri = (rel, ref, canonicalRel) => {
     const abs = path.join(root, rel);
-    return vscode.Uri.file(abs).with({ scheme: "git", query: gitUriQuery(abs, ref) });
+    const uri = vscode.Uri.file(abs).with({ scheme: "git", query: gitUriQuery(abs, ref) });
+    if (canonicalRel === rel) return uri;
+    const q = JSON.parse(uri.query);
+    q.canonicalPath = path.join(root, canonicalRel);
+    return uri.with({ query: JSON.stringify(q) });
   };
 
   const resources = changes.map((c) => {
     const label = vscode.Uri.file(path.join(root, c.status === "D" ? c.sourcePath : c.targetPath));
-    if (c.status === "A") return [label, undefined, gitUri(c.targetPath, head.sha)];
-    if (c.status === "D") return [label, gitUri(c.sourcePath, base.sha), undefined];
-    return [label, gitUri(c.sourcePath, base.sha), gitUri(c.targetPath, head.sha)];
+    if (c.status === "A") return [label, gitUri(c.targetPath, EMPTY_TREE, c.targetPath), gitUri(c.targetPath, head.sha, c.targetPath)];
+    if (c.status === "D") return [label, gitUri(c.sourcePath, base.sha, c.targetPath), gitUri(c.sourcePath, EMPTY_TREE, c.targetPath)];
+    return [label, gitUri(c.sourcePath, base.sha, c.targetPath), gitUri(c.targetPath, head.sha, c.targetPath)];
   });
 
   if (resources.length === 0) throw fail("bad_request", `none of the requested files differ between ${base.sha} and ${head.sha}`);
   await vscode.commands.executeCommand("vscode.changes", title, resources);
-  return changes.map((c) => c.targetPath || c.sourcePath);
+  return changes.map((c) => c.targetPath);
 }
 
 module.exports = { workspaceRoot, absolute, openFile, applyTo, applyAll, clearAll, reveal, describe, validateRange, openMultiDiff, dispose };

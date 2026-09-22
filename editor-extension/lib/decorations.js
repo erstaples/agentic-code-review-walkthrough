@@ -1,5 +1,8 @@
 "use strict";
 
+const SEP = "\u0000";
+const keyOf = (path, side) => `${side}${SEP}${path}`;
+
 function createIntentStore() {
   let stop = null;
   let focus = null;
@@ -9,7 +12,12 @@ function createIntentStore() {
     setStop(next) {
       stop = next;
       focus = null;
-      pending = new Set((next.files || []).map((f) => f.path));
+      pending = new Set();
+      for (const f of next.files || []) {
+        for (const side of new Set((f.ranges || []).map((r) => r.side))) {
+          pending.add(keyOf(f.path, side));
+        }
+      }
     },
     setFocus(next) {
       focus = next;
@@ -37,11 +45,16 @@ function createIntentStore() {
         : null;
       return { stop: ranges, focus: hit };
     },
-    pendingPaths() {
-      return [...pending];
+    // One entry per (path, side) pair the current stop actually asked for, so a
+    // file with both a materialized and an unmaterialized side reports accurately.
+    pending() {
+      return [...pending].map((k) => {
+        const i = k.indexOf(SEP);
+        return { side: k.slice(0, i), path: k.slice(i + 1) };
+      });
     },
-    markApplied(path) {
-      pending.delete(path);
+    markApplied(path, side) {
+      pending.delete(keyOf(path, side));
     },
   };
 }

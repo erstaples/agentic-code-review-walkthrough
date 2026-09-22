@@ -46,22 +46,34 @@ test("clear drops everything", () => {
   s.setStop(stop);
   s.clear();
   assert.deepStrictEqual(s.rangesFor({ path: "a.go", side: "head" }), { stop: [], focus: null });
-  assert.deepStrictEqual(s.pendingPaths(), []);
+  assert.deepStrictEqual(s.pending(), []);
 });
 
-test("every stop path starts pending and leaves on markApplied", () => {
+const byKey = (list) => list.map((p) => `${p.side}:${p.path}`).sort();
+
+test("every (path, side) pair the stop asked for starts pending and leaves on markApplied", () => {
   const s = createIntentStore();
   s.setStop(stop);
-  assert.deepStrictEqual(s.pendingPaths().sort(), ["a.go", "b.go"]);
-  s.markApplied("a.go");
-  assert.deepStrictEqual(s.pendingPaths(), ["b.go"]);
+  assert.deepStrictEqual(byKey(s.pending()), ["base:a.go", "head:a.go", "working:b.go"]);
+  s.markApplied("a.go", "head");
+  assert.deepStrictEqual(byKey(s.pending()), ["base:a.go", "working:b.go"]);
 });
 
 test("markApplied for an unknown path is harmless", () => {
   const s = createIntentStore();
   s.setStop(stop);
-  s.markApplied("nope.go");
-  assert.deepStrictEqual(s.pendingPaths().sort(), ["a.go", "b.go"]);
+  s.markApplied("nope.go", "head");
+  assert.deepStrictEqual(byKey(s.pending()), ["base:a.go", "head:a.go", "working:b.go"]);
+});
+
+// Regression: a file carrying both a base and a head range must not be
+// reported as fully applied just because one of its two sides decorated.
+test("a file pending on both sides stays pending on the other side after one side applies", () => {
+  const s = createIntentStore();
+  s.setStop(stop);
+  s.markApplied("a.go", "head");
+  assert.deepStrictEqual(byKey(s.pending()), ["base:a.go", "working:b.go"]);
+  assert.ok(s.pending().some((p) => p.path === "a.go" && p.side === "base"), "a.go's base side must still be pending");
 });
 
 test("setFocus without a stop still yields the focus range", () => {
