@@ -54,3 +54,30 @@ test("reset allows a new tour in the same window", () => {
 test("sideFor before any identity is established is null", () => {
   assert.strictEqual(createIdentity().sideFor("aaaa111"), null);
 });
+
+test("when base and head are both WORKTREE, sideFor returns working", () => {
+  const id = createIdentity();
+  const worktreeRef = { sha: "WORKTREE", name: "working tree" };
+  id.check({ base: worktreeRef, head: worktreeRef });
+  assert.strictEqual(id.sideFor("WORKTREE"), "working");
+});
+
+test("check rejects malformed shape with diff_identity_mismatch", () => {
+  const id = createIdentity();
+  assert.throws(
+    () => id.check({ base: { sha: "aaaa111" }, head: { name: "HEAD" } }),
+    (err) => {
+      assert.strictEqual(err.code, "diff_identity_mismatch");
+      return true;
+    }
+  );
+});
+
+test("current returns a copy, not a live reference", () => {
+  const id = createIdentity();
+  id.check({ base, head });
+  const first = id.current();
+  first.base.sha = "mutated";
+  const second = id.current();
+  assert.strictEqual(second.base.sha, "aaaa111");
+});
