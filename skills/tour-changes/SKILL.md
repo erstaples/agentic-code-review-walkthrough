@@ -71,9 +71,11 @@ mode.
 Then `tour_focus` as you zoom into a specific construct. Do not call
 `tour_stop` again mid-stop; that is what `tour_focus` is for.
 
-If `tour_stop` returns a non-empty `deferred` list, those files have not been
-highlighted yet — the diff editor materializes them on scroll. Do not claim to
-be pointing at code in a deferred file.
+If `tour_stop` returns a non-empty `deferred` list, its entries are
+`{path, side}` pairs: that side of that file has not been highlighted yet —
+the diff editor materializes each side independently on scroll. A file can be
+deferred on one side and already visible on the other. Do not claim to be
+pointing at code on a deferred side.
 
 For each stop, cover:
 - **What changed** — concise, not a restatement of the diff the reviewer can
