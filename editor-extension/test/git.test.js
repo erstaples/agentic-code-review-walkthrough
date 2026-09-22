@@ -61,3 +61,29 @@ test("changedFiles reports renames with both paths", async () => {
 test("gitUriQuery encodes the path and ref the git scheme expects", () => {
   assert.deepStrictEqual(JSON.parse(gitUriQuery("/repo/a.go", "abc123")), { path: "/repo/a.go", ref: "abc123" });
 });
+
+test("changedFiles with nested workspace returns workspace-relative paths", async () => {
+  // Create a subdirectory in the repo to simulate a nested VS Code workspace
+  const sub = path.join(repo, "sub");
+  fs.mkdirSync(sub);
+
+  // Add a file in the subdirectory at the base commit
+  fs.writeFileSync(path.join(sub, "file.txt"), "content\n");
+  git("add", "-A");
+  git("commit", "-qm", "add sub file");
+  const baseShaWithSub = git("rev-parse", "HEAD");
+
+  // Modify the file in the subdirectory
+  fs.writeFileSync(path.join(sub, "file.txt"), "modified content\n");
+  git("add", "-A");
+  git("commit", "-qm", "modify sub file");
+  const headShaWithSub = git("rev-parse", "HEAD");
+
+  // Call changedFiles with cwd pointing to the subdirectory (nested workspace)
+  const changes = await changedFiles(sub, baseShaWithSub, headShaWithSub);
+
+  // Assert that paths are workspace-relative (from sub/), not repo-relative (sub/file.txt)
+  assert.strictEqual(changes.length, 1, "should have one changed file");
+  assert.strictEqual(changes[0].targetPath, "file.txt", "path should be workspace-relative");
+  assert.strictEqual(changes[0].status, "M", "file should be marked as modified");
+});
