@@ -25,11 +25,15 @@ async function activate(context) {
   const authToken = crypto.randomBytes(32).toString("base64url");
 
   const handlers = {
+    // A pure read: unlike /stop and /focus, this never calls applyAll, so
+    // `deferred` here reflects only what onDidChangeVisibleTextEditors has
+    // reconciled reactively -- not this request's own side effects.
     "GET /status": async () => ({
       protocolVersion: PROTOCOL_VERSION,
       extensionVersion,
       ideName: vscode.env.appName,
       workspaceFolders: (vscode.workspace.workspaceFolders || []).map((f) => f.uri.fsPath),
+      deferred: store.pending(),
     }),
 
     "POST /stop": async (body) => {
@@ -37,6 +41,9 @@ async function activate(context) {
         if (!body.base || !body.head) throw Object.assign(new Error("diff mode requires base and head"), { code: "bad_request" });
         if (body.head.sha === "WORKTREE") throw Object.assign(new Error("diff mode requires a committed head"), { code: "bad_request" });
         identity.check({ base: body.base, head: body.head });
+        // Validate before touching the store: a rejection here must leave
+        // whatever stop was already showing untouched.
+        await editor.validateDiffFiles(body.files || [], body.base, body.head);
         store.setStop({ stopId: body.stopId, files: body.files || [] });
         const opened = await editor.openMultiDiff(body.label, body.files || [], body.base, body.head);
         editor.applyAll(store, sideResolver);
@@ -48,7 +55,12 @@ async function activate(context) {
       }
       if (body.base && body.head) identity.check({ base: body.base, head: body.head });
       for (const file of body.files || []) {
-        for (const r of file.ranges || []) editor.validateRange(file.path, r.startLine, r.endLine);
+        for (const r of file.ranges || []) {
+          if (r.side !== "working") {
+            throw Object.assign(new Error(`${file.path} has a range with side "${r.side}"; file mode requires "working"`), { code: "bad_request" });
+          }
+          editor.validateRange(file.path, r.startLine, r.endLine);
+        }
       }
       store.setStop({ stopId: body.stopId, files: body.files || [] });
       const opened = [];
@@ -61,11 +73,17 @@ async function activate(context) {
     },
 
     "POST /focus": async (body) => {
-      editor.validateRange(body.path, body.startLine, body.endLine);
+      if (body.side === "base" || body.side === "head") {
+        const pinned = identity.current();
+        if (!pinned) throw Object.assign(new Error(`focus side "${body.side}" requires an active diff-mode tour`), { code: "bad_request" });
+        await editor.validateDiffFocusRange(body.path, body.side, body.startLine, body.endLine, pinned.base, pinned.head);
+      } else {
+        editor.validateRange(body.path, body.startLine, body.endLine);
+      }
       store.setFocus(body);
       const revealed = await editor.reveal(body.path, body.side, body.startLine, body.endLine, sideResolver);
       editor.applyAll(store, sideResolver);
-      return { revealed };
+      return { revealed, deferred: store.pending() };
     },
 
     "POST /clear": async () => {

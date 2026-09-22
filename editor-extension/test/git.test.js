@@ -4,7 +4,7 @@ const fs = require("node:fs");
 const os = require("node:os");
 const path = require("node:path");
 const cp = require("node:child_process");
-const { revParse, changedFiles, gitUriQuery } = require("../lib/git.js");
+const { revParse, changedFiles, gitUriQuery, blobLines } = require("../lib/git.js");
 
 let repo;
 let baseSha;
@@ -86,4 +86,23 @@ test("changedFiles with nested workspace returns workspace-relative paths", asyn
   assert.strictEqual(changes.length, 1, "should have one changed file");
   assert.strictEqual(changes[0].targetPath, "file.txt", "path should be workspace-relative");
   assert.strictEqual(changes[0].status, "M", "file should be marked as modified");
+});
+
+test("blobLines counts lines in a blob at a given ref", async () => {
+  assert.strictEqual(await blobLines(repo, baseSha, "keep.txt"), 3);
+  assert.strictEqual(await blobLines(repo, headSha, "keep.txt"), 4);
+});
+
+test("blobLines on a path absent from that ref fails with git_failed", async () => {
+  await assert.rejects(blobLines(repo, baseSha, "new.txt"), { code: "git_failed" });
+});
+
+test("blobLines resolves paths relative to cwd in a nested workspace", async () => {
+  const sub = path.join(repo, "sub");
+  fs.mkdirSync(sub, { recursive: true });
+  fs.writeFileSync(path.join(sub, "nested.txt"), "a\nb\nc\n");
+  git("add", "-A");
+  git("commit", "-qm", "add nested file");
+  const sha = git("rev-parse", "HEAD");
+  assert.strictEqual(await blobLines(sub, sha, "nested.txt"), 4);
 });

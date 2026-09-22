@@ -160,27 +160,81 @@ function dispose() {
   FOCUS.dispose();
 }
 
-// The hash of an empty git tree, constant across every repository. Pointing an
-// added/deleted file's absent side at it (rather than at null/undefined, which
-// vscode.changes silently drops from the rendered diff) resolves to empty
-// content via the git extension's own empty-tree fallback.
+// The hash of an empty git tree under SHA-1, the object format every repository
+// in this project uses. Pointing an added/deleted file's absent side at it
+// (rather than at null/undefined, which vscode.changes silently drops from the
+// rendered diff) resolves to empty content via the git extension's own
+// empty-tree fallback. A SHA-256 repository computes a different hash for its
+// empty tree; unsupported here.
 const EMPTY_TREE = "4b825dc642cb6eb9a060e54bf8d69288fbee4904";
 
-// Renamed files carry the same target path on both sides of the wire (opened,
-// deferred, and stop.files keys) even though the base side reads git content
-// from the old path; gitUri's canonicalRel argument re-keys that side.
-async function openMultiDiff(title, files, base, head) {
-  const { changedFiles, gitUriQuery } = require("./git.js");
+// Rejects a side the diff's A/D status makes impossible, and any side outside
+// the diff-mode enum (including a missing one, which arrives as undefined).
+function checkDiffSide(relPath, status, side) {
+  if (side !== "base" && side !== "head") {
+    throw fail("bad_request", `${relPath} has a range with side "${side}"; diff mode requires "base" or "head"`);
+  }
+  if (status === "A" && side === "base") throw fail("bad_request", `${relPath} was added by this diff; it has no "base" side`);
+  if (status === "D" && side === "head") throw fail("bad_request", `${relPath} was deleted by this diff; it has no "head" side`);
+}
+
+async function findDiffChange(root, base, head, targetPath) {
+  const { changedFiles } = require("./git.js");
+  const changes = await changedFiles(root, base.sha, head.sha);
+  const c = changes.find((x) => x.targetPath === targetPath);
+  if (!c) throw fail("bad_request", `${targetPath} does not differ between ${base.sha} and ${head.sha}`);
+  return c;
+}
+
+// Bounds-checks against the blob at the pinned ref, not the working tree: a
+// diff-mode range describes committed history that may not exist on disk.
+async function checkDiffBounds(root, c, side, base, head, startLine, endLine) {
+  const { blobLines } = require("./git.js");
+  const ref = side === "base" ? base.sha : head.sha;
+  const blobPath = side === "base" ? c.sourcePath : c.targetPath;
+  const lines = await blobLines(root, ref, blobPath);
+  if (startLine < 1 || endLine < startLine || endLine > lines) {
+    throw fail("range_out_of_bounds", `lines ${startLine}-${endLine} fall outside ${lines}-line file ${c.targetPath} (${side})`);
+  }
+}
+
+// Validates every file/range a diff-mode /stop requests before the caller
+// commits to it, so a rejection never leaves the store mutated.
+async function validateDiffFiles(files, base, head) {
+  const { changedFiles } = require("./git.js");
   const root = workspaceRoot();
   const byTarget = new Map((await changedFiles(root, base.sha, head.sha)).map((c) => [c.targetPath, c]));
-
   for (const f of files) {
     const c = byTarget.get(f.path);
     if (!c) throw fail("bad_request", `${f.path} does not differ between ${base.sha} and ${head.sha}`);
     for (const r of f.ranges || []) {
-      if (c.status === "A" && r.side === "base") throw fail("bad_request", `${f.path} was added by this diff; it has no "base" side`);
-      if (c.status === "D" && r.side === "head") throw fail("bad_request", `${f.path} was deleted by this diff; it has no "head" side`);
+      checkDiffSide(f.path, c.status, r.side);
+      await checkDiffBounds(root, c, r.side, base, head, r.startLine, r.endLine);
     }
+  }
+}
+
+// Same validation as validateDiffFiles, for the single path/side/range a
+// diff-mode /focus call carries.
+async function validateDiffFocusRange(canonicalPath, side, startLine, endLine, base, head) {
+  const root = workspaceRoot();
+  const c = await findDiffChange(root, base, head, canonicalPath);
+  checkDiffSide(canonicalPath, c.status, side);
+  await checkDiffBounds(root, c, side, base, head, startLine, endLine);
+}
+
+// Renamed files carry the same target path on both sides of the wire (opened,
+// deferred, and stop.files keys) even though the base side reads git content
+// from the old path; gitUri's canonicalRel argument re-keys that side.
+//
+// Callers should run validateDiffFiles first to bounds-check ranges before
+// mutating the store; this only re-checks that requested paths are in the diff.
+async function openMultiDiff(title, files, base, head) {
+  const { changedFiles, gitUriQuery } = require("./git.js");
+  const root = workspaceRoot();
+  const byTarget = new Map((await changedFiles(root, base.sha, head.sha)).map((c) => [c.targetPath, c]));
+  for (const f of files) {
+    if (!byTarget.has(f.path)) throw fail("bad_request", `${f.path} does not differ between ${base.sha} and ${head.sha}`);
   }
 
   const wanted = new Set(files.map((f) => f.path));
@@ -207,4 +261,7 @@ async function openMultiDiff(title, files, base, head) {
   return changes.map((c) => c.targetPath);
 }
 
-module.exports = { workspaceRoot, absolute, openFile, applyTo, applyAll, clearAll, reveal, describe, validateRange, openMultiDiff, dispose };
+module.exports = {
+  workspaceRoot, absolute, openFile, applyTo, applyAll, clearAll, reveal, describe, validateRange,
+  validateDiffFiles, validateDiffFocusRange, openMultiDiff, dispose,
+};

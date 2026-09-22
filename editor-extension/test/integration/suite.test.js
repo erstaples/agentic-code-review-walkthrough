@@ -101,6 +101,17 @@ module.exports = function register({ test, before, after }) {
     assert.ok(open.some((p) => p.endsWith("package.json")), `package.json not open, saw ${open.join(", ")}`);
   });
 
+  test("a base or head range in file mode is rejected with bad_request", async () => {
+    const res = await call("POST", "/stop", {
+      stopId: "s1b", index: 1, total: 1, label: "Bad side", type: "implementation", mode: "file",
+      files: [{ path: "package.json", ranges: [{ side: "base", startLine: 1, endLine: 1 }] }],
+    });
+    assert.strictEqual(res.ok, false);
+    assert.strictEqual(res.error.code, "bad_request");
+    assert.match(res.error.message, /package\.json/);
+    assert.match(res.error.message, /base/);
+  });
+
   test("POST /focus succeeds and leaves the reviewer's selection alone", async () => {
     const target = () => vscode.window.visibleTextEditors.find((e) => e.document.uri.fsPath.endsWith("package.json"));
     const snapshot = (s) => [s.start.line, s.start.character, s.end.line, s.end.character];
@@ -193,6 +204,48 @@ module.exports = function register({ test, before, after }) {
     }
   });
 
+  // decorate()'s git: path exercises describe()'s canonicalPath resolution and
+  // sideResolver(ref), neither of which the file-mode test above touches.
+  // Asserts both halves of the reactive contract: the correct STOP range
+  // reaches setDecorations, and only the materialized side leaves pending.
+  test("applyTo decorates a git-scheme pane and clears only its (path, side) pending entry", async () => {
+    const rel = "tour-git-pending.tmp";
+    const abs = path.join(fixture(), rel);
+    fs.writeFileSync(abs, "one\ntwo\nthree\n");
+    try {
+      const doc = await vscode.workspace.openTextDocument(vscode.Uri.file(abs));
+      const gitUri = vscode.Uri.file(abs).with({ scheme: "git", query: JSON.stringify({ path: abs, ref: "headsha" }) });
+      const store = createIntentStore();
+      store.setStop({
+        stopId: "spy1",
+        files: [{ path: rel, ranges: [{ side: "head", startLine: 1, endLine: 2 }, { side: "base", startLine: 1, endLine: 1 }] }],
+      });
+      const byKey = (list) => list.map((p) => `${p.side}:${p.path}`).sort();
+      assert.deepStrictEqual(byKey(store.pending()), [`base:${rel}`, `head:${rel}`]);
+
+      const calls = [];
+      const stub = {
+        document: { uri: gitUri, lineCount: doc.lineCount, lineAt: (n) => doc.lineAt(n) },
+        setDecorations: (type, ranges) => calls.push(ranges),
+      };
+      const sideResolver = (ref) => (ref === "headsha" ? "head" : null);
+
+      assert.strictEqual(editorLib.applyTo(stub, store, sideResolver), true);
+      assert.strictEqual(calls.length, 2, "expected a STOP call and a FOCUS call");
+      assert.strictEqual(calls[0].length, 1, "only the head-side range belongs to this head-ref pane");
+      assert.strictEqual(calls[0][0].start.line, 0);
+      assert.strictEqual(calls[0][0].end.line, 1);
+      assert.deepStrictEqual(calls[1], [], "no focus was set");
+
+      assert.deepStrictEqual(
+        byKey(store.pending()), [`base:${rel}`],
+        "the head side must leave pending once decorated; the base side, with no matching editor, stays"
+      );
+    } finally {
+      fs.rmSync(abs, { force: true });
+    }
+  });
+
   test("POST /clear succeeds without closing tabs", async () => {
     const openTabs = () => vscode.window.tabGroups.all.flatMap((g) => g.tabs).length;
     const before = openTabs();
@@ -239,6 +292,87 @@ module.exports = function register({ test, before, after }) {
     diff.multi = multi;
   });
 
+  // window.setDecorations has no public getter, so decoration state itself
+  // cannot be observed from the extension host. `revealed` alone proves only
+  // that the editor is visible (reveal() does its own independent scan) --
+  // it says nothing about decoration, and stays green even with
+  // onDidChangeVisibleTextEditors deleted, since reveal()'s scan doesn't need it.
+  //
+  // GET /status never calls applyAll (unlike /stop and /focus, which always
+  // reconcile as a side effect of handling any request), so reading `deferred`
+  // there after materializing a pane -- with no other request in between --
+  // isolates the reactive subscription specifically: only it could have run
+  // markApplied for this pair by the time /status is asked. This runs
+  // immediately after the diff opens, before any other test's own /stop or
+  // /focus calls get a chance to reconcile the same pending pair first.
+  test("a materialized diff pane leaves `deferred` via the reactive subscription alone, observed through GET /status", async () => {
+    const deferred = diff.lastRes.deferred;
+    assert.ok(Array.isArray(deferred), "deferred must be an array");
+    assert.ok(deferred.length > 0, "expected at least one (path, side) pair to be deferred immediately after opening the padded diff");
+    assert.ok(
+      deferred.every((d) => typeof d.path === "string" && (d.side === "base" || d.side === "head")),
+      `deferred entries must be {path, side} pairs, got ${JSON.stringify(deferred)}`
+    );
+
+    const target = deferred[0];
+    const entry = diff.multi.input.textDiffs.find((t) => {
+      const uri = target.side === "base" ? t.original : t.modified;
+      return uri && editorLib.describe({ document: { uri } })?.path === target.path;
+    });
+    assert.ok(entry, `expected a textDiffs entry for ${target.side}:${target.path}`);
+    const uri = target.side === "base" ? entry.original : entry.modified;
+    assert.ok(uri, `${target.side} side of ${target.path} has no URI to open`);
+
+    await vscode.window.showTextDocument(uri, { preview: false, preserveFocus: true });
+    await sleep(300);
+
+    const status = await call("GET", "/status");
+    assert.strictEqual(status.ok, true, JSON.stringify(status));
+    assert.ok(
+      !status.deferred.some((d) => d.path === target.path && d.side === target.side),
+      `${target.side}:${target.path} should have left deferred via the reactive subscription alone, still in ${JSON.stringify(status.deferred)}`
+    );
+
+    const res = await call("POST", "/focus", { path: target.path, side: target.side, startLine: 1, endLine: 1 });
+    assert.strictEqual(res.ok, true, JSON.stringify(res));
+    assert.strictEqual(res.revealed, true, `expected the now-open ${target.side} side of ${target.path} to be revealable`);
+  });
+
+  // A rejected /stop must not mutate the store: validate, then commit. Proven
+  // by pinning a stop to a single file we never materialize (so its (path,
+  // side) pair stays deterministically pending), attempting a rejected /stop,
+  // then reading pending back through /focus — a corrupted store replaces the
+  // whole pending set with the rejected request's own (invalid) file.
+  test("a rejected diff-mode /stop leaves the previous stop's pending state intact", async () => {
+    await call("POST", "/clear", {});
+    const padFiles = Array.from({ length: diff.padCount }, (_, i) => ({ path: `pad${i}.txt`, ranges: [{ side: "head", startLine: 1, endLine: 1 }] }));
+    const original = await call("POST", "/stop", {
+      stopId: "dB1", index: 1, total: 1, label: "Original", type: "implementation", mode: "diff",
+      base: { sha: diff.base, name: "base" }, head: { sha: diff.head, name: "head" },
+      files: padFiles,
+    });
+    assert.strictEqual(original.ok, true, JSON.stringify(original));
+    assert.ok(original.deferred.length > 0, "expected some padding files to stay deferred immediately");
+    // A git: side pane is never auto-opened by reveal(), so probing this pair
+    // through /focus below cannot itself materialize it.
+    const guard = original.deferred[0];
+
+    const rejected = await call("POST", "/stop", {
+      stopId: "dB2", index: 1, total: 1, label: "Rejected", type: "implementation", mode: "diff",
+      base: { sha: diff.base, name: "base" }, head: { sha: diff.head, name: "head" },
+      files: [{ path: "added.txt", ranges: [{ side: "base", startLine: 1, endLine: 1 }] }],
+    });
+    assert.strictEqual(rejected.ok, false);
+    assert.strictEqual(rejected.error.code, "bad_request");
+
+    const probe = await call("POST", "/focus", { path: guard.path, side: guard.side, startLine: 1, endLine: 1 });
+    assert.strictEqual(probe.ok, true, JSON.stringify(probe));
+    assert.ok(
+      probe.deferred.some((d) => d.path === guard.path && d.side === guard.side),
+      `the rejected /stop must not have replaced the original stop's pending state; guard ${JSON.stringify(guard)} missing from ${JSON.stringify(probe.deferred)}`
+    );
+  });
+
   test("a base range on an added file is rejected with bad_request naming the file and side", async () => {
     await call("POST", "/clear", {});
     const res = await call("POST", "/stop", {
@@ -263,6 +397,29 @@ module.exports = function register({ test, before, after }) {
     assert.strictEqual(res.error.code, "bad_request");
     assert.match(res.error.message, /deleted\.txt/);
     assert.match(res.error.message, /head/);
+  });
+
+  test("a diff-mode range past the end of the pinned blob is rejected with range_out_of_bounds", async () => {
+    await call("POST", "/clear", {});
+    const res = await call("POST", "/stop", {
+      stopId: "d3b", index: 1, total: 1, label: "Out of bounds", type: "implementation", mode: "diff",
+      base: { sha: diff.base, name: "base" }, head: { sha: diff.head, name: "head" },
+      files: [{ path: "deleted.txt", ranges: [{ side: "base", startLine: 1, endLine: 99999 }] }],
+    });
+    assert.strictEqual(res.ok, false);
+    assert.strictEqual(res.error.code, "range_out_of_bounds");
+    assert.match(res.error.message, /deleted\.txt/);
+  });
+
+  test("a diff-mode range with no side is rejected with bad_request, not stored as the literal string \"undefined\"", async () => {
+    await call("POST", "/clear", {});
+    const res = await call("POST", "/stop", {
+      stopId: "d3c", index: 1, total: 1, label: "Missing side", type: "implementation", mode: "diff",
+      base: { sha: diff.base, name: "base" }, head: { sha: diff.head, name: "head" },
+      files: [{ path: "modified.txt", ranges: [{ startLine: 1, endLine: 1 }] }],
+    });
+    assert.strictEqual(res.ok, false);
+    assert.strictEqual(res.error.code, "bad_request");
   });
 
   test("a path absent from the diff is rejected with bad_request", async () => {
@@ -305,6 +462,28 @@ module.exports = function register({ test, before, after }) {
     assert.strictEqual(res.error.code, "diff_identity_mismatch");
   });
 
+  test("POST /focus can reach a deleted file's base side, which /stop already blesses", async () => {
+    await call("POST", "/clear", {});
+    const stop = await call("POST", "/stop", {
+      stopId: "d5c", index: 1, total: 1, label: "Deleted file", type: "implementation", mode: "diff",
+      base: { sha: diff.base, name: "base" }, head: { sha: diff.head, name: "head" },
+      files: [{ path: "deleted.txt", ranges: [{ side: "base", startLine: 1, endLine: 1 }] }],
+    });
+    assert.strictEqual(stop.ok, true, JSON.stringify(stop));
+
+    // deleted.txt does not exist on disk at head, which is what a normal
+    // working tree checked out to head would show.
+    const res = await call("POST", "/focus", { path: "deleted.txt", side: "base", startLine: 1, endLine: 1 });
+    assert.strictEqual(res.ok, true, JSON.stringify(res));
+  });
+
+  test("POST /focus on a base/head side outside an active diff tour is rejected with bad_request", async () => {
+    await call("POST", "/clear", {});
+    const res = await call("POST", "/focus", { path: "deleted.txt", side: "base", startLine: 1, endLine: 1 });
+    assert.strictEqual(res.ok, false);
+    assert.strictEqual(res.error.code, "bad_request");
+  });
+
   test("a renamed file's base and head ranges both resolve under the canonical (target) path", async () => {
     await call("POST", "/clear", {});
     const res = await call("POST", "/stop", {
@@ -333,37 +512,6 @@ module.exports = function register({ test, before, after }) {
     });
     assert.strictEqual(res.ok, false);
     assert.strictEqual(res.error.code, "bad_request");
-  });
-
-  // window.setDecorations has no public getter, so decoration state itself
-  // cannot be observed from the extension host. This instead proves the
-  // reactive contract: a pane deferred at /stop time, once opened (simulating
-  // the reviewer scrolling to it), is recognized by the same describe/side
-  // resolution decorate() depends on.
-  test("a deferred pane is recognized once it materializes, proving the reactive subscription works", async () => {
-    const deferred = diff.lastRes.deferred;
-    assert.ok(Array.isArray(deferred), "deferred must be an array");
-    assert.ok(deferred.length > 0, "expected at least one (path, side) pair to be deferred immediately after opening the padded diff");
-    assert.ok(
-      deferred.every((d) => typeof d.path === "string" && (d.side === "base" || d.side === "head")),
-      `deferred entries must be {path, side} pairs, got ${JSON.stringify(deferred)}`
-    );
-
-    const target = deferred[0];
-    const entry = diff.multi.input.textDiffs.find((t) => {
-      const uri = target.side === "base" ? t.original : t.modified;
-      return uri && editorLib.describe({ document: { uri } })?.path === target.path;
-    });
-    assert.ok(entry, `expected a textDiffs entry for ${target.side}:${target.path}`);
-    const uri = target.side === "base" ? entry.original : entry.modified;
-    assert.ok(uri, `${target.side} side of ${target.path} has no URI to open`);
-
-    await vscode.window.showTextDocument(uri, { preview: false, preserveFocus: true });
-    await sleep(300);
-
-    const res = await call("POST", "/focus", { path: target.path, side: target.side, startLine: 1, endLine: 1 });
-    assert.strictEqual(res.ok, true, JSON.stringify(res));
-    assert.strictEqual(res.revealed, true, `expected the now-open ${target.side} side of ${target.path} to be revealable`);
   });
 
   // updateWorkspaceFolders' own single-folder-to-workspace-mode transition makes

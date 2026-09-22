@@ -33,6 +33,13 @@ async function changedFiles(cwd, base, head) {
   return changes;
 }
 
+// The "./" prefix keeps relPath resolved against cwd rather than the repo
+// root, matching changedFiles' --relative output for a nested workspace.
+async function blobLines(cwd, ref, relPath) {
+  const stdout = await run(cwd, ["show", `${ref}:./${relPath}`]);
+  return stdout.split("\n").length;
+}
+
 const gitUriQuery = (absPath, ref) => JSON.stringify({ path: absPath, ref });
 
-module.exports = { revParse, changedFiles, gitUriQuery };
+module.exports = { revParse, changedFiles, gitUriQuery, blobLines };
