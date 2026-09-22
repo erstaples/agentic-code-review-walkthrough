@@ -88,26 +88,19 @@ it resolved, which makes a mismatch obvious immediately.
 <details open>
 <summary><strong>Codex CLI</strong></summary>
 
-Codex reads the Claude plugin format natively — the same manifest, skills, and
-MCP registration:
+Codex uses the portable Agent Plugins manifest and MCP configuration included
+at the repository root:
 
 ```sh
 codex plugin marketplace add erstaples/claude-code-review-walkthrough
 codex plugin add tour-changes@code-review-walkthrough
 ```
 
-Verify the MCP server registered and its path resolved:
+Start a new Codex thread after installation so it loads the plugin's skill and
+MCP tools. To inspect the installed plugin:
 
 ```sh
-codex mcp get tour-bridge
-```
-
-If `args` still shows a literal `${CLAUDE_PLUGIN_ROOT}`, re-register it
-explicitly:
-
-```sh
-codex mcp remove tour-bridge
-codex mcp add tour-bridge -- node "$(pwd)/mcp/server.js"
+codex plugin list
 ```
 
 </details>

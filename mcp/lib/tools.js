@@ -2,6 +2,11 @@
 
 const { request } = require("./bridge.js");
 
+const WORKSPACE = {
+  type: "string",
+  description: "Absolute path to the repository root being toured. Resolve it with git rev-parse --show-toplevel.",
+};
+
 const RANGE = {
   type: "object",
   required: ["side", "startLine", "endLine"],
@@ -15,16 +20,21 @@ const RANGE = {
 const TOOLS = [
   {
     name: "tour_status",
-    description: "Preflight the editor bridge. Returns the extension version, the workspace folders of the VS Code window that owns the current directory, and the current stop's deferred (path, side) pairs -- files not yet decorated because their editor hasn't materialized. Call this before starting a tour; if it fails, run the tour as text and links instead.",
-    inputSchema: { type: "object", properties: {} },
+    description: "Preflight the editor bridge. Returns the extension version, the workspace folders of the VS Code window that owns the requested repository, and the current stop's deferred (path, side) pairs -- files not yet decorated because their editor hasn't materialized. Call this before starting a tour; if it fails, run the tour as text and links instead.",
+    inputSchema: {
+      type: "object",
+      required: ["workspace"],
+      properties: { workspace: WORKSPACE },
+    },
   },
   {
     name: "tour_stop",
     description: "Open a tour stop's files and highlight its ranges. Replaces the previous stop's highlights. Call once per stop, before narrating it.",
     inputSchema: {
       type: "object",
-      required: ["stopId", "label", "type", "mode", "base", "head", "files"],
+      required: ["workspace", "stopId", "label", "type", "mode", "base", "head", "files"],
       properties: {
+        workspace: WORKSPACE,
         stopId: { type: "string" },
         index: { type: "integer", description: "1-based position of this stop in the tour." },
         total: { type: "integer" },
@@ -52,8 +62,9 @@ const TOOLS = [
     description: "Point at one range inside the current stop. Reveals it and highlights it more strongly than the surrounding stop. Use this when zooming into a specific construct mid-narration rather than calling tour_stop again.",
     inputSchema: {
       type: "object",
-      required: ["path", "side", "startLine", "endLine"],
+      required: ["workspace", "path", "side", "startLine", "endLine"],
       properties: {
+        workspace: WORKSPACE,
         path: { type: "string", description: "Repository-relative." },
         side: RANGE.properties.side,
         startLine: { type: "integer" },
@@ -65,7 +76,11 @@ const TOOLS = [
   {
     name: "tour_clear",
     description: "Remove all tour highlights. Call at the end of a tour. Does not close tabs.",
-    inputSchema: { type: "object", properties: {} },
+    inputSchema: {
+      type: "object",
+      required: ["workspace"],
+      properties: { workspace: WORKSPACE },
+    },
   },
 ];
 
@@ -80,8 +95,9 @@ function createCallTool({ resolveLock }) {
   return async function callTool(name, args) {
     const route = ROUTES[name];
     if (!route) throw new Error(`unknown tool: ${name}`);
-    const lock = resolveLock();
-    return request(lock, route[0], route[1], args);
+    const { workspace, ...bridgeArgs } = args;
+    const lock = resolveLock(workspace);
+    return request(lock, route[0], route[1], bridgeArgs);
   };
 }
 

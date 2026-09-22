@@ -1,3 +1,4 @@
+.local/
 .superpowers/
 node_modules/
 *.vsix

@@ -31,8 +31,13 @@ test("the declared tools match the documented surface", () => {
 
 test("tour_status GETs /status with the lock's bearer token", async () => {
   const b = await stubBridge({ "GET /status": [200, { ok: true, extensionVersion: "0.1.0" }] });
-  const callTool = createCallTool({ resolveLock: () => ({ port: b.port, authToken: "tok" }) });
-  assert.deepStrictEqual(await callTool("tour_status", {}), { ok: true, extensionVersion: "0.1.0" });
+  let resolvedWorkspace;
+  const callTool = createCallTool({ resolveLock: (workspace) => {
+    resolvedWorkspace = workspace;
+    return { port: b.port, authToken: "tok" };
+  } });
+  assert.deepStrictEqual(await callTool("tour_status", { workspace: "/repo" }), { ok: true, extensionVersion: "0.1.0" });
+  assert.strictEqual(resolvedWorkspace, "/repo");
   assert.strictEqual(b.seen[0].auth, "Bearer tok");
   assert.match(b.seen[0].url, /protocolVersion=1/);
   b.close();
@@ -41,10 +46,11 @@ test("tour_status GETs /status with the lock's bearer token", async () => {
 test("tour_stop POSTs its arguments with the protocol version attached", async () => {
   const b = await stubBridge({ "POST /stop": [200, { ok: true, opened: ["a.go"], deferred: [] }] });
   const callTool = createCallTool({ resolveLock: () => ({ port: b.port, authToken: "tok" }) });
-  const args = { stopId: "s1", label: "L", type: "implementation", mode: "file", files: [{ path: "a.go", ranges: [{ side: "working", startLine: 1, endLine: 2 }] }] };
+  const args = { workspace: "/repo", stopId: "s1", label: "L", type: "implementation", mode: "file", files: [{ path: "a.go", ranges: [{ side: "working", startLine: 1, endLine: 2 }] }] };
   await callTool("tour_stop", args);
   assert.strictEqual(b.seen[0].body.protocolVersion, 1);
   assert.strictEqual(b.seen[0].body.stopId, "s1");
+  assert.strictEqual(b.seen[0].body.workspace, undefined);
   b.close();
 });
 
@@ -110,6 +116,13 @@ test("tour_stop accepts both modes and requires pinned refs", () => {
   }
   assert.ok(stop.inputSchema.required.includes("base"));
   assert.ok(stop.inputSchema.required.includes("head"));
+});
+
+test("every tool requires an explicit workspace", () => {
+  for (const tool of TOOLS) {
+    assert.ok(tool.inputSchema.required.includes("workspace"), `${tool.name} does not require workspace`);
+    assert.strictEqual(tool.inputSchema.properties.workspace.type, "string");
+  }
 });
 
 test("the diff-mode fixture round-trips through tour_stop", async () => {

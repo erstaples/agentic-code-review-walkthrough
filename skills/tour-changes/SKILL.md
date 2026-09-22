@@ -20,6 +20,10 @@ the reviewer to formulate one. Common shapes: current branch vs the default
 branch, working tree vs `HEAD`, a commit range, or a fetched MR/PR. State the
 resolved `git diff` command and proceed unless corrected.
 
+Resolve the absolute repository root with `git rev-parse --show-toplevel` and
+pass it as `workspace` on every `tour_*` tool call. The bridge uses this to
+select the VS Code window that has the reviewed repository open.
+
 Then **pin it**. Run `git rev-parse --verify <ref>^{commit}` on both ends and
 carry the resulting SHAs for the rest of the tour, keeping the human-readable
 names for display. For a tour of uncommitted work, use the literal head sha
@@ -32,11 +36,11 @@ If the diff is empty, report that and stop.
 
 ### 1b. Preflight the editor bridge
 
-Call `tour_status`. On success, run a **driven tour**: the editor opens and
-highlights code as you narrate. On failure, say in one line which capabilities
-are unavailable and how to install the extension, then run a **text tour** —
-identical narration, `path:line` citations only. Never block the tour on the
-bridge.
+Call `tour_status` with the resolved `workspace`. On success, run a **driven
+tour**: the editor opens and highlights code as you narrate. On failure, say in
+one line which capabilities are unavailable and how to install the extension,
+then run a **text tour** — identical narration, `path:line` citations only.
+Never block the tour on the bridge.
 
 ### 2. Read for context, not just the diff
 

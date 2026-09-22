@@ -18,6 +18,30 @@ test("plugin.json name matches the marketplace entry", () => {
   assert.strictEqual(readJson(".claude-plugin/plugin.json").name, "tour-changes");
 });
 
+test("Codex uses a portable manifest and MCP configuration", () => {
+  const plugin = readJson("plugin.json");
+  const mcp = readJson("mcp.json");
+  const compatibility = readJson(".codex-plugin/plugin.json");
+
+  assert.strictEqual(
+    plugin.$schema,
+    "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
+  );
+  assert.strictEqual(plugin.name, "tour-changes");
+  assert.strictEqual(compatibility.name, plugin.name);
+  assert.strictEqual(compatibility.skills, "./skills/");
+
+  assert.strictEqual(
+    mcp.$schema,
+    "https://agent-plugins.org/schemas/1.0.0/mcp.schema.json",
+  );
+  assert.deepStrictEqual(mcp.mcpServers["tour-bridge"], {
+    type: "stdio",
+    command: "node",
+    args: ["${PLUGIN_ROOT}/mcp/server.js"],
+  });
+});
+
 test("skill lives in a directory matching its frontmatter name", () => {
   const body = fs.readFileSync(path.join(root, "skills/tour-changes/SKILL.md"), "utf8");
   assert.match(body, /^name: tour-changes$/m);

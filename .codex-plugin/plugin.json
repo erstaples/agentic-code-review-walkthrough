@@ -1,0 +1,35 @@
+{
+  "name": "tour-changes",
+  "version": "0.1.0+codex.20260922214243",
+  "description": "Walks you through a diff one logical change at a time, driving VS Code to open and highlight the code under discussion.",
+  "author": {
+    "name": "erstaples",
+    "url": "https://github.com/erstaples"
+  },
+  "homepage": "https://github.com/erstaples/agent-code-review-walkthrough",
+  "repository": "https://github.com/erstaples/agent-code-review-walkthrough",
+  "license": "MIT",
+  "keywords": [
+    "code-review",
+    "walkthrough",
+    "diff",
+    "vscode",
+    "tour"
+  ],
+  "skills": "./skills/",
+  "interface": {
+    "displayName": "Tour Changes",
+    "shortDescription": "Walk through a code diff in VS Code",
+    "longDescription": "Guides a reviewer through a diff one logical change at a time while opening and highlighting the relevant code in VS Code.",
+    "developerName": "erstaples",
+    "category": "Productivity",
+    "capabilities": [
+      "Read",
+      "Interactive"
+    ],
+    "websiteURL": "https://github.com/erstaples/agent-code-review-walkthrough",
+    "defaultPrompt": [
+      "Walk me through the changes in this branch."
+    ]
+  }
+}

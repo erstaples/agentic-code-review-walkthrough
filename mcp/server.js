@@ -15,7 +15,11 @@ const dispatcher = createDispatcher({
   serverInfo: { name: "tour-bridge", version: "0.1.0" },
   tools: TOOLS,
   callTool: createCallTool({
-    resolveLock: () => resolveLock({ dir: LOCK_DIR, cwd: process.cwd(), protocolVersion: PROTOCOL_VERSION }),
+    resolveLock: (workspace) => resolveLock({
+      dir: LOCK_DIR,
+      cwd: workspace || process.cwd(),
+      protocolVersion: PROTOCOL_VERSION,
+    }),
   }),
 });
 
