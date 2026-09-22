@@ -158,4 +158,29 @@ function dispose() {
   FOCUS.dispose();
 }
 
-module.exports = { workspaceRoot, absolute, openFile, applyTo, applyAll, clearAll, reveal, describe, validateRange, dispose };
+async function openMultiDiff(title, files, base, head) {
+  const { changedFiles, gitUriQuery } = require("./git.js");
+  const root = workspaceRoot();
+  const wanted = new Set(files.map((f) => f.path));
+  const changes = (await changedFiles(root, base.sha, head.sha)).filter(
+    (c) => wanted.has(c.targetPath) || wanted.has(c.sourcePath)
+  );
+
+  const gitUri = (rel, ref) => {
+    const abs = path.join(root, rel);
+    return vscode.Uri.file(abs).with({ scheme: "git", query: gitUriQuery(abs, ref) });
+  };
+
+  const resources = changes.map((c) => {
+    const label = vscode.Uri.file(path.join(root, c.status === "D" ? c.sourcePath : c.targetPath));
+    if (c.status === "A") return [label, undefined, gitUri(c.targetPath, head.sha)];
+    if (c.status === "D") return [label, gitUri(c.sourcePath, base.sha), undefined];
+    return [label, gitUri(c.sourcePath, base.sha), gitUri(c.targetPath, head.sha)];
+  });
+
+  if (resources.length === 0) throw fail("bad_request", `none of the requested files differ between ${base.sha} and ${head.sha}`);
+  await vscode.commands.executeCommand("vscode.changes", title, resources);
+  return changes.map((c) => c.targetPath || c.sourcePath);
+}
+
+module.exports = { workspaceRoot, absolute, openFile, applyTo, applyAll, clearAll, reveal, describe, validateRange, openMultiDiff, dispose };

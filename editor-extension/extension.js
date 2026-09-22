@@ -8,6 +8,7 @@ const vscode = require("vscode");
 const { startServer } = require("./lib/httpserver.js");
 const { writeLock, removeLock } = require("./lib/lockfile.js");
 const { createIntentStore } = require("./lib/decorations.js");
+const { createIdentity } = require("./lib/identity.js");
 const editor = require("./lib/editor.js");
 
 const PROTOCOL_VERSION = 1;
@@ -16,12 +17,10 @@ const LOCK_DIR = path.join(os.homedir(), ".claude", "tour");
 let server = null;
 let lockPath = null;
 
-// Phase 1 has no pinned refs, so every git: editor is treated as unknown.
-// Phase 2 replaces this with a base/head SHA lookup.
-const sideResolver = () => null;
-
 async function activate(context) {
   const store = createIntentStore();
+  const identity = createIdentity();
+  const sideResolver = (ref) => identity.sideFor(ref);
   const extensionVersion = vscode.extensions.getExtension("estaples.claude-tour").packageJSON.version;
   const authToken = crypto.randomBytes(32).toString("base64url");
 
@@ -34,9 +33,19 @@ async function activate(context) {
     }),
 
     "POST /stop": async (body) => {
+      if (body.mode === "diff") {
+        if (!body.base || !body.head) throw Object.assign(new Error("diff mode requires base and head"), { code: "bad_request" });
+        identity.check({ base: body.base, head: body.head });
+        store.setStop({ stopId: body.stopId, files: body.files || [] });
+        const opened = await editor.openMultiDiff(body.label, body.files || [], body.base, body.head);
+        editor.applyAll(store, sideResolver);
+        return { opened, deferred: store.pendingPaths() };
+      }
+
       if (body.mode !== "file") {
         throw Object.assign(new Error(`unsupported mode: ${body.mode}`), { code: "bad_request" });
       }
+      if (body.base && body.head) identity.check({ base: body.base, head: body.head });
       for (const file of body.files || []) {
         for (const r of file.ranges || []) editor.validateRange(file.path, r.startLine, r.endLine);
       }
@@ -59,6 +68,7 @@ async function activate(context) {
     },
 
     "POST /clear": async () => {
+      identity.reset();
       store.clear();
       editor.clearAll();
       return {};

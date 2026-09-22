@@ -1,6 +1,7 @@
 "use strict";
 
 const assert = require("node:assert");
+const cp = require("node:child_process");
 const fs = require("node:fs");
 const os = require("node:os");
 const path = require("node:path");
@@ -17,6 +18,10 @@ module.exports = function register({ test, before, after }) {
   let base;
 
   before(async () => {
+    // The fixture workspace is a subfolder of this project's own repo, so the
+    // bundled git extension's default "prompt" leaves the enclosing repo
+    // undetected in a headless run. This only touches the throwaway test profile.
+    await vscode.workspace.getConfiguration("git").update("openRepositoryInParentFolders", "always", vscode.ConfigurationTarget.Global);
     await vscode.extensions.getExtension("estaples.claude-tour").activate();
     const dir = path.join(os.homedir(), ".claude", "tour");
     for (let i = 0; i < 40 && !lock; i++) {
@@ -44,6 +49,7 @@ module.exports = function register({ test, before, after }) {
     }).then((r) => r.json());
 
   const fixture = () => vscode.workspace.workspaceFolders[0].uri.fsPath;
+  const gitIn = (...args) => cp.execFileSync("git", args, { cwd: fixture(), encoding: "utf8" }).trim();
 
   test("GET /status reports the workspace this window owns", async () => {
     const res = await call("GET", "/status");
@@ -162,5 +168,46 @@ module.exports = function register({ test, before, after }) {
     const before = openTabs();
     assert.strictEqual((await call("POST", "/clear", {})).ok, true);
     assert.strictEqual(openTabs(), before);
+  });
+
+  test("POST /stop in diff mode opens the multi-file diff editor", async () => {
+    const head = gitIn("rev-parse", "HEAD");
+    const base = gitIn("rev-parse", "HEAD~1");
+    // fixture() is a subdirectory of the outer repo, so plain --name-only would
+    // report repo-root-relative paths; --relative matches what changedFiles() returns.
+    const changed = gitIn("diff", "--name-only", "--relative", base, head).split("\n").filter(Boolean);
+    assert.ok(changed.length > 0, "fixture repo needs at least one changed file");
+
+    await call("POST", "/clear", {});
+    const res = await call("POST", "/stop", {
+      stopId: "d1", index: 1, total: 1, label: "Diff smoke", type: "implementation", mode: "diff",
+      base: { sha: base, name: "HEAD~1" }, head: { sha: head, name: "HEAD" },
+      files: changed.map((p) => ({ path: p, ranges: [{ side: "head", startLine: 1, endLine: 1 }] })),
+    });
+    assert.strictEqual(res.ok, true);
+    await sleep(1500);
+
+    const multi = vscode.window.tabGroups.all
+      .flatMap((g) => g.tabs)
+      .find((t) => t.input instanceof vscode.TabInputTextMultiDiff);
+    assert.ok(multi, "no multi-diff tab opened");
+    assert.strictEqual(multi.input.textDiffs.length, changed.length);
+  });
+
+  test("a second stop with a different base is diff_identity_mismatch", async () => {
+    const head = gitIn("rev-parse", "HEAD");
+    const res = await call("POST", "/stop", {
+      stopId: "d2", index: 2, total: 2, label: "Wrong identity", type: "implementation", mode: "diff",
+      base: { sha: "0".repeat(40), name: "bogus" }, head: { sha: head, name: "HEAD" },
+      files: [],
+    });
+    assert.strictEqual(res.ok, false);
+    assert.strictEqual(res.error.code, "diff_identity_mismatch");
+  });
+
+  test("decorations reach diff-editor editors as they materialize", async () => {
+    await sleep(500);
+    const gitEditors = vscode.window.visibleTextEditors.filter((e) => e.document.uri.scheme === "git");
+    assert.ok(gitEditors.length > 0, "expected at least one git: editor from the diff view");
   });
 };
