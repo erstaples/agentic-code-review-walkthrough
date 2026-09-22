@@ -5,6 +5,8 @@ const fs = require("node:fs");
 const os = require("node:os");
 const path = require("node:path");
 const vscode = require("vscode");
+const editorLib = require("../../lib/editor.js");
+const { createIntentStore } = require("../../lib/decorations.js");
 
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
@@ -119,6 +121,37 @@ module.exports = function register({ test, before, after }) {
 
       const res = await call("POST", "/focus", { path: rel, side: "working", startLine: 1, endLine: 1 });
       assert.strictEqual(res.ok, true, JSON.stringify(res));
+    } finally {
+      fs.rmSync(abs, { force: true });
+    }
+  });
+
+  // decorate() cannot be observed through the HTTP surface, so this drives
+  // lib/editor.js directly against a real document and a spy editor.
+  test("the focus note decoration is anchored on the range's first line", async () => {
+    const rel = "tour-focus-note.tmp";
+    const abs = path.join(fixture(), rel);
+    fs.writeFileSync(abs, "one\ntwo\nthree\nfour\nfive\n");
+    try {
+      const doc = await vscode.workspace.openTextDocument(vscode.Uri.file(abs));
+      const store = createIntentStore();
+      store.setFocus({ path: rel, side: "working", startLine: 2, endLine: 4, note: "landed here" });
+
+      const calls = [];
+      const stub = { document: doc, setDecorations: (type, options) => calls.push(options) };
+      assert.strictEqual(editorLib.applyTo(stub, store, () => null), true);
+
+      const focusOptions = calls.find((options) => options.length > 0 && "range" in options[0]);
+      assert.strictEqual(focusOptions.length, 2, "expected one option for the noted line and one for the rest of the block");
+
+      const [noted, rest] = focusOptions;
+      assert.strictEqual(noted.range.start.line, 1, "note range should start on wire line 2 (0-based line 1)");
+      assert.strictEqual(noted.range.end.line, 1, "note range should not extend past the first line");
+      assert.strictEqual(noted.renderOptions.after.contentText, "  landed here");
+
+      assert.strictEqual(rest.range.start.line, 2);
+      assert.strictEqual(rest.range.end.line, 3);
+      assert.strictEqual(rest.renderOptions, undefined, "only the first line's option carries the note");
     } finally {
       fs.rmSync(abs, { force: true });
     }

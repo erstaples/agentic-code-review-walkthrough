@@ -12,10 +12,13 @@ const STOP = vscode.window.createTextEditorDecorationType({
 });
 
 const FOCUS = vscode.window.createTextEditorDecorationType({
-  backgroundColor: new vscode.ThemeColor("editor.selectionHighlightBackground"),
-  border: "1px solid",
-  borderColor: new vscode.ThemeColor("editorOverviewRuler.findMatchForeground"),
+  backgroundColor: new vscode.ThemeColor("editor.stackFrameHighlightBackground"),
   isWholeLine: true,
+  borderStyle: "solid",
+  borderWidth: "0 0 0 3px",
+  borderColor: new vscode.ThemeColor("focusBorder"),
+  overviewRulerLane: vscode.OverviewRulerLane.Center,
+  overviewRulerColor: new vscode.ThemeColor("focusBorder"),
 });
 
 function fail(code, message) {
@@ -101,20 +104,21 @@ function decorate(editor, store, sideResolver) {
   const { stop, focus } = store.rangesFor({ path: d.path, side });
 
   editor.setDecorations(STOP, stop.map((r) => toRange(editor.document, r.startLine, r.endLine)));
-  editor.setDecorations(
-    FOCUS,
-    focus
-      ? [{
-          range: toRange(editor.document, focus.startLine, focus.endLine),
-          renderOptions: focus.note
-            ? { after: { contentText: `  ${focus.note}`, color: new vscode.ThemeColor("editorCodeLens.foreground"), fontStyle: "italic" } }
-            : undefined,
-        }]
-      : []
-  );
+  editor.setDecorations(FOCUS, focus ? focusDecorations(editor.document, focus) : []);
 
   if (stop.length > 0 || focus) store.markApplied(d.path);
   return true;
+}
+
+// `after` content anchors at its range's end, so the note needs its own
+// range on the first line rather than sharing the whole-block range.
+function focusDecorations(document, focus) {
+  const renderOptions = focus.note
+    ? { after: { contentText: `  ${focus.note}`, color: new vscode.ThemeColor("editorCodeLens.foreground"), fontStyle: "italic" } }
+    : undefined;
+  const firstLine = { range: toRange(document, focus.startLine, focus.startLine), renderOptions };
+  if (focus.endLine === focus.startLine) return [firstLine];
+  return [firstLine, { range: toRange(document, focus.startLine + 1, focus.endLine) }];
 }
 
 function applyAll(store, sideResolver) {
