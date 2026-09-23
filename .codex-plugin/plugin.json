@@ -1,7 +1,7 @@
 {
   "name": "tour-changes",
-  "version": "0.1.0+codex.20260922214243",
-  "description": "Walks you through a diff one logical change at a time, driving VS Code to open and highlight the code under discussion.",
+  "version": "0.2.0+codex.20260922230718",
+  "description": "Walks through a diff with editor navigation and a persistent, evidence-backed living change dossier.",
   "author": {
     "name": "erstaples",
     "url": "https://github.com/erstaples"
@@ -14,22 +14,25 @@
     "walkthrough",
     "diff",
     "vscode",
-    "tour"
+    "tour",
+    "dossier"
   ],
   "skills": "./skills/",
   "interface": {
     "displayName": "Tour Changes",
-    "shortDescription": "Walk through a code diff in VS Code",
-    "longDescription": "Guides a reviewer through a diff one logical change at a time while opening and highlighting the relevant code in VS Code.",
+    "shortDescription": "Persistent, evidence-backed code walkthroughs",
+    "longDescription": "Guides a reviewer through a diff while preserving claims, evidence, risks, questions, coverage, and review receipts in a local living change dossier.",
     "developerName": "erstaples",
     "category": "Productivity",
     "capabilities": [
       "Read",
-      "Interactive"
+      "Interactive",
+      "Write"
     ],
     "websiteURL": "https://github.com/erstaples/agent-code-review-walkthrough",
     "defaultPrompt": [
-      "Walk me through the changes in this branch."
+      "Walk me through the changes in this branch.",
+      "Implement this specification with a living change dossier."
     ]
   }
 }

@@ -22,7 +22,11 @@ function stubBridge(routes) {
 }
 
 test("the declared tools match the documented surface", () => {
-  assert.deepStrictEqual(TOOLS.map((t) => t.name).sort(), ["tour_clear", "tour_focus", "tour_status", "tour_stop"]);
+  assert.deepStrictEqual(TOOLS.map((t) => t.name).sort(), [
+    "dossier_apply", "dossier_check", "dossier_delete", "dossier_get",
+    "dossier_open", "dossier_receipt", "dossier_refresh", "tour_clear",
+    "tour_focus", "tour_status", "tour_stop",
+  ]);
   for (const tool of TOOLS) {
     assert.ok(tool.description, `${tool.name} has no description`);
     assert.strictEqual(tool.inputSchema.type, "object");

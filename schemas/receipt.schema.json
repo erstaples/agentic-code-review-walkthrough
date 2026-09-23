@@ -1,0 +1,26 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://erstaples.dev/tour-changes/schemas/receipt.schema.json",
+  "title": "Living change dossier review receipt",
+  "type": "object",
+  "required": ["schemaVersion", "producerVersion", "id", "dossierId", "reviewSessionId", "changeRevisionId", "changeIdentity", "aggregateRevision", "eventHash", "createdAt", "outcome", "claims", "risks", "evidence", "stops", "questions", "digest"],
+  "properties": {
+    "schemaVersion": { "const": 1 },
+    "id": { "type": "string", "pattern": "^rcp_[0-9a-f-]+$" },
+    "dossierId": { "type": "string", "pattern": "^dos_[0-9a-f-]+$" },
+    "reviewSessionId": { "type": "string", "pattern": "^ses_[0-9a-f-]+$" },
+    "changeRevisionId": { "type": "string", "pattern": "^rev_[0-9a-f-]+$" },
+    "producerVersion": { "type": "string" },
+    "changeIdentity": { "type": "object", "required": ["kind", "manifestDigest"] },
+    "aggregateRevision": { "type": "integer", "minimum": 1 },
+    "eventHash": { "type": "string" },
+    "createdAt": { "type": "string", "format": "date-time" },
+    "outcome": { "type": ["string", "null"] },
+    "claims": { "type": "array" },
+    "risks": { "type": "array" },
+    "evidence": { "type": "array" },
+    "stops": { "type": "array" },
+    "questions": { "type": "array" },
+    "digest": { "type": "string", "pattern": "^sha256:[0-9a-f]{64}$" }
+  }
+}

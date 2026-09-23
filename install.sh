@@ -8,6 +8,12 @@ for tool in node code; do
   command -v "$tool" >/dev/null || { echo "error: $tool is not on PATH" >&2; exit 1; }
 done
 
+node_major="$(node -p 'process.versions.node.split(".")[0]')"
+if [ "$node_major" -lt 22 ]; then
+  echo "error: Node.js 22 or newer is required (found $(node --version))" >&2
+  exit 1
+fi
+
 if [ ! -f "$vsix" ]; then
   echo "building the extension..."
   (cd "$root/editor-extension" && npm install --silent && npm run package --silent)

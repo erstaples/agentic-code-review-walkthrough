@@ -9,11 +9,11 @@ work, then go unit by unit, jumping to real code and pointing at it while they
 explain. This plugin gives an agentic coding tool the same ability — a
 companion VS Code extension lets it drive your editor while it narrates.
 
-> **Status: design complete, implementation not started.**
-> The architecture and wire protocol are specified in
-> [`docs/superpowers/specs/2026-09-21-tour-changes-editor-bridge-design.md`](docs/superpowers/specs/2026-09-21-tour-changes-editor-bridge-design.md).
-> Installation steps below describe the intended end state and are untested.
-> One assumption is explicitly unverified — see [Known gaps](#known-gaps).
+The walkthrough is backed by a private, local **living change dossier**. It
+preserves the change thesis, claims, decisions, risks, evidence, questions,
+and explicit review coverage across process restarts. Each dossier is tied to
+an exact committed diff or byte-level working-tree manifest, so changed code
+cannot silently inherit old review state.
 
 ## What a tour looks like
 
@@ -33,15 +33,15 @@ to a named stop. If you point at something in the editor and ask "what's
 this?", the agent reads where you're looking — selection, cursor, or enclosing
 symbol — and answers about that code.
 
-You can also ask for a change on the spot. The agent shows what it proposes,
-applies it once you agree, and logs it. At the end you get a receipt covering
-what was reviewed, what was changed, what you deferred, and what wasn't
-covered.
+Questions, concerns, and decisions become sourced dossier entries when they
+matter beyond the current conversation. At closeout you can save an immutable
+JSON and Markdown receipt covering what was reviewed, what evidence was
+inspected, what risk was accepted, and what remains unresolved.
 
 ## Requirements
 
 - **VS Code** with the `code` CLI on your `PATH`
-- **Node.js** on the `PATH` of whichever agent launches the MCP server
+- **Node.js 22 or newer** on the `PATH` of whichever agent launches the MCP server
 - One of the supported agents below
 
 The VS Code extension is what makes the tour *driven*. Without it the tour
@@ -133,15 +133,28 @@ and a copy will drift.
 
 ## Usage
 
-Ask in plain language:
+For implementation with continuous dossier capture, ask in plain language:
+
+- "Read `path/to/spec.md` and implement it"
+- "Implement this change and maintain a living dossier"
+- "Use `$develop-with-dossier` to build this feature"
+
+The `develop-with-dossier` skill activates for substantial implementation,
+fix, refactor, and migration work. It records sourced requirements and material
+decisions during development, then binds final claims, code references, and
+evidence to the stable working-tree candidate. It never marks its own work as
+human-reviewed.
+
+For the later ownership walkthrough, ask:
 
 - "tour the changes"
 - "walk me through this diff"
 - "tour the branch head diff against main"
 - "guide me through what changed in the last three commits"
 
-The agent asks what to diff if it isn't clear, confirms the resolved `git diff`
-command, and begins.
+The `tour-changes` skill opens the prepared dossier when one exists. If coding
+happened without dossier capture, it reconstructs a draft from the selected
+diff and labels inferred rationale accordingly.
 
 ## How it works
 
@@ -150,9 +163,10 @@ proxies to the VS Code extension over an authenticated loopback HTTP channel.
 The two find each other through a lockfile the extension writes on activation.
 See [`diagram.md`](diagram.md) for the flow.
 
-The MCP server is a stateless proxy; all editor state lives in the extension.
-That keeps the piece the agent talks to trivial and the piece holding VS Code
-APIs free of transport concerns.
+The MCP server has two boundaries. Editor navigation remains a thin proxy to
+the extension. The dossier application service owns durable review state in a
+per-user application-state directory outside the repository. Set
+`TOUR_CHANGES_STATE_DIR` to override that location.
 
 ### Tools
 
@@ -162,18 +176,23 @@ APIs free of transport concerns.
 | `tour_stop` | Opens a stop's files, as a multi-file diff or as working-tree files, and highlights its ranges |
 | `tour_focus` | Points at one range inside the current stop, with an optional inline note |
 | `tour_clear` | Removes highlights |
-| `tour_context` | Reads what you're looking at — selection, cursor, enclosing symbol, visible range — so deictic questions land on the right code |
-| `tour_rebaseline` | Re-hashes files after an approved mid-review edit, so a deliberate change isn't reported as drift |
+| `dossier_open` | Opens or creates the dossier for an exact committed or working-tree change |
+| `dossier_get` | Reads a bounded overview, entity set, tour, evidence matrix, or resume recap |
+| `dossier_apply` | Atomically applies typed, provenance-bearing domain commands |
+| `dossier_check` | Verifies event integrity and exact change freshness without mutation |
+| `dossier_refresh` | Adds a change revision and conservatively invalidates stale review state |
+| `dossier_receipt` | Previews or emits immutable local JSON and Markdown receipts |
+| `dossier_delete` | Permanently deletes one explicitly confirmed local dossier |
 
 **The bridge has no write verb.** No endpoint modifies a file, so "installing
 this extension cannot alter your repository" is a property of the software
 rather than a promise in a prompt.
 
-Mid-review edits are performed by your agent's own editing tools, not by the
-bridge. When you ask for a change during a tour, the agent says what it will
-change and why, shows it, and applies it only on an explicit yes — then records
-it in the review ledger. Declined and deferred requests are recorded too, since
-those are the ones that otherwise get lost.
+The bridge has no repository write verb. Dossier tools write only to local
+application state, and receipt publication is intentionally absent. The
+service uses immutable hash-chained event files, a single-writer lock, and an
+`expectedRevision` check on every mutation. Secret-shaped values are redacted
+before command content is persisted.
 
 Throughout, the tour keeps narrating the pinned base/head commits, so the code
 under review stays still while you annotate it.
@@ -183,27 +202,33 @@ overwrite the thing `tour_context` reads, and the selection belongs to you.
 
 ## Known gaps
 
-- **`${CLAUDE_PLUGIN_ROOT}` substitution in Codex is unverified.** The `codex` binary references the variable, but `codex mcp get` displays it unexpanded. The Codex install instructions above include a check and a manual fallback. This is the one place the cross-agent story rests on an assumption rather than a probe.
 - **`vscode.changes`** — the command driving the multi-file diff editor is built-in but has no formal API contract. Verified working against 1.138.0; a breaking change would mean falling back to per-file `vscode.diff`.
 - **Lazy decoration.** The multi-file diff editor materializes each file's editors only when you scroll to them, so a stop's highlights land progressively rather than all at once. A file you never scroll to is never highlighted.
 - **Large stops** may open more tabs than is comfortable. The skill classifies bulk and generated changes and samples representatively instead; no hard cap is implemented.
-
-This is the first of two documents. The
-[product spec](docs/superpowers/specs/2026-09-21-tour-changes-product-spec.md)
-records what a tour needs beyond navigation — review state, evidence, rationale
-provenance, and a closeout receipt — and is currently a stub.
+- **Conservative refresh.** A changed working tree invalidates reviewed stops
+  and stales evidence broadly. Semantic carry-forward is deliberately deferred
+  rather than guessing that old review remains valid.
+- **No dossier sidebar yet.** Dossier projections are presented in the agent
+  conversation; the extension remains a navigation and highlighting surface.
 
 ## Development
 
-Both halves are dependency-free plain JavaScript. Plugin installation doesn't
+The runtime is dependency-free JavaScript. Plugin installation doesn't
 run `npm install`, so depending on an SDK would mean vendoring `node_modules`
 into the repository.
 
 ```
-mcp/               stdio MCP server — lockfile discovery, HTTP proxy
+mcp/               stdio MCP server — editor proxy and dossier service
 editor-extension/  VS Code extension — HTTP server, decorations, diff views
-skills/            the tour procedure, loaded by Claude Code and Codex alike
+schemas/           versioned dossier, event, receipt, and tool contracts
+skills/            implementation-capture and walkthrough procedures
 docs/              design spec
+```
+
+Run the full dependency-free suite with:
+
+```sh
+node --test test/*.test.js mcp/test/*.test.js editor-extension/test/*.test.js
 ```
 
 ## Prior art

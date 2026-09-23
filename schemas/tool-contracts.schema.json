@@ -1,0 +1,23 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://erstaples.dev/tour-changes/schemas/tool-contracts.schema.json",
+  "title": "Dossier MCP tool shared contracts",
+  "$defs": {
+    "actor": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["kind", "id"],
+      "properties": { "kind": { "type": "string" }, "id": { "type": "string" }, "displayName": { "type": "string" } }
+    },
+    "provenance": {
+      "type": "object",
+      "required": ["kind", "source"],
+      "properties": {
+        "kind": { "enum": ["user-stated", "source-document", "session-recorded", "repository-observed", "execution-observed", "reviewer-stated", "model-inferred"] },
+        "source": { "type": "object", "required": ["type"] },
+        "capturedAt": { "type": "string", "format": "date-time" },
+        "inferenceExplanation": { "type": "string" }
+      }
+    }
+  }
+}

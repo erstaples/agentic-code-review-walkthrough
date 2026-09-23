@@ -2,20 +2,20 @@
   "name": "code-review-walkthrough",
   "owner": { "name": "erstaples", "url": "https://github.com/erstaples" },
   "metadata": {
-    "description": "Guided, editor-driven walkthroughs of a code diff",
-    "version": "0.1.0"
+    "description": "Persistent, evidence-backed, editor-driven walkthroughs of a code diff",
+    "version": "0.2.0"
   },
   "plugins": [
     {
       "name": "tour-changes",
       "source": "./",
-      "description": "Walks you through a diff one logical change at a time, driving VS Code to open and highlight the code under discussion.",
-      "version": "0.1.0",
+      "description": "Walks through a diff with editor navigation and a persistent, evidence-backed living change dossier.",
+      "version": "0.2.0",
       "author": { "name": "erstaples", "url": "https://github.com/erstaples" },
       "homepage": "https://github.com/erstaples/claude-code-review-walkthrough",
       "repository": "https://github.com/erstaples/claude-code-review-walkthrough",
       "license": "MIT",
-      "keywords": ["code-review", "walkthrough", "diff", "vscode", "tour"],
+      "keywords": ["code-review", "walkthrough", "diff", "vscode", "tour", "dossier"],
       "category": "productivity"
     }
   ]

@@ -1,8 +1,8 @@
 {
   "$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
   "name": "tour-changes",
-  "version": "0.1.0",
-  "description": "Walks you through a diff one logical change at a time, driving VS Code to open and highlight the code under discussion.",
+  "version": "0.2.0",
+  "description": "Walks through a diff with editor navigation and a persistent, evidence-backed living change dossier.",
   "author": {
     "name": "erstaples",
     "url": "https://github.com/erstaples"
@@ -10,5 +10,5 @@
   "homepage": "https://github.com/erstaples/agent-code-review-walkthrough",
   "repository": "https://github.com/erstaples/agent-code-review-walkthrough",
   "license": "MIT",
-  "keywords": ["code-review", "walkthrough", "diff", "vscode", "tour"]
+  "keywords": ["code-review", "walkthrough", "diff", "vscode", "tour", "dossier"]
 }

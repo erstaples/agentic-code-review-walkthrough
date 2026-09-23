@@ -45,6 +45,8 @@ test("Codex uses a portable manifest and MCP configuration", () => {
 test("skill lives in a directory matching its frontmatter name", () => {
   const body = fs.readFileSync(path.join(root, "skills/tour-changes/SKILL.md"), "utf8");
   assert.match(body, /^name: tour-changes$/m);
+  const development = fs.readFileSync(path.join(root, "skills/develop-with-dossier/SKILL.md"), "utf8");
+  assert.match(development, /^name: develop-with-dossier$/m);
 });
 
 test("skill is generalized: no personal name, no sibling-skill slash references", () => {
