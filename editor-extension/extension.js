@@ -9,6 +9,7 @@ const { startServer } = require("./lib/httpserver.js");
 const { writeLock, removeLock } = require("./lib/lockfile.js");
 const { createIntentStore } = require("./lib/decorations.js");
 const { createIdentity } = require("./lib/identity.js");
+const { formatCitation } = require("./lib/citation.js");
 const editor = require("./lib/editor.js");
 
 const PROTOCOL_VERSION = 1;
@@ -23,6 +24,31 @@ async function activate(context) {
   const sideResolver = (ref) => identity.sideFor(ref);
   const extensionVersion = vscode.extensions.getExtension("estaples.claude-tour").packageJSON.version;
   const authToken = crypto.randomBytes(32).toString("base64url");
+
+  const copyCitation = async () => {
+    try {
+      const active = vscode.window.activeTextEditor;
+      if (!active) throw Object.assign(new Error("Open a workspace file and select one or more lines first."), { code: "unsupported_editor" });
+
+      const described = editor.describe(active);
+      if (!described) throw Object.assign(new Error("The active editor is not a file in this workspace."), { code: "unsupported_editor" });
+
+      const side = described.side || sideResolver(described.ref);
+      if (described.ref && !side) {
+        throw Object.assign(new Error("This diff is not part of the active walkthrough."), { code: "diff_identity_mismatch" });
+      }
+      const pinned = identity.current();
+      const ref = side === "base" || side === "head" ? pinned?.[side]?.sha || described.ref : null;
+      const citation = formatCitation({ path: described.path, side, ref, selection: active.selection });
+
+      await vscode.env.clipboard.writeText(citation);
+      vscode.window.setStatusBarMessage(`Copied citation: ${citation}`, 3000);
+      return citation;
+    } catch (err) {
+      vscode.window.showWarningMessage(err.message);
+      return null;
+    }
+  };
 
   const handlers = {
     // A pure read: unlike /stop and /focus, this never calls applyAll, so
@@ -106,6 +132,7 @@ async function activate(context) {
   });
 
   context.subscriptions.push(
+    vscode.commands.registerCommand("tourChanges.copyCitation", copyCitation),
     vscode.window.onDidChangeVisibleTextEditors(() => editor.applyAll(store, sideResolver)),
     { dispose: () => { removeLock(lockPath); if (server) server.close(); editor.dispose(); } }
   );

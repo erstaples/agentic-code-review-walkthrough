@@ -184,7 +184,9 @@ End a driven tour with `tour_clear`.
   navigation available. Use `<path>:<start>-<end>` for a range. Paths are
   relative to the repository root, not the module, so they resolve from the
   reviewer's working directory. The terminal renders them clickable, so a bare
-  name costs the reviewer a search.
+  name costs the reviewer a search. A reviewer citation copied from a pinned
+  diff may end with `[base@<sha>]` or `[head@<sha>]`; interpret its lines from
+  that revision and side rather than from the working tree.
 - Don't pad stops to hit a target count, and don't merge unrelated changes
   into one stop just to shorten the tour.
 - If a "concern" is really just a style preference with no rule behind it,

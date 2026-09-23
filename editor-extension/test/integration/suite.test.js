@@ -137,9 +137,9 @@ module.exports = function register({ test, before, after }) {
   test("POST /focus succeeds and leaves the reviewer's selection alone", async () => {
     const target = () => vscode.window.visibleTextEditors.find((e) => e.document.uri.fsPath.endsWith("package.json"));
     const snapshot = (s) => [s.start.line, s.start.character, s.end.line, s.end.character];
-    target().selection = new vscode.Selection(0, 0, 0, 4);
-    // VS Code clamps a selection to the line's real length asynchronously, so the
-    // baseline is only trustworthy once that round trip has landed.
+    target().selection = new vscode.Selection(0, 0, 0, 1);
+    // Let the extension host finish propagating the selection before taking the
+    // baseline observed after /focus.
     await sleep(200);
     const before = snapshot(target().selection);
     const res = await call("POST", "/focus", { path: "package.json", side: "working", startLine: 2, endLine: 2, note: "here" });
@@ -147,6 +147,16 @@ module.exports = function register({ test, before, after }) {
     assert.strictEqual(res.revealed, true, "focus fell back to opening a new editor");
     await sleep(200);
     assert.deepStrictEqual(snapshot(target().selection), before);
+  });
+
+  test("Copy Citation writes an agent-neutral working-tree range to the clipboard", async () => {
+    const target = vscode.window.visibleTextEditors.find((e) => e.document.uri.fsPath.endsWith("package.json"));
+    const active = await vscode.window.showTextDocument(target.document, { preview: false, preserveFocus: false });
+    active.selection = new vscode.Selection(0, 0, 2, 0);
+
+    const result = await vscode.commands.executeCommand("tourChanges.copyCitation");
+    assert.strictEqual(result, "package.json:1-2");
+    assert.strictEqual(await vscode.env.clipboard.readText(), "package.json:1-2");
   });
 
   test("a range past the end of the file is range_out_of_bounds", async () => {
@@ -524,6 +534,21 @@ module.exports = function register({ test, before, after }) {
       .filter(Boolean);
     assert.ok(described.some((d) => d.path === "new-name.txt"), `expected an editor describing to new-name.txt, saw ${JSON.stringify(described)}`);
     assert.ok(!described.some((d) => d.path === "old-name.txt"), "the base pane must resolve to the canonical (target) name, not the historical source name");
+  });
+
+  test("Copy Citation identifies the pinned side and revision in a walkthrough diff", async () => {
+    const pane = vscode.window.visibleTextEditors.find((e) => {
+      const d = editorLib.describe(e);
+      return d?.path === "new-name.txt" && d.ref === diff.base;
+    });
+    assert.ok(pane, "expected the renamed file's base pane to be visible");
+    const active = await vscode.window.showTextDocument(pane.document, { preview: false, preserveFocus: false });
+    active.selection = new vscode.Selection(0, 0, 0, 7);
+
+    const result = await vscode.commands.executeCommand("tourChanges.copyCitation");
+    const expected = `new-name.txt:1 [base@${diff.base.slice(0, 7)}]`;
+    assert.strictEqual(result, expected);
+    assert.strictEqual(await vscode.env.clipboard.readText(), expected);
   });
 
   test("requesting a renamed file by its old (source) name is rejected", async () => {

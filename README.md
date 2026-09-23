@@ -156,6 +156,14 @@ The `tour-changes` skill opens the prepared dossier when one exists. If coding
 happened without dossier capture, it reconstructs a draft from the selected
 diff and labels inferred rationale accordingly.
 
+While reviewing, select one or more lines and use **Tour Changes: Copy
+Citation** from the editor context menu. It copies an agent-neutral,
+repository-relative marker such as `editor-extension/lib/editor.js:56-70` for
+pasting into Claude Code, Codex, another agent, or a review comment. Citations
+from pinned walkthrough diffs also identify the side and revision, for example
+`editor-extension/lib/editor.js:56-70 [base@a1b2c3d]`; the selected source text
+is never copied.
+
 ## How it works
 
 Three processes, two hops — the agent talks to a small MCP server, which

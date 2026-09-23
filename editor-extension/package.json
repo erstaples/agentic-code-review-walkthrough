@@ -10,6 +10,23 @@
   "categories": ["Other"],
   "activationEvents": ["onStartupFinished"],
   "main": "./extension.js",
+  "contributes": {
+    "commands": [
+      {
+        "command": "tourChanges.copyCitation",
+        "title": "Tour Changes: Copy Citation"
+      }
+    ],
+    "menus": {
+      "editor/context": [
+        {
+          "command": "tourChanges.copyCitation",
+          "when": "editorHasSelection && (resourceScheme == file || resourceScheme == git)",
+          "group": "tourChanges"
+        }
+      ]
+    }
+  },
   "devDependencies": {
     "@vscode/test-electron": "^2.4.1",
     "@vscode/vsce": "^3.2.1"
