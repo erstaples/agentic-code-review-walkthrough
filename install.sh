@@ -2,7 +2,6 @@
 set -euo pipefail
 
 root="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-vsix="$root/editor-extension/claude-tour-0.1.0.vsix"
 
 for tool in node code; do
   command -v "$tool" >/dev/null || { echo "error: $tool is not on PATH" >&2; exit 1; }
@@ -14,9 +13,11 @@ if [ "$node_major" -lt 22 ]; then
   exit 1
 fi
 
+vsix="$root/editor-extension/$(node -p "const p = require(process.argv[1]); p.name + '-' + p.version + '.vsix'" "$root/editor-extension/package.json")"
+
 if [ ! -f "$vsix" ]; then
   echo "building the extension..."
-  (cd "$root/editor-extension" && npm install --silent && npm run package --silent)
+  (cd "$root/editor-extension" && npm ci --silent && npm run package --silent)
 fi
 
 echo "installing the VS Code extension..."

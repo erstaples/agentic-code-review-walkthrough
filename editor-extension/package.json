@@ -5,31 +5,119 @@
   "version": "0.1.0",
   "publisher": "estaples",
   "license": "MIT",
-  "repository": { "type": "git", "url": "git+https://github.com/erstaples/claude-code-review-walkthrough.git" },
-  "engines": { "vscode": "^1.90.0" },
-  "categories": ["Other"],
-  "activationEvents": ["onStartupFinished"],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/erstaples/agentic-code-review-walkthrough.git",
+    "directory": "editor-extension"
+  },
+  "engines": {
+    "vscode": "^1.90.0"
+  },
+  "categories": [
+    "Other"
+  ],
+  "activationEvents": [
+    "onStartupFinished"
+  ],
   "main": "./extension.js",
   "contributes": {
     "colors": [
-      { "id": "relay.presenterRail", "description": "Tour presenter rail and overview ruler", "defaults": { "dark": "#A99BF5", "light": "#534AB7", "highContrast": "#C9BFFF", "highContrastLight": "#26215C" } },
-      { "id": "relay.presenterFocus", "description": "Tour focus outline", "defaults": { "dark": "#A99BF5", "light": "#534AB7", "highContrast": "#FFFFFF", "highContrastLight": "#000000" } },
-      { "id": "relay.presenterLabelBackground", "description": "Beat label background", "defaults": { "dark": "#3C3489", "light": "#EEEDFE", "highContrast": "#000000", "highContrastLight": "#FFFFFF" } },
-      { "id": "relay.presenterLabelForeground", "description": "Beat label text", "defaults": { "dark": "#EEEDFE", "light": "#3C3489", "highContrast": "#FFFFFF", "highContrastLight": "#000000" } },
-      { "id": "relay.presenterSeam", "description": "Marker where removed lines were", "defaults": { "dark": "#A99BF5", "light": "#534AB7", "highContrast": "#FFFFFF", "highContrastLight": "#000000" } }
+      {
+        "id": "relay.presenterRail",
+        "description": "Tour presenter rail and overview ruler",
+        "defaults": {
+          "dark": "#A99BF5",
+          "light": "#534AB7",
+          "highContrast": "#C9BFFF",
+          "highContrastLight": "#26215C"
+        }
+      },
+      {
+        "id": "relay.presenterFocus",
+        "description": "Tour focus outline",
+        "defaults": {
+          "dark": "#A99BF5",
+          "light": "#534AB7",
+          "highContrast": "#FFFFFF",
+          "highContrastLight": "#000000"
+        }
+      },
+      {
+        "id": "relay.presenterLabelBackground",
+        "description": "Beat label background",
+        "defaults": {
+          "dark": "#3C3489",
+          "light": "#EEEDFE",
+          "highContrast": "#000000",
+          "highContrastLight": "#FFFFFF"
+        }
+      },
+      {
+        "id": "relay.presenterLabelForeground",
+        "description": "Beat label text",
+        "defaults": {
+          "dark": "#EEEDFE",
+          "light": "#3C3489",
+          "highContrast": "#FFFFFF",
+          "highContrastLight": "#000000"
+        }
+      },
+      {
+        "id": "relay.presenterSeam",
+        "description": "Marker where removed lines were",
+        "defaults": {
+          "dark": "#A99BF5",
+          "light": "#534AB7",
+          "highContrast": "#FFFFFF",
+          "highContrastLight": "#000000"
+        }
+      }
     ],
     "configuration": {
       "title": "Relay Presentation",
       "properties": {
-        "relay.presentation.removedCode": { "type": "string", "enum": ["companion", "seam"], "default": "companion", "description": "How removed-code focus is shown in inline diffs." },
-        "relay.presentation.dimOpacity": { "type": "number", "minimum": 0.2, "maximum": 1, "default": 0.45, "description": "Context text opacity while following; 1 disables dimming." },
-        "relay.presentation.showLabels": { "type": "boolean", "default": true, "description": "Show inline beat labels." },
-        "relay.presentation.closeCompanion": { "type": "string", "enum": ["onBeatChange", "onTourEnd", "never"], "default": "onBeatChange", "description": "When to close unpinned, unmoved tour companion tabs." }
+        "relay.presentation.removedCode": {
+          "type": "string",
+          "enum": [
+            "companion",
+            "seam"
+          ],
+          "default": "companion",
+          "description": "How removed-code focus is shown in inline diffs."
+        },
+        "relay.presentation.dimOpacity": {
+          "type": "number",
+          "minimum": 0.2,
+          "maximum": 1,
+          "default": 0.45,
+          "description": "Context text opacity while following; 1 disables dimming."
+        },
+        "relay.presentation.showLabels": {
+          "type": "boolean",
+          "default": true,
+          "description": "Show inline beat labels."
+        },
+        "relay.presentation.closeCompanion": {
+          "type": "string",
+          "enum": [
+            "onBeatChange",
+            "onTourEnd",
+            "never"
+          ],
+          "default": "onBeatChange",
+          "description": "When to close unpinned, unmoved tour companion tabs."
+        }
       }
     },
     "commands": [
-      { "command": "relay.presentation.follow", "title": "Tour Changes: Follow Presenter" },
-      { "command": "relay.presentation.pause", "title": "Tour Changes: Pause Presentation" },
+      {
+        "command": "relay.presentation.follow",
+        "title": "Tour Changes: Follow Presenter"
+      },
+      {
+        "command": "relay.presentation.pause",
+        "title": "Tour Changes: Pause Presentation"
+      },
       {
         "command": "tourChanges.copyCitation",
         "title": "Tour Changes: Copy Citation"
@@ -51,11 +139,23 @@
   },
   "devDependencies": {
     "@vscode/test-electron": "^2.4.1",
-    "@vscode/vsce": "^3.2.1"
+    "@vscode/vsce": "4.0.0"
   },
   "scripts": {
     "test:unit": "node --test 'test/*.test.js'",
-    "test:integration": "xvfb-run -a node test/integration/runner.js",
-    "package": "vsce package --allow-missing-repository --out claude-tour-0.1.0.vsix"
-  }
+    "test:integration": "node test/integration/runner.js",
+    "package": "vsce package",
+    "check:release": "node ../scripts/check-extension-release.js"
+  },
+  "homepage": "https://github.com/erstaples/agentic-code-review-walkthrough#readme",
+  "bugs": {
+    "url": "https://github.com/erstaples/agentic-code-review-walkthrough/issues"
+  },
+  "files": [
+    "extension.js",
+    "lib/**/*.js",
+    "README.md",
+    "CHANGELOG.md",
+    "LICENSE"
+  ]
 }

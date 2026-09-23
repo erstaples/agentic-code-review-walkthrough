@@ -6,8 +6,10 @@ const fs = require("node:fs");
 const os = require("node:os");
 const path = require("node:path");
 const vscode = require("vscode");
-const editorLib = require("../../lib/editor.js");
-const { createIntentStore } = require("../../lib/decorations.js");
+// Load the same modules as the extension host when testing an extracted VSIX.
+const extensionPath = process.env.EXTENSION_PATH || path.resolve(__dirname, "../..");
+const editorLib = require(path.join(extensionPath, "lib/editor.js"));
+const { createIntentStore } = require(path.join(extensionPath, "lib/decorations.js"));
 
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 

@@ -41,7 +41,7 @@ async function main() {
   if (process.platform === "darwin") launchArgs.push(`--user-data-dir=${fs.mkdtempSync("/tmp/tour-code-")}`);
   await runTests({
     vscodeExecutablePath: executable,
-    extensionDevelopmentPath: path.resolve(__dirname, "../.."),
+    extensionDevelopmentPath: process.env.EXTENSION_PATH || path.resolve(__dirname, "../.."),
     extensionTestsPath: path.resolve(__dirname, "./index.js"),
     launchArgs,
   });

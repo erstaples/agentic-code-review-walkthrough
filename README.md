@@ -74,19 +74,27 @@ that aren't VS Code.
 ### Step 1 — the VS Code extension (all agents)
 
 ```sh
-git clone https://github.com/erstaples/claude-code-review-walkthrough.git
-cd claude-code-review-walkthrough
+git clone https://github.com/erstaples/agentic-code-review-walkthrough.git
+cd agentic-code-review-walkthrough
 ./install.sh
 ```
 
 `install.sh` verifies `node` and `code` are present, installs the packaged
 extension, and then configures whichever agents it detects.
 
-To install the extension by hand instead:
+To build and install the extension by hand instead:
 
 ```sh
-code --install-extension editor-extension/claude-tour-0.1.0.vsix
+cd editor-extension
+npm ci
+npm run package
+code --install-extension "claude-tour-$(node -p 'require("./package.json").version').vsix"
 ```
+
+Published VSIX files and checksums are attached to
+[extension releases](https://github.com/erstaples/agentic-code-review-walkthrough/releases).
+See [the publication guide](docs/extension-publication.md) for CI, Marketplace
+setup, and the release procedure.
 
 **On WSL or a remote workspace**, the extension must be installed on the same
 side as your code. Run `install.sh` from inside the remote environment, not
