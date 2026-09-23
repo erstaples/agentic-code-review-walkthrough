@@ -145,6 +145,7 @@
     "test:unit": "node --test 'test/*.test.js'",
     "test:integration": "node test/integration/runner.js",
     "package": "vsce package",
+    "rebuild:vsix": "bash ../scripts/build-vsix.sh",
     "check:release": "node ../scripts/check-extension-release.js"
   },
   "homepage": "https://github.com/erstaples/agentic-code-review-walkthrough#readme",

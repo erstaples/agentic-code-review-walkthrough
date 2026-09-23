@@ -116,14 +116,18 @@ move the tag or delete/reuse the version. Build artifacts are retained for
 From the repository root:
 
 ```sh
-npm --prefix editor-extension ci
-node scripts/check-extension-release.js
+./scripts/build-vsix.sh
 node --test test/*.test.js mcp/test/*.test.js editor-extension/test/*.test.js
-npm --prefix editor-extension run package
-python3 scripts/check-vsix.py editor-extension/codewalk-0.1.0.vsix
 ```
 
-Use the current package version in the VSIX filename. Run host tests with
+The rebuild script requires Node.js 22 or newer, npm, and Python 3.9 or newer.
+It installs locked dependencies, validates release metadata, packages the
+extension, checks the archive against source, and prints the output path.
+It works from any working directory when invoked by its path, and always
+rebuilds the current version. From `editor-extension`, use `npm run rebuild:vsix`
+for the same operation. Rebuilding does not install or publish the extension.
+
+Run host tests with
 `npm --prefix editor-extension run test:integration` on a desktop, or prepend
 `xvfb-run -a` on headless Linux. Set `EXTENSION_PATH` to an extracted VSIX's
 `extension` directory to test the packaged build, as CI does. Host tests currently

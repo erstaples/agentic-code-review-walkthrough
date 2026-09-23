@@ -82,14 +82,20 @@ cd agentic-code-review-walkthrough
 `install.sh` verifies `node` and `code` are present, installs the packaged
 extension, and then configures whichever agents it detects.
 
-To build and install the extension by hand instead:
+To rebuild the VSIX from the repository root:
 
 ```sh
-cd editor-extension
-npm ci
-npm run package
-code --install-extension "codewalk-$(node -p 'require("./package.json").version').vsix"
+./scripts/build-vsix.sh
 ```
+
+This requires Node.js 22 or newer, npm, and Python 3.9 or newer. It installs
+locked dependencies, checks release metadata, rebuilds and validates the VSIX,
+and prints its absolute path. The filename follows the package name and version
+in `editor-extension/package.json`, currently `editor-extension/codewalk-0.1.0.vsix`.
+It replaces that version's existing package without publishing or installing it.
+From `editor-extension`, the same command is available as `npm run rebuild:vsix`.
+
+To install the rebuilt extension locally, run `./install.sh`.
 
 Published VSIX files and checksums are attached to
 [extension releases](https://github.com/erstaples/agentic-code-review-walkthrough/releases).
