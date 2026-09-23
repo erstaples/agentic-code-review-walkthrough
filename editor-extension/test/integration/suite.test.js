@@ -20,7 +20,7 @@ module.exports = function register({ test, before, after }) {
   let base;
 
   before(async () => {
-    await vscode.extensions.getExtension("erstaples.codewalk").activate();
+    await vscode.extensions.getExtension("erstaples.codewalk-review").activate();
     const dir = path.join(os.homedir(), ".claude", "tour");
     for (let i = 0; i < 40 && !lock; i++) {
       const names = fs.existsSync(dir) ? fs.readdirSync(dir).filter((n) => n.endsWith(".lock")) : [];

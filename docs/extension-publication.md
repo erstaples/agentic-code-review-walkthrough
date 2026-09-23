@@ -1,7 +1,9 @@
 # Publishing the VS Code extension
 
-The extension identity is `erstaples.codewalk`. Its version comes from
+The extension identity is `erstaples.codewalk-review`. Its version comes from
 `editor-extension/package.json`; the agent plugin has its own version lifecycle.
+The Marketplace package name is `codewalk-review`; the display name and branding
+remain `codewalk`.
 
 ## Branding assets
 
@@ -38,7 +40,7 @@ Actions are pinned to commits and Dependabot proposes updates weekly.
 
 1. In [Marketplace publisher management](https://marketplace.visualstudio.com/manage/publishers/),
    confirm that you control the `erstaples` publisher. This is the registered
-   publisher ID, and the extension package name is `codewalk`.
+   publisher ID, and the extension package name is `codewalk-review`.
 2. Configure a trusted publishing policy for publisher `erstaples`, repository
    `erstaples/agentic-code-review-walkthrough`, workflow `extension.yml`, and
    environment `vscode-marketplace`. See
