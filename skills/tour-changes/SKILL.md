@@ -114,14 +114,23 @@ and `head` on every call. Use `mode: "diff"` when touring committed work and
 reviewer can use **Tour Changes: Toggle Diff View** in VS Code (or its status
 bar control) to switch the active stop to a diff and back without another
 model prompt. The choice persists across stops until `tour_clear`. Added files
-stay in a file view because they have no base content. Showing the diff hides
-tour highlights; hiding the diff restores them. Anchor ranges with
+stay in a file view because they have no base content. Tour rails and focus
+outlines remain visible in diffs without tinting their backgrounds. Anchor ranges with
 `side: "head"` for added or changed code,
 `side: "base"` for code that was deleted, and `side: "working"` only in file
 mode.
 
 Then `tour_focus` as you zoom into a specific construct. Do not call
 `tour_stop` again mid-stop; that is what `tour_focus` is for.
+
+Keep focus spans tight: point at the lines the sentence makes a claim about,
+not the whole hunk. Omit focus for narration about the entire context unit.
+Removed-code focus uses `side: "base"`, even when its context is on the head.
+It opens the pinned diff and, when inline, a read-only base companion or a
+removal seam with a peek link according to the reviewer's settings.
+For panel-authored beat anchors, use `context` (a 1-based inclusive range)
+and optional `focus: [{ side: "base" | "head", range }]`. Legacy `range`
+anchors load as rail-only context. `contentHash` still hashes the context text.
 
 If `tour_stop` returns a non-empty `deferred` list, its entries are
 `{path, side}` pairs: that side of that file has not been highlighted yet —

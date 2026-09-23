@@ -22,11 +22,12 @@ async function activate(context) {
   const store = createIntentStore();
   const identity = createIdentity();
   const sideResolver = (ref) => identity.sideFor(ref);
+  const presentation = require("./lib/presentation.js").createPresentation(vscode, editor, store, sideResolver);
+  const claimRequests = new vscode.EventEmitter();
   let currentStop = null;
   let showDiff = false;
   const syncHighlights = () => {
-    if (showDiff) editor.clearAll();
-    else editor.applyAll(store, sideResolver);
+    editor.applyAll(store, sideResolver);
   };
   const diffToggle = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Right, 100);
   diffToggle.command = "tourChanges.toggleDiff";
@@ -107,6 +108,7 @@ async function activate(context) {
         // Validate before touching the store: a rejection here must leave
         // whatever stop was already showing untouched.
         await editor.validateDiffFiles(body.files || [], body.base, body.head);
+        await presentation.reset();
         store.setStop({ stopId: body.stopId, files: body.files || [] });
         const opened = showDiff ? await editor.openStopDiff(body) : await editor.openStopFiles(body);
         currentStop = body;
@@ -127,6 +129,7 @@ async function activate(context) {
           editor.validateRange(file.path, r.startLine, r.endLine);
         }
       }
+      await presentation.reset();
       store.setStop({ stopId: body.stopId, files: body.files || [] });
       const opened = showDiff && body.base && body.head && body.head.sha === "WORKTREE"
         ? await editor.openStopDiff(body)
@@ -146,12 +149,14 @@ async function activate(context) {
         editor.validateRange(body.path, body.startLine, body.endLine);
       }
       store.setFocus(body);
+      await presentation.focus(body, currentStop);
       const revealed = await editor.reveal(body.path, body.side, body.startLine, body.endLine, sideResolver);
       syncHighlights();
       return { revealed, deferred: store.pending() };
     },
 
     "POST /clear": async () => {
+      await presentation.reset(true);
       identity.reset();
       store.clear();
       editor.clearAll();
@@ -176,10 +181,21 @@ async function activate(context) {
   context.subscriptions.push(
     vscode.commands.registerCommand("tourChanges.copyCitation", copyCitation),
     vscode.commands.registerCommand("tourChanges.toggleDiff", toggleDiff),
+    vscode.commands.registerCommand("relay.presentation.follow", () => presentation.setState("following")),
+    vscode.commands.registerCommand("relay.presentation.pause", () => presentation.setState("paused")),
+    // Local integration points for the narration panel; no bridge protocol changes.
+    vscode.commands.registerCommand("relay.presentation.activate", (beat) => presentation.activate(beat.anchor, currentStop, beat.narration || beat.title, { claimIds: beat.claimIds })),
+    vscode.commands.registerCommand("relay.presentation.openClaim", (id) => claimRequests.fire(id)),
+    vscode.commands.registerCommand("relay.presentation.detour", (beat) => presentation.detour(beat.anchor, currentStop, beat.title)),
+    vscode.commands.registerCommand("relay.presentation.return", () => presentation.returnFromDetour()),
+    vscode.commands.registerCommand("relay.presentation.status", () => presentation.status()),
     diffToggle,
     vscode.window.onDidChangeVisibleTextEditors(syncHighlights),
+    presentation,
+    claimRequests,
     { dispose: () => { removeLock(lockPath); if (server) server.close(); editor.dispose(); } }
   );
+  return { onDidRequestClaim: claimRequests.event };
 }
 
 function deactivate() {

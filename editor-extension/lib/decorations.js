@@ -7,9 +7,13 @@ function createIntentStore() {
   let stop = null;
   let focus = null;
   let pending = new Set();
+  let state = "following";
+  let paints = new Map();
 
   return {
     setStop(next) {
+      state = "following";
+      paints.clear();
       stop = next;
       focus = null;
       pending = new Set();
@@ -21,11 +25,23 @@ function createIntentStore() {
     },
     setFocus(next) {
       focus = next;
+      state = "following";
+      paints.clear();
     },
+    state() { return state; },
+    setState(next) {
+      if (!["following", "exploring", "paused", "detour", "stale"].includes(next)) throw new Error("invalid presentation state");
+      state = next;
+    },
+    paintFor(path, side) { return paints.get(keyOf(path, side)) || (paints.size ? { context: [], focus: [] } : {}); },
+    setPaint(path, side, paint) { paints.set(keyOf(path, side), paint); },
+    clearPaint() { paints.clear(); },
     clear() {
       stop = null;
       focus = null;
       pending = new Set();
+      paints.clear();
+      state = "following";
     },
     currentStopId() {
       return stop ? stop.stopId : null;
