@@ -6,8 +6,8 @@
     "name": "erstaples",
     "url": "https://github.com/erstaples"
   },
-  "homepage": "https://github.com/erstaples/agent-code-review-walkthrough",
-  "repository": "https://github.com/erstaples/agent-code-review-walkthrough",
+  "homepage": "https://github.com/erstaples/codewalk",
+  "repository": "https://github.com/erstaples/codewalk",
   "license": "MIT",
   "keywords": [
     "code-review",
@@ -29,7 +29,7 @@
       "Interactive",
       "Write"
     ],
-    "websiteURL": "https://github.com/erstaples/agent-code-review-walkthrough",
+    "websiteURL": "https://github.com/erstaples/codewalk",
     "defaultPrompt": [
       "Walk me through the changes in this branch.",
       "Implement this specification with a living change dossier."

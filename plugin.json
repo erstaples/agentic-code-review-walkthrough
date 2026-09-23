@@ -7,8 +7,8 @@
     "name": "erstaples",
     "url": "https://github.com/erstaples"
   },
-  "homepage": "https://github.com/erstaples/agent-code-review-walkthrough",
-  "repository": "https://github.com/erstaples/agent-code-review-walkthrough",
+  "homepage": "https://github.com/erstaples/codewalk",
+  "repository": "https://github.com/erstaples/codewalk",
   "license": "MIT",
   "keywords": ["code-review", "walkthrough", "diff", "vscode", "tour", "dossier"]
 }
