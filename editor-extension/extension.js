@@ -60,7 +60,7 @@ async function activate(context) {
       vscode.window.showWarningMessage(`Could not switch tour view: ${err.message}`);
     }
   };
-  const extensionVersion = vscode.extensions.getExtension("estaples.claude-tour").packageJSON.version;
+  const extensionVersion = context.extension.packageJSON.version;
   const authToken = crypto.randomBytes(32).toString("base64url");
 
   const copyCitation = async () => {

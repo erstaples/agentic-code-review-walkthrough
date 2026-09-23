@@ -1,4 +1,4 @@
-# tour-changes
+# codewalk
 
 Your agent walks you through a diff the way its author would — opening files,
 highlighting the lines it's talking about, and pausing for questions.
@@ -28,7 +28,7 @@ and anything non-obvious worth spotlighting.
 As it zooms in on a particular function it highlights that range specifically,
 so you're always looking at the code being discussed.
 
-Use **Tour Changes: Toggle Diff View** from the Command Palette or the tour
+Use **codewalk: Toggle Diff View** from the Command Palette or the tour
 status bar control to show or hide the native multi-file diff without prompting
 the agent. Tour rails and focus outlines remain visible in either view without
 covering the diff's added/removed backgrounds. Only context text dims while
@@ -88,7 +88,7 @@ To build and install the extension by hand instead:
 cd editor-extension
 npm ci
 npm run package
-code --install-extension "claude-tour-$(node -p 'require("./package.json").version').vsix"
+code --install-extension "codewalk-$(node -p 'require("./package.json").version').vsix"
 ```
 
 Published VSIX files and checksums are attached to
@@ -184,7 +184,7 @@ The `tour-changes` skill opens the prepared dossier when one exists. If coding
 happened without dossier capture, it reconstructs a draft from the selected
 diff and labels inferred rationale accordingly.
 
-While reviewing, select one or more lines and use **Tour Changes: Copy
+While reviewing, select one or more lines and use **codewalk: Copy
 Citation** from the editor context menu. It copies an agent-neutral,
 repository-relative marker such as `editor-extension/lib/editor.js:56-70` for
 pasting into Claude Code, Codex, another agent, or a review comment. Citations

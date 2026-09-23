@@ -10,6 +10,7 @@ manifest = json.loads((root / 'editor-extension/package.json').read_text())
 expected = {
     'extension/package.json', 'extension/extension.js', 'extension/readme.md',
     'extension/changelog.md', 'extension/LICENSE.txt',
+    'extension/' + manifest['icon'],
     '[Content_Types].xml', 'extension.vsixmanifest',
 }
 expected.update('extension/' + str(p.relative_to(root / 'editor-extension'))
@@ -21,7 +22,7 @@ with zipfile.ZipFile(sys.argv[1]) as archive:
     if len(names) != len(set(names)) or set(names) != expected:
         sys.exit(f'Unexpected VSIX contents: missing={expected - set(names)}, extra={set(names) - expected}')
     packaged = json.loads(archive.read('extension/package.json'))
-    for key in ('name', 'publisher', 'version', 'engines', 'main'):
+    for key in ('name', 'displayName', 'publisher', 'version', 'engines', 'main', 'icon', 'galleryBanner'):
         if packaged[key] != manifest[key]:
             sys.exit(f'Packaged {key} differs from source manifest')
     for name in expected:

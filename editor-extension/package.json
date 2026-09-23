@@ -1,9 +1,9 @@
 {
-  "name": "claude-tour",
-  "displayName": "Claude Tour",
-  "description": "Lets an agentic coding tool drive this editor during a guided diff walkthrough.",
+  "name": "codewalk",
+  "displayName": "codewalk",
+  "description": "Let your coding agent guide you through code changes with focused highlights, native diffs, and editor citations.",
   "version": "0.1.0",
-  "publisher": "estaples",
+  "publisher": "erstaples",
   "license": "MIT",
   "repository": {
     "type": "git",
@@ -74,7 +74,7 @@
       }
     ],
     "configuration": {
-      "title": "Relay Presentation",
+      "title": "codewalk Presentation",
       "properties": {
         "relay.presentation.removedCode": {
           "type": "string",
@@ -112,19 +112,19 @@
     "commands": [
       {
         "command": "relay.presentation.follow",
-        "title": "Tour Changes: Follow Presenter"
+        "title": "codewalk: Follow Presenter"
       },
       {
         "command": "relay.presentation.pause",
-        "title": "Tour Changes: Pause Presentation"
+        "title": "codewalk: Pause Presentation"
       },
       {
         "command": "tourChanges.copyCitation",
-        "title": "Tour Changes: Copy Citation"
+        "title": "codewalk: Copy Citation"
       },
       {
         "command": "tourChanges.toggleDiff",
-        "title": "Tour Changes: Toggle Diff View"
+        "title": "codewalk: Toggle Diff View"
       }
     ],
     "menus": {
@@ -156,6 +156,12 @@
     "lib/**/*.js",
     "README.md",
     "CHANGELOG.md",
-    "LICENSE"
-  ]
+    "LICENSE",
+    "assets/codewalk-icon-256.png"
+  ],
+  "icon": "assets/codewalk-icon-256.png",
+  "galleryBanner": {
+    "color": "#2E2873",
+    "theme": "dark"
+  }
 }

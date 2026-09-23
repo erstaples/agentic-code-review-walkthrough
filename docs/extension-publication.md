@@ -1,7 +1,15 @@
 # Publishing the VS Code extension
 
-The extension identity is `erstaples.claude-tour`. Its version comes from
+The extension identity is `erstaples.codewalk`. Its version comes from
 `editor-extension/package.json`; the agent plugin has its own version lifecycle.
+
+## Branding assets
+
+The supplied brand masters are in `editor-extension/assets/`, with palette and
+usage notes in its `README.md`. The Marketplace icon and listing README use
+`codewalk-icon-256.png`; the gallery banner uses the brand indigo `#2E2873`
+with a dark theme. Only the listing icon is included in the VSIX; the remaining
+masters are retained as source assets for future use.
 
 ## Pipeline
 
@@ -29,8 +37,8 @@ Actions are pinned to commits and Dependabot proposes updates weekly.
 ## One-time Marketplace setup
 
 1. In [Marketplace publisher management](https://marketplace.visualstudio.com/manage/publishers/),
-   confirm that you control the `erstaples` publisher. The identifier is retained
-   from the existing manifest; it is not inferred from the GitHub username.
+   confirm that you control the `erstaples` publisher. This is the registered
+   publisher ID, and the extension package name is `codewalk`.
 2. Configure a trusted publishing policy for publisher `erstaples`, repository
    `erstaples/agentic-code-review-walkthrough`, workflow `extension.yml`, and
    environment `vscode-marketplace`. See
@@ -74,7 +82,7 @@ After merging and checking CI, tag the release from the updated `main`:
 git switch main
 git pull --ff-only
 version=$(node -p 'require("./editor-extension/package.json").version')
-git tag -a "extension-v$version" -m "Release Claude Tour $version"
+git tag -a "extension-v$version" -m "Release codewalk $version"
 git push origin "extension-v$version"
 ```
 
@@ -112,7 +120,7 @@ npm --prefix editor-extension ci
 node scripts/check-extension-release.js
 node --test test/*.test.js mcp/test/*.test.js editor-extension/test/*.test.js
 npm --prefix editor-extension run package
-python3 scripts/check-vsix.py editor-extension/claude-tour-0.1.0.vsix
+python3 scripts/check-vsix.py editor-extension/codewalk-0.1.0.vsix
 ```
 
 Use the current package version in the VSIX filename. Run host tests with

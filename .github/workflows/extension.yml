@@ -149,4 +149,4 @@ jobs:
           RELEASE_TAG: ${{ github.ref_name }}
         run: |
           gh release create "$RELEASE_TAG" dist/*.vsix dist/SHA256SUMS \
-            --verify-tag --title "Claude Tour $RELEASE_TAG" --generate-notes
+            --verify-tag --title "codewalk $RELEASE_TAG" --generate-notes

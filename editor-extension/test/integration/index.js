@@ -71,7 +71,7 @@ exports.run = async function run() {
     });
 
   try {
-    await nodeTest.suite("claude-tour", () => {
+    await nodeTest.suite("codewalk", () => {
       try {
         const register = require(SUITE);
         if (typeof register !== "function") {

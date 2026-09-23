@@ -1,4 +1,6 @@
-# Claude Tour
+<img src="https://raw.githubusercontent.com/erstaples/agentic-code-review-walkthrough/main/editor-extension/assets/codewalk-icon-256.png" alt="codewalk icon" width="96" height="96">
+
+# codewalk
 
 Let your coding agent walk you through a diff in VS Code: open the relevant
 files, highlight the lines being discussed, and pause for questions.
@@ -20,10 +22,10 @@ it runs on the same side as your code and the agent's MCP server.
 
 ## Controls
 
-- **Tour Changes: Toggle Diff View** shows or hides the native multi-file diff.
-- **Tour Changes: Follow Presenter** follows the current tour focus.
-- **Tour Changes: Pause Presentation** lets you explore independently.
-- **Tour Changes: Copy Citation** copies the selected code location for your agent.
+- **codewalk: Toggle Diff View** shows or hides the native multi-file diff.
+- **codewalk: Follow Presenter** follows the current tour focus.
+- **codewalk: Pause Presentation** lets you explore independently.
+- **codewalk: Copy Citation** copies the selected code location for your agent.
 
 The `relay.presentation` settings control removed-code companions, context
 opacity, beat labels, and when companion tabs close. Selecting code switches
