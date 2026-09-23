@@ -77,6 +77,20 @@ async function openFile(relPath) {
   return doc;
 }
 
+function gitUri(relPath, ref, canonicalRel = relPath) {
+  const { gitUriQuery } = require("./git.js");
+  const root = workspaceRoot();
+  const abs = path.join(root, relPath);
+  const query = JSON.parse(gitUriQuery(abs, ref));
+  if (canonicalRel !== relPath) query.canonicalPath = path.join(root, canonicalRel);
+  return vscode.Uri.file(abs).with({ scheme: "git", query: JSON.stringify(query) });
+}
+
+async function openPinnedFile(relPath, ref, sourcePath = relPath) {
+  const doc = await vscode.workspace.openTextDocument(gitUri(sourcePath, ref, relPath));
+  await vscode.window.showTextDocument(doc, { preview: false, preserveFocus: true });
+}
+
 function clearEditor(editor) {
   try {
     editor.setDecorations(STOP, []);
@@ -230,7 +244,7 @@ async function validateDiffFocusRange(canonicalPath, side, startLine, endLine, b
 // Callers should run validateDiffFiles first to bounds-check ranges before
 // mutating the store; this only re-checks that requested paths are in the diff.
 async function openMultiDiff(title, files, base, head) {
-  const { changedFiles, gitUriQuery } = require("./git.js");
+  const { changedFiles } = require("./git.js");
   const root = workspaceRoot();
   const byTarget = new Map((await changedFiles(root, base.sha, head.sha)).map((c) => [c.targetPath, c]));
   for (const f of files) {
@@ -239,15 +253,6 @@ async function openMultiDiff(title, files, base, head) {
 
   const wanted = new Set(files.map((f) => f.path));
   const changes = [...byTarget.values()].filter((c) => wanted.has(c.targetPath));
-
-  const gitUri = (rel, ref, canonicalRel) => {
-    const abs = path.join(root, rel);
-    const uri = vscode.Uri.file(abs).with({ scheme: "git", query: gitUriQuery(abs, ref) });
-    if (canonicalRel === rel) return uri;
-    const q = JSON.parse(uri.query);
-    q.canonicalPath = path.join(root, canonicalRel);
-    return uri.with({ query: JSON.stringify(q) });
-  };
 
   const resources = changes.map((c) => {
     const label = vscode.Uri.file(path.join(root, c.status === "D" ? c.sourcePath : c.targetPath));
@@ -261,7 +266,55 @@ async function openMultiDiff(title, files, base, head) {
   return changes.map((c) => c.targetPath);
 }
 
+// Display is deliberately independent of the stop's range mode. The agent
+// pins revisions and range sides; the reviewer chooses how to see them.
+async function openStopFiles(stop) {
+  if (stop.mode === "file") {
+    for (const file of stop.files || []) await openFile(file.path);
+    return (stop.files || []).map((f) => f.path);
+  }
+  const { changedFiles } = require("./git.js");
+  const changes = await changedFiles(workspaceRoot(), stop.base.sha, stop.head.sha);
+  const byTarget = new Map(changes.map((c) => [c.targetPath, c]));
+  for (const file of stop.files || []) {
+    const c = byTarget.get(file.path);
+    await openPinnedFile(file.path, c.status === "D" ? stop.base.sha : stop.head.sha, c.status === "D" ? c.sourcePath : c.targetPath);
+  }
+  return (stop.files || []).map((f) => f.path);
+}
+
+async function openStopDiff(stop) {
+  if (!stop.base?.sha || !stop.head?.sha) throw fail("bad_request", "diff view requires pinned base and head revisions");
+  if (stop.mode === "diff") {
+    const { changedFiles } = require("./git.js");
+    const changes = await changedFiles(workspaceRoot(), stop.base.sha, stop.head.sha);
+    const byTarget = new Map(changes.map((c) => [c.targetPath, c]));
+    const diffFiles = (stop.files || []).filter((f) => byTarget.get(f.path).status !== "A");
+    if (diffFiles.length) await openMultiDiff(stop.label, diffFiles, stop.base, stop.head);
+    for (const file of stop.files || []) {
+      if (byTarget.get(file.path).status === "A") await openPinnedFile(file.path, stop.head.sha);
+    }
+    return (stop.files || []).map((f) => f.path);
+  }
+
+  const { hasBlob } = require("./git.js");
+  const root = workspaceRoot();
+  const resources = [];
+  const added = [];
+  for (const file of stop.files || []) {
+    if (!await hasBlob(root, stop.base.sha, file.path)) {
+      added.push(file.path);
+      continue;
+    }
+    const working = vscode.Uri.file(absolute(file.path));
+    resources.push([working, gitUri(file.path, stop.base.sha), working]);
+  }
+  if (resources.length) await vscode.commands.executeCommand("vscode.changes", stop.label, resources);
+  for (const relPath of added) await openFile(relPath);
+  return (stop.files || []).map((f) => f.path);
+}
+
 module.exports = {
   workspaceRoot, absolute, openFile, applyTo, applyAll, clearAll, reveal, describe, validateRange,
-  validateDiffFiles, validateDiffFocusRange, openMultiDiff, dispose,
+  validateDiffFiles, validateDiffFocusRange, openMultiDiff, openStopFiles, openStopDiff, dispose,
 };

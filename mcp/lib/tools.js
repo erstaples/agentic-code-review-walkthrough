@@ -41,7 +41,7 @@ const BRIDGE_TOOLS = [
         total: { type: "integer" },
         label: { type: "string" },
         type: { type: "string", enum: ["context", "implementation", "risk", "evidence", "limitation"] },
-        mode: { type: "string", enum: ["file", "diff"], description: "Use \"diff\" to render the stop in the native multi-file diff editor -- correct for touring committed work. Use \"file\" for working-tree files." },
+        mode: { type: "string", enum: ["file", "diff"], description: "Use \"diff\" for committed revisions and \"file\" for working-tree ranges. Both open as files by default; the reviewer toggles the display locally in VS Code." },
         base: { type: "object", required: ["sha", "name"], properties: { sha: { type: "string" }, name: { type: "string" } }, description: "Pinned base commit. Resolve with git rev-parse before the first stop and reuse it for every stop in the tour." },
         head: { type: "object", required: ["sha", "name"], properties: { sha: { type: "string" }, name: { type: "string" } }, description: "Pinned head commit, or sha \"WORKTREE\" for a tour of uncommitted work." },
         files: {

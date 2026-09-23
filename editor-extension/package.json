@@ -15,6 +15,10 @@
       {
         "command": "tourChanges.copyCitation",
         "title": "Tour Changes: Copy Citation"
+      },
+      {
+        "command": "tourChanges.toggleDiff",
+        "title": "Tour Changes: Toggle Diff View"
       }
     ],
     "menus": {

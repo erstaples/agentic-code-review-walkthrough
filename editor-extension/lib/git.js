@@ -40,6 +40,16 @@ async function blobLines(cwd, ref, relPath) {
   return stdout.split("\n").length;
 }
 
+async function hasBlob(cwd, ref, relPath) {
+  try {
+    await execFile("git", ["cat-file", "-e", `${ref}:./${relPath}`], { cwd });
+    return true;
+  } catch (err) {
+    if (err.code === 1 || err.code === 128) return false;
+    throw Object.assign(new Error(`git cat-file failed: ${String(err.stderr || err.message).trim()}`), { code: "git_failed" });
+  }
+}
+
 const gitUriQuery = (absPath, ref) => JSON.stringify({ path: absPath, ref });
 
-module.exports = { revParse, changedFiles, gitUriQuery, blobLines };
+module.exports = { revParse, changedFiles, gitUriQuery, blobLines, hasBlob };

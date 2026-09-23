@@ -297,7 +297,7 @@ module.exports = function register({ test, before, after }) {
     await waitForGitRepository(diff.dir);
   });
 
-  test("POST /stop in diff mode opens the multi-file diff editor covering added, modified, deleted, and renamed files", async () => {
+  test("committed stops open pinned files by default and toggle to diffs without another stop", async () => {
     await call("POST", "/clear", {});
     const padFiles = Array.from({ length: diff.padCount }, (_, i) => ({ path: `pad${i}.txt`, ranges: [{ side: "head", startLine: 1, endLine: 1 }] }));
     const res = await call("POST", "/stop", {
@@ -317,11 +317,22 @@ module.exports = function register({ test, before, after }) {
     diff.lastRes = res;
     await sleep(1500);
 
+    const before = vscode.window.tabGroups.all
+      .flatMap((g) => g.tabs)
+      .filter((t) => t.input instanceof vscode.TabInputTextMultiDiff);
+    assert.strictEqual(before.length, 0, "diff view should start off");
+    const pinned = vscode.workspace.textDocuments.map((document) => editorLib.describe({ document })).filter(Boolean);
+    assert.ok(pinned.some((d) => d.path === "added.txt" && d.ref === diff.head), "added file should open directly at the pinned head");
+
+    await vscode.commands.executeCommand("tourChanges.toggleDiff");
+    await sleep(1500);
+
     const multi = vscode.window.tabGroups.all
       .flatMap((g) => g.tabs)
       .find((t) => t.input instanceof vscode.TabInputTextMultiDiff);
     assert.ok(multi, "no multi-diff tab opened");
-    assert.strictEqual(multi.input.textDiffs.length, expectedOpened.length);
+    assert.strictEqual(multi.input.textDiffs.length, expectedOpened.length - 1, "added file has no useful base side");
+    assert.ok(!multi.input.textDiffs.some((t) => editorLib.describe({ document: { uri: t.modified } })?.path === "added.txt"));
     diff.multi = multi;
   });
 
@@ -331,14 +342,10 @@ module.exports = function register({ test, before, after }) {
   // it says nothing about decoration, and stays green even with
   // onDidChangeVisibleTextEditors deleted, since reveal()'s scan doesn't need it.
   //
-  // GET /status never calls applyAll (unlike /stop and /focus, which always
-  // reconcile as a side effect of handling any request), so reading `deferred`
-  // there after materializing a pane -- with no other request in between --
-  // isolates the reactive subscription specifically: only it could have run
-  // markApplied for this pair by the time /status is asked. This runs
-  // immediately after the diff opens, before any other test's own /stop or
-  // /focus calls get a chance to reconcile the same pending pair first.
-  test("a materialized diff pane leaves `deferred` via the reactive subscription alone, observed through GET /status", async () => {
+  // A side with a pending range must stay pending while the diff is shown,
+  // even if its editor materializes or /focus targets it. Once file view is
+  // restored, materializing that side should apply the stored range.
+  test("diff panes keep highlights deferred until file view is restored", async () => {
     const deferred = diff.lastRes.deferred;
     assert.ok(Array.isArray(deferred), "deferred must be an array");
     assert.ok(deferred.length > 0, "expected at least one (path, side) pair to be deferred immediately after opening the padded diff");
@@ -362,13 +369,20 @@ module.exports = function register({ test, before, after }) {
     const status = await call("GET", "/status");
     assert.strictEqual(status.ok, true, JSON.stringify(status));
     assert.ok(
-      !status.deferred.some((d) => d.path === target.path && d.side === target.side),
-      `${target.side}:${target.path} should have left deferred via the reactive subscription alone, still in ${JSON.stringify(status.deferred)}`
+      status.deferred.some((d) => d.path === target.path && d.side === target.side),
+      `${target.side}:${target.path} should remain deferred while the diff is shown`
     );
 
     const res = await call("POST", "/focus", { path: target.path, side: target.side, startLine: 1, endLine: 1 });
     assert.strictEqual(res.ok, true, JSON.stringify(res));
     assert.strictEqual(res.revealed, true, `expected the now-open ${target.side} side of ${target.path} to be revealable`);
+    assert.ok(res.deferred.some((d) => d.path === target.path && d.side === target.side), "focus should not paint a diff pane");
+
+    await vscode.commands.executeCommand("tourChanges.toggleDiff");
+    await vscode.window.showTextDocument(uri, { preview: false, preserveFocus: true });
+    await sleep(300);
+    const restored = await call("GET", "/status");
+    assert.ok(!restored.deferred.some((d) => d.path === target.path && d.side === target.side), "hiding the diff should restore the stored highlight");
   });
 
   // A rejected /stop must not mutate the store: validate, then commit. Proven
@@ -378,7 +392,7 @@ module.exports = function register({ test, before, after }) {
   // whole pending set with the rejected request's own (invalid) file.
   test("a rejected diff-mode /stop leaves the previous stop's pending state intact", async () => {
     await call("POST", "/clear", {});
-    const padFiles = Array.from({ length: diff.padCount }, (_, i) => ({ path: `pad${i}.txt`, ranges: [{ side: "head", startLine: 1, endLine: 1 }] }));
+    const padFiles = Array.from({ length: diff.padCount }, (_, i) => ({ path: `pad${i}.txt`, ranges: [{ side: "base", startLine: 1, endLine: 1 }] }));
     const original = await call("POST", "/stop", {
       stopId: "dB1", index: 1, total: 1, label: "Original", type: "implementation", mode: "diff",
       base: { sha: diff.base, name: "base" }, head: { sha: diff.head, name: "head" },
@@ -526,6 +540,7 @@ module.exports = function register({ test, before, after }) {
     });
     assert.strictEqual(res.ok, true, JSON.stringify(res));
     assert.deepStrictEqual(res.opened, ["new-name.txt"]);
+    await vscode.commands.executeCommand("tourChanges.toggleDiff");
     await sleep(1500);
 
     const described = vscode.window.visibleTextEditors
@@ -560,6 +575,50 @@ module.exports = function register({ test, before, after }) {
     });
     assert.strictEqual(res.ok, false);
     assert.strictEqual(res.error.code, "bad_request");
+  });
+
+  test("working-tree stop toggles a changed file into a diff and keeps a new file in file view", async () => {
+    await call("POST", "/clear", {});
+    fs.appendFileSync(path.join(diff.dir, "modified.txt"), "working line\n");
+    fs.writeFileSync(path.join(diff.dir, "untracked.txt"), "new file\n");
+    const res = await call("POST", "/stop", {
+      stopId: "working-diff", index: 1, total: 1, label: "Working changes", type: "implementation", mode: "file",
+      base: { sha: diff.head, name: "HEAD" }, head: { sha: "WORKTREE", name: "working tree" },
+      files: [
+        { path: "modified.txt", ranges: [{ side: "working", startLine: 3, endLine: 3 }] },
+        { path: "untracked.txt", ranges: [{ side: "working", startLine: 1, endLine: 1 }] },
+      ],
+    });
+    assert.strictEqual(res.ok, true, JSON.stringify(res));
+    const originalClear = editorLib.clearAll;
+    const originalApply = editorLib.applyAll;
+    let clears = 0;
+    let applies = 0;
+    editorLib.clearAll = (...args) => { clears++; return originalClear(...args); };
+    editorLib.applyAll = (...args) => { applies++; return originalApply(...args); };
+    try {
+      await vscode.commands.executeCommand("tourChanges.toggleDiff");
+      await sleep(1000);
+      const multi = vscode.window.tabGroups.all.flatMap((g) => g.tabs)
+        .find((t) => t.input instanceof vscode.TabInputTextMultiDiff && t.input.textDiffs.length === 1
+          && editorLib.describe({ document: { uri: t.input.textDiffs[0].modified } })?.path === "modified.txt");
+      assert.ok(multi, "modified working file should have a diff, while the new file does not");
+      assert.strictEqual(multi.input.textDiffs[0].modified.scheme, "file");
+      assert.ok(vscode.workspace.textDocuments.some((d) => d.uri.scheme === "file" && d.uri.fsPath === path.join(diff.dir, "untracked.txt")));
+      assert.ok(clears > 0, "showing the diff should clear tour highlights");
+      assert.strictEqual(applies, 0, "diff panes should not get tour highlights as they materialize");
+
+      const focus = await call("POST", "/focus", { path: "modified.txt", side: "working", startLine: 3, endLine: 3 });
+      assert.strictEqual(focus.ok, true, JSON.stringify(focus));
+      assert.strictEqual(applies, 0, "focus requests should retain intent without painting the diff");
+
+      await vscode.commands.executeCommand("tourChanges.toggleDiff");
+      assert.ok(applies > 0, "hiding the diff should restore tour highlights");
+    } finally {
+      editorLib.clearAll = originalClear;
+      editorLib.applyAll = originalApply;
+      await call("POST", "/clear", {});
+    }
   });
 
   // updateWorkspaceFolders' own single-folder-to-workspace-mode transition makes

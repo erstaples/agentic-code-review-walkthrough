@@ -22,11 +22,17 @@ than just the hunks, groups the change into *stops* — one logical,
 commit-message-worthy unit each, which may span several files — and then works
 through them one at a time.
 
-For each stop it opens that stop's files in VS Code's native multi-file diff
-editor, highlights the relevant ranges, and narrates what changed, why, how it
-connects to the rest of the code, and anything non-obvious worth spotlighting.
+For each stop it opens that stop's files in VS Code, highlights the relevant
+ranges, and narrates what changed, why, how it connects to the rest of the code,
+and anything non-obvious worth spotlighting.
 As it zooms in on a particular function it highlights that range specifically,
 so you're always looking at the code being discussed.
+
+Use **Tour Changes: Toggle Diff View** from the Command Palette or the tour
+status bar control to show or hide the native multi-file diff without prompting
+the agent. Showing the diff clears tour highlights; hiding it restores them.
+Diff view starts off for each tour. Newly added files stay in file
+view because they have no base content.
 
 Then it stops and waits. You can ask a question, say "next", go back, or jump
 to a named stop. If you point at something in the editor and ask "what's

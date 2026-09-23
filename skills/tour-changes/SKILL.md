@@ -109,9 +109,14 @@ session with `dossier_apply` and keep its session ID.
 ### 4. Narrate one stop at a time
 
 In a driven tour, call `tour_stop` before narrating, passing the pinned `base`
-and `head` on every call. Use `mode: "diff"` when touring committed work — the
-stop renders as a real side-by-side diff — and `mode: "file"` when touring the
-working tree. Anchor ranges with `side: "head"` for added or changed code,
+and `head` on every call. Use `mode: "diff"` when touring committed work and
+`mode: "file"` when touring the working tree. Both open files by default; the
+reviewer can use **Tour Changes: Toggle Diff View** in VS Code (or its status
+bar control) to switch the active stop to a diff and back without another
+model prompt. The choice persists across stops until `tour_clear`. Added files
+stay in a file view because they have no base content. Showing the diff hides
+tour highlights; hiding the diff restores them. Anchor ranges with
+`side: "head"` for added or changed code,
 `side: "base"` for code that was deleted, and `side: "working"` only in file
 mode.
 

@@ -22,6 +22,43 @@ async function activate(context) {
   const store = createIntentStore();
   const identity = createIdentity();
   const sideResolver = (ref) => identity.sideFor(ref);
+  let currentStop = null;
+  let showDiff = false;
+  const syncHighlights = () => {
+    if (showDiff) editor.clearAll();
+    else editor.applyAll(store, sideResolver);
+  };
+  const diffToggle = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Right, 100);
+  diffToggle.command = "tourChanges.toggleDiff";
+  const updateDiffToggle = () => {
+    diffToggle.text = showDiff ? "$(diff) Hide Diff" : "$(diff) Show Diff";
+    diffToggle.tooltip = "Toggle diff view for the current tour stop";
+    if (currentStop) diffToggle.show();
+    else diffToggle.hide();
+  };
+  const toggleDiff = async () => {
+    if (!currentStop) {
+      vscode.window.showInformationMessage("Start a tour stop to toggle its diff view.");
+      return;
+    }
+    if (!showDiff && (!currentStop.base?.sha || !currentStop.head?.sha)) {
+      vscode.window.showWarningMessage("This stop needs pinned base and head revisions to show a diff.");
+      return;
+    }
+    const previous = showDiff;
+    showDiff = !showDiff;
+    try {
+      syncHighlights();
+      if (showDiff) await editor.openStopDiff(currentStop);
+      else await editor.openStopFiles(currentStop);
+      updateDiffToggle();
+      syncHighlights();
+    } catch (err) {
+      showDiff = previous;
+      syncHighlights();
+      vscode.window.showWarningMessage(`Could not switch tour view: ${err.message}`);
+    }
+  };
   const extensionVersion = vscode.extensions.getExtension("estaples.claude-tour").packageJSON.version;
   const authToken = crypto.randomBytes(32).toString("base64url");
 
@@ -71,8 +108,10 @@ async function activate(context) {
         // whatever stop was already showing untouched.
         await editor.validateDiffFiles(body.files || [], body.base, body.head);
         store.setStop({ stopId: body.stopId, files: body.files || [] });
-        const opened = await editor.openMultiDiff(body.label, body.files || [], body.base, body.head);
-        editor.applyAll(store, sideResolver);
+        const opened = showDiff ? await editor.openStopDiff(body) : await editor.openStopFiles(body);
+        currentStop = body;
+        updateDiffToggle();
+        syncHighlights();
         return { opened, deferred: store.pending() };
       }
 
@@ -89,12 +128,12 @@ async function activate(context) {
         }
       }
       store.setStop({ stopId: body.stopId, files: body.files || [] });
-      const opened = [];
-      for (const file of body.files || []) {
-        await editor.openFile(file.path);
-        opened.push(file.path);
-      }
-      editor.applyAll(store, sideResolver);
+      const opened = showDiff && body.base && body.head && body.head.sha === "WORKTREE"
+        ? await editor.openStopDiff(body)
+        : await editor.openStopFiles(body);
+      currentStop = body;
+      updateDiffToggle();
+      syncHighlights();
       return { opened, deferred: store.pending() };
     },
 
@@ -108,7 +147,7 @@ async function activate(context) {
       }
       store.setFocus(body);
       const revealed = await editor.reveal(body.path, body.side, body.startLine, body.endLine, sideResolver);
-      editor.applyAll(store, sideResolver);
+      syncHighlights();
       return { revealed, deferred: store.pending() };
     },
 
@@ -116,6 +155,9 @@ async function activate(context) {
       identity.reset();
       store.clear();
       editor.clearAll();
+      currentStop = null;
+      showDiff = false;
+      updateDiffToggle();
       return {};
     },
   };
@@ -133,7 +175,9 @@ async function activate(context) {
 
   context.subscriptions.push(
     vscode.commands.registerCommand("tourChanges.copyCitation", copyCitation),
-    vscode.window.onDidChangeVisibleTextEditors(() => editor.applyAll(store, sideResolver)),
+    vscode.commands.registerCommand("tourChanges.toggleDiff", toggleDiff),
+    diffToggle,
+    vscode.window.onDidChangeVisibleTextEditors(syncHighlights),
     { dispose: () => { removeLock(lockPath); if (server) server.close(); editor.dispose(); } }
   );
 }

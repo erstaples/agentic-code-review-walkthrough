@@ -4,7 +4,7 @@ const fs = require("node:fs");
 const os = require("node:os");
 const path = require("node:path");
 const cp = require("node:child_process");
-const { revParse, changedFiles, gitUriQuery, blobLines } = require("../lib/git.js");
+const { revParse, changedFiles, gitUriQuery, blobLines, hasBlob } = require("../lib/git.js");
 
 let repo;
 let baseSha;
@@ -95,6 +95,11 @@ test("blobLines counts lines in a blob at a given ref", async () => {
 
 test("blobLines on a path absent from that ref fails with git_failed", async () => {
   await assert.rejects(blobLines(repo, baseSha, "new.txt"), { code: "git_failed" });
+});
+
+test("hasBlob distinguishes an existing base file from a newly added file", async () => {
+  assert.strictEqual(await hasBlob(repo, baseSha, "keep.txt"), true);
+  assert.strictEqual(await hasBlob(repo, baseSha, "new.txt"), false);
 });
 
 test("blobLines resolves paths relative to cwd in a nested workspace", async () => {
