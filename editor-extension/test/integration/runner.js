@@ -1,6 +1,6 @@
 const fs = require("node:fs");
 const path = require("node:path");
-const { runTests } = require("@vscode/test-electron");
+const { runTests, downloadAndUnzipVSCode } = require("@vscode/test-electron");
 
 function clearStaleLock() {
   const lockPath = path.resolve(__dirname, "../../.vscode-test/user-data/code.lock");
@@ -28,11 +28,26 @@ function clearStaleUserDataDirs() {
 clearStaleLock();
 clearStaleUserDataDirs();
 
-runTests({
-  extensionDevelopmentPath: path.resolve(__dirname, "../.."),
-  extensionTestsPath: path.resolve(__dirname, "./index.js"),
-  launchArgs: [path.resolve(__dirname, "../.."), "--disable-extensions", "--disable-gpu"],
-}).catch((err) => {
+async function main() {
+  let executable = await downloadAndUnzipVSCode();
+  // Recent macOS builds renamed Electron to Code; older test-electron
+  // versions still return the former path. Keep the checked-in dependency.
+  if (process.platform === "darwin" && !fs.existsSync(executable)) {
+    const code = path.join(path.dirname(executable), "Code");
+    if (fs.existsSync(code)) executable = code;
+  }
+  const launchArgs = [path.resolve(__dirname, "../.."), "--disable-extensions", "--disable-gpu"];
+  // A long checkout path exceeds macOS's Unix socket path limit.
+  if (process.platform === "darwin") launchArgs.push(`--user-data-dir=${fs.mkdtempSync("/tmp/tour-code-")}`);
+  await runTests({
+    vscodeExecutablePath: executable,
+    extensionDevelopmentPath: path.resolve(__dirname, "../.."),
+    extensionTestsPath: path.resolve(__dirname, "./index.js"),
+    launchArgs,
+  });
+}
+
+main().catch((err) => {
   console.error(err);
   process.exit(1);
 });

@@ -52,4 +52,11 @@ async function hasBlob(cwd, ref, relPath) {
 
 const gitUriQuery = (absPath, ref) => JSON.stringify({ path: absPath, ref });
 
-module.exports = { revParse, changedFiles, gitUriQuery, blobLines, hasBlob };
+async function diffHunks(cwd, base, head, paths) {
+  const { parseHunks } = require("./hunks.js");
+  return parseHunks(await run(cwd, ["diff", "--no-ext-diff", "--no-textconv", "--no-color", "--find-renames", "-U0", base,
+    ...(head === "WORKTREE" ? [] : [head]), "--", ...paths.map((p) => `./${p}`)]));
+}
+const blobText = (cwd, ref, relPath) => run(cwd, ["show", `${ref}:./${relPath}`]);
+
+module.exports = { revParse, changedFiles, gitUriQuery, blobLines, hasBlob, diffHunks, blobText };

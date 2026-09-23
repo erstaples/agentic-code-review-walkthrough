@@ -61,7 +61,7 @@ module.exports = function register({ test, before, after }) {
     git("config", "user.email", "t@example.com");
     git("config", "user.name", "T");
 
-    fs.writeFileSync(path.join(dir, "modified.txt"), "one\n");
+    fs.writeFileSync(path.join(dir, "modified.txt"), "one\nold\n");
     fs.writeFileSync(path.join(dir, "deleted.txt"), "bye\n");
     fs.writeFileSync(path.join(dir, "old-name.txt"), "renamed content\n");
     for (let i = 0; i < padCount; i++) fs.writeFileSync(path.join(dir, `pad${i}.txt`), "x".repeat(200) + "\n".repeat(50));
@@ -207,7 +207,7 @@ module.exports = function register({ test, before, after }) {
 
   // decorate() cannot be observed through the HTTP surface, so this drives
   // lib/editor.js directly against a real document and a spy editor.
-  test("the focus note decoration is anchored on the range's first line", async () => {
+  test("the focus label uses the shortest of the first three focus lines", async () => {
     const rel = "tour-focus-note.tmp";
     const abs = path.join(fixture(), rel);
     fs.writeFileSync(abs, "one\ntwo\nthree\nfour\nfive\n");
@@ -220,17 +220,12 @@ module.exports = function register({ test, before, after }) {
       const stub = { document: doc, setDecorations: (type, options) => calls.push(options) };
       assert.strictEqual(editorLib.applyTo(stub, store, () => null), true);
 
-      const focusOptions = calls.find((options) => options.length > 0 && "range" in options[0]);
-      assert.strictEqual(focusOptions.length, 2, "expected one option for the noted line and one for the rest of the block");
-
-      const [noted, rest] = focusOptions;
+      const labels = calls.flat().filter((option) => option.renderOptions?.after?.contentText);
+      assert.strictEqual(labels.length, 1);
+      const [noted] = labels;
       assert.strictEqual(noted.range.start.line, 1, "note range should start on wire line 2 (0-based line 1)");
       assert.strictEqual(noted.range.end.line, 1, "note range should not extend past the first line");
-      assert.strictEqual(noted.renderOptions.after.contentText, "  landed here");
-
-      assert.strictEqual(rest.range.start.line, 2);
-      assert.strictEqual(rest.range.end.line, 3);
-      assert.strictEqual(rest.renderOptions, undefined, "only the first line's option carries the note");
+      assert.strictEqual(noted.renderOptions.after.contentText, "\u2002landed here\u2002");
     } finally {
       fs.rmSync(abs, { force: true });
     }
@@ -263,11 +258,10 @@ module.exports = function register({ test, before, after }) {
       const sideResolver = (ref) => (ref === "headsha" ? "head" : null);
 
       assert.strictEqual(editorLib.applyTo(stub, store, sideResolver), true);
-      assert.strictEqual(calls.length, 2, "expected a STOP call and a FOCUS call");
-      assert.strictEqual(calls[0].length, 1, "only the head-side range belongs to this head-ref pane");
-      assert.strictEqual(calls[0][0].start.line, 0);
-      assert.strictEqual(calls[0][0].end.line, 1);
-      assert.deepStrictEqual(calls[1], [], "no focus was set");
+      const rails = calls.find((rs) => rs.length > 0);
+      assert.strictEqual(rails.length, 2, "the head range has a rail on each context line");
+      assert.strictEqual(rails[0].start.line, 0);
+      assert.strictEqual(rails[1].start.line, 1);
 
       assert.deepStrictEqual(
         byKey(store.pending()), [`base:${rel}`],
@@ -342,10 +336,8 @@ module.exports = function register({ test, before, after }) {
   // it says nothing about decoration, and stays green even with
   // onDidChangeVisibleTextEditors deleted, since reveal()'s scan doesn't need it.
   //
-  // A side with a pending range must stay pending while the diff is shown,
-  // even if its editor materializes or /focus targets it. Once file view is
-  // restored, materializing that side should apply the stored range.
-  test("diff panes keep highlights deferred until file view is restored", async () => {
+  // Materializing either side applies its rail even while diff view is shown.
+  test("diff panes reconcile deferred ranges when their editors materialize", async () => {
     const deferred = diff.lastRes.deferred;
     assert.ok(Array.isArray(deferred), "deferred must be an array");
     assert.ok(deferred.length > 0, "expected at least one (path, side) pair to be deferred immediately after opening the padded diff");
@@ -369,14 +361,14 @@ module.exports = function register({ test, before, after }) {
     const status = await call("GET", "/status");
     assert.strictEqual(status.ok, true, JSON.stringify(status));
     assert.ok(
-      status.deferred.some((d) => d.path === target.path && d.side === target.side),
-      `${target.side}:${target.path} should remain deferred while the diff is shown`
+      !status.deferred.some((d) => d.path === target.path && d.side === target.side),
+      `${target.side}:${target.path} should be painted when materialized`
     );
 
     const res = await call("POST", "/focus", { path: target.path, side: target.side, startLine: 1, endLine: 1 });
     assert.strictEqual(res.ok, true, JSON.stringify(res));
     assert.strictEqual(res.revealed, true, `expected the now-open ${target.side} side of ${target.path} to be revealable`);
-    assert.ok(res.deferred.some((d) => d.path === target.path && d.side === target.side), "focus should not paint a diff pane");
+    assert.ok(!res.deferred.some((d) => d.path === target.path && d.side === target.side), "focus paints a diff pane");
 
     await vscode.commands.executeCommand("tourChanges.toggleDiff");
     await vscode.window.showTextDocument(uri, { preview: false, preserveFocus: true });
@@ -400,8 +392,7 @@ module.exports = function register({ test, before, after }) {
     });
     assert.strictEqual(original.ok, true, JSON.stringify(original));
     assert.ok(original.deferred.length > 0, "expected some padding files to stay deferred immediately");
-    // A git: side pane is never auto-opened by reveal(), so probing this pair
-    // through /focus below cannot itself materialize it.
+    // Inspect status: focusing a base range now opens its diff/companion.
     const guard = original.deferred[0];
 
     const rejected = await call("POST", "/stop", {
@@ -412,7 +403,7 @@ module.exports = function register({ test, before, after }) {
     assert.strictEqual(rejected.ok, false);
     assert.strictEqual(rejected.error.code, "bad_request");
 
-    const probe = await call("POST", "/focus", { path: guard.path, side: guard.side, startLine: 1, endLine: 1 });
+    const probe = await call("GET", "/status");
     assert.strictEqual(probe.ok, true, JSON.stringify(probe));
     assert.ok(
       probe.deferred.some((d) => d.path === guard.path && d.side === guard.side),
@@ -592,9 +583,7 @@ module.exports = function register({ test, before, after }) {
     assert.strictEqual(res.ok, true, JSON.stringify(res));
     const originalClear = editorLib.clearAll;
     const originalApply = editorLib.applyAll;
-    let clears = 0;
     let applies = 0;
-    editorLib.clearAll = (...args) => { clears++; return originalClear(...args); };
     editorLib.applyAll = (...args) => { applies++; return originalApply(...args); };
     try {
       await vscode.commands.executeCommand("tourChanges.toggleDiff");
@@ -605,12 +594,12 @@ module.exports = function register({ test, before, after }) {
       assert.ok(multi, "modified working file should have a diff, while the new file does not");
       assert.strictEqual(multi.input.textDiffs[0].modified.scheme, "file");
       assert.ok(vscode.workspace.textDocuments.some((d) => d.uri.scheme === "file" && d.uri.fsPath === path.join(diff.dir, "untracked.txt")));
-      assert.ok(clears > 0, "showing the diff should clear tour highlights");
-      assert.strictEqual(applies, 0, "diff panes should not get tour highlights as they materialize");
+      assert.ok(applies > 0, "diff panes retain non-background presentation");
+      const beforeFocus = applies;
 
       const focus = await call("POST", "/focus", { path: "modified.txt", side: "working", startLine: 3, endLine: 3 });
       assert.strictEqual(focus.ok, true, JSON.stringify(focus));
-      assert.strictEqual(applies, 0, "focus requests should retain intent without painting the diff");
+      assert.ok(applies > beforeFocus, "focus requests paint the diff");
 
       await vscode.commands.executeCommand("tourChanges.toggleDiff");
       assert.ok(applies > 0, "hiding the diff should restore tour highlights");
@@ -618,6 +607,51 @@ module.exports = function register({ test, before, after }) {
       editorLib.clearAll = originalClear;
       editorLib.applyAll = originalApply;
       await call("POST", "/clear", {});
+    }
+  });
+
+  test("inline deleted-code focus opens a read-only companion, while seam mode only offers a peek", async () => {
+    const diffConfig = vscode.workspace.getConfiguration("diffEditor");
+    const config = vscode.workspace.getConfiguration("relay.presentation");
+    const oldLayout = diffConfig.inspect("renderSideBySide").globalValue;
+    const oldMode = config.inspect("removedCode").globalValue;
+    const companions = () => vscode.window.tabGroups.all.flatMap((g) => g.tabs).filter((t) => {
+      const uri = t.input?.uri;
+      return uri?.scheme === "relay-rev" && JSON.parse(uri.query).relay === "companion";
+    });
+    try {
+      await call("POST", "/clear", {});
+      await diffConfig.update("renderSideBySide", false, vscode.ConfigurationTarget.Global);
+      await config.update("removedCode", "companion", vscode.ConfigurationTarget.Global);
+      await sleep(300);
+      assert.strictEqual(vscode.workspace.getConfiguration("diffEditor").get("renderSideBySide"), false);
+      const stop = await call("POST", "/stop", {
+        stopId: "inline-removed", index: 1, total: 1, label: "Removed", type: "implementation", mode: "diff",
+        base: { sha: diff.base, name: "base" }, head: { sha: diff.head, name: "head" },
+        files: [{ path: "modified.txt", ranges: [{ side: "base", startLine: 2, endLine: 2 }] }],
+      });
+      assert.strictEqual(stop.ok, true, JSON.stringify(stop));
+      const focus = await call("POST", "/focus", { path: "modified.txt", side: "base", startLine: 2, endLine: 2, note: "Deleted branch" });
+      assert.strictEqual(focus.ok, true, JSON.stringify(focus));
+      await sleep(100);
+      assert.ok(companions().length > 0, `inline mode should open a marked companion: ${JSON.stringify({ layout: vscode.workspace.getConfiguration("diffEditor").get("renderSideBySide"), visible: vscode.window.visibleTextEditors.map((e) => ({ ref: JSON.parse(e.document.uri.query).ref, ranges: e.visibleRanges, column: e.viewColumn })) })}`);
+      const doc = await vscode.workspace.openTextDocument(companions()[0].input.uri);
+      assert.strictEqual(doc.getText(), "one\nold\n");
+      assert.strictEqual(doc.uri.scheme, "relay-rev");
+      await call("POST", "/clear", {});
+      assert.strictEqual(companions().length, 0, "tour end closes owned preview companions");
+      await config.update("removedCode", "seam", vscode.ConfigurationTarget.Global);
+      await call("POST", "/stop", {
+        stopId: "seam-removed", index: 1, total: 1, label: "Removed", type: "implementation", mode: "diff",
+        base: { sha: diff.base, name: "base" }, head: { sha: diff.head, name: "head" },
+        files: [{ path: "modified.txt", ranges: [{ side: "base", startLine: 2, endLine: 2 }] }],
+      });
+      assert.strictEqual((await call("POST", "/focus", { path: "modified.txt", side: "base", startLine: 2, endLine: 2 })).ok, true);
+      assert.strictEqual(companions().length, 0);
+    } finally {
+      await call("POST", "/clear", {});
+      await diffConfig.update("renderSideBySide", oldLayout, vscode.ConfigurationTarget.Global);
+      await config.update("removedCode", oldMode, vscode.ConfigurationTarget.Global);
     }
   });
 

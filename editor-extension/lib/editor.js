@@ -4,22 +4,7 @@ const path = require("node:path");
 const fs = require("node:fs");
 const vscode = require("vscode");
 
-const STOP = vscode.window.createTextEditorDecorationType({
-  backgroundColor: new vscode.ThemeColor("editor.findMatchHighlightBackground"),
-  isWholeLine: true,
-  overviewRulerLane: vscode.OverviewRulerLane.Full,
-  overviewRulerColor: new vscode.ThemeColor("editorOverviewRuler.findMatchForeground"),
-});
-
-const FOCUS = vscode.window.createTextEditorDecorationType({
-  backgroundColor: new vscode.ThemeColor("editor.stackFrameHighlightBackground"),
-  isWholeLine: true,
-  borderStyle: "solid",
-  borderWidth: "0 0 0 3px",
-  borderColor: new vscode.ThemeColor("focusBorder"),
-  overviewRulerLane: vscode.OverviewRulerLane.Center,
-  overviewRulerColor: new vscode.ThemeColor("focusBorder"),
-});
+const presenter = require("./presenter.js").createPresenter(vscode);
 
 function fail(code, message) {
   return Object.assign(new Error(message), { code });
@@ -58,7 +43,7 @@ function describe(editor) {
   if (uri.scheme === "file") {
     return { path: path.relative(workspaceRoot(), uri.fsPath), side: "working", ref: null };
   }
-  if (uri.scheme === "git") {
+  if (uri.scheme === "git" || uri.scheme === "relay-rev") {
     try {
       const q = JSON.parse(uri.query);
       // A rename's base side is read from its old on-disk path (canonicalPath
@@ -93,8 +78,7 @@ async function openPinnedFile(relPath, ref, sourcePath = relPath) {
 
 function clearEditor(editor) {
   try {
-    editor.setDecorations(STOP, []);
-    editor.setDecorations(FOCUS, []);
+    presenter.clear(editor);
   } catch {
     // the editor was disposed between the lookup and the update
   }
@@ -113,28 +97,25 @@ function applyTo(editor, store, sideResolver) {
 }
 
 function decorate(editor, store, sideResolver) {
+  clearEditor(editor);
   const d = describe(editor);
   if (!d) return false;
   const side = d.side || sideResolver(d.ref);
   if (!side) return false;
   const { stop, focus } = store.rangesFor({ path: d.path, side });
 
-  editor.setDecorations(STOP, stop.map((r) => toRange(editor.document, r.startLine, r.endLine)));
-  editor.setDecorations(FOCUS, focus ? focusDecorations(editor.document, focus) : []);
+  const p = store.paintFor ? store.paintFor(d.path, side) : {};
+  presenter.configure(vscode.workspace.getConfiguration("relay.presentation").get("dimOpacity", 0.45));
+  const companion = editor.document.uri.scheme === "relay-rev" && JSON.parse(editor.document.uri.query).relay === "companion";
+  presenter.paint(editor, {
+    context: stop.length ? stop : focus ? [focus] : [], focus: focus ? [focus] : [],
+    state: store.state ? store.state() : "following", label: focus?.note,
+    showLabels: vscode.workspace.getConfiguration("relay.presentation").get("showLabels", true),
+    ...p, removedLines: companion ? p.removedLines : [],
+  });
 
   if (stop.length > 0 || focus) store.markApplied(d.path, side);
   return true;
-}
-
-// `after` content anchors at its range's end, so the note needs its own
-// range on the first line rather than sharing the whole-block range.
-function focusDecorations(document, focus) {
-  const renderOptions = focus.note
-    ? { after: { contentText: `  ${focus.note}`, color: new vscode.ThemeColor("editorCodeLens.foreground"), fontStyle: "italic" } }
-    : undefined;
-  const firstLine = { range: toRange(document, focus.startLine, focus.startLine), renderOptions };
-  if (focus.endLine === focus.startLine) return [firstLine];
-  return [firstLine, { range: toRange(document, focus.startLine + 1, focus.endLine) }];
 }
 
 function applyAll(store, sideResolver) {
@@ -146,9 +127,16 @@ function clearAll() {
 }
 
 async function reveal(relPath, side, startLine, endLine, sideResolver) {
-  const target = vscode.window.visibleTextEditors.find((e) => {
+  const candidates = vscode.window.visibleTextEditors.filter((e) => {
     const d = describe(e);
     return d && d.path === relPath && (d.side || sideResolver(d.ref)) === side;
+  });
+  // Prefer the real companion over the hidden original TextEditor that VS
+  // Code can still report for an inline diff.
+  const target = candidates.find((e) => e.document.uri.scheme === "relay-rev" && JSON.parse(e.document.uri.query).relay === "companion") || candidates.find((e) => {
+    if (side !== "base" || e.document.uri.scheme !== "relay-rev") return true;
+    const config = vscode.workspace.getConfiguration("diffEditor");
+    return config.get("renderSideBySide", true) && !config.get("useInlineViewWhenSpaceIsLimited", true);
   });
   if (!target) {
     if (side !== "working") return false;
@@ -170,8 +158,7 @@ function validateRange(relPath, startLine, endLine) {
 }
 
 function dispose() {
-  STOP.dispose();
-  FOCUS.dispose();
+  presenter.dispose();
 }
 
 // The hash of an empty git tree under SHA-1, the object format every repository
@@ -317,4 +304,5 @@ async function openStopDiff(stop) {
 module.exports = {
   workspaceRoot, absolute, openFile, applyTo, applyAll, clearAll, reveal, describe, validateRange,
   validateDiffFiles, validateDiffFocusRange, openMultiDiff, openStopFiles, openStopDiff, dispose,
+  gitUri, EMPTY_TREE,
 };

@@ -1,0 +1,41 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://erstaples.dev/tour-changes/schemas/presentation-anchor.schema.json",
+  "title": "Relay presentation anchor",
+  "type": "object",
+  "required": ["path", "side", "rev", "contentHash"],
+  "anyOf": [{ "required": ["context"] }, { "required": ["range"] }],
+  "properties": {
+    "path": { "type": "string", "minLength": 1 },
+    "side": { "enum": ["base", "head", "worktree"] },
+    "rev": { "type": "string", "minLength": 1 },
+    "context": { "$ref": "#/$defs/range" },
+    "range": { "$ref": "#/$defs/range", "deprecated": true },
+    "symbol": { "type": "string" },
+    "contentHash": { "$ref": "#/$defs/hash" },
+    "focus": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["side", "range"],
+        "properties": {
+          "side": { "enum": ["base", "head"] },
+          "range": { "$ref": "#/$defs/range" },
+          "kind": { "enum": ["added", "removed", "unchanged"] },
+          "contentHash": { "$ref": "#/$defs/hash" }
+        }
+      }
+    }
+  },
+  "$defs": {
+    "hash": { "type": "string", "pattern": "^sha256:[0-9a-f]{64}$" },
+    "range": {
+      "type": "object",
+      "required": ["startLine", "endLine"],
+      "properties": {
+        "startLine": { "type": "integer", "minimum": 1 },
+        "endLine": { "type": "integer", "minimum": 1 }
+      }
+    }
+  }
+}
