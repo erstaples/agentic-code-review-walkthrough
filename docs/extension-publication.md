@@ -139,6 +139,6 @@ Run host tests with
 cover stable VS Code on Linux in CI; they do not certify every supported VS Code
 version or platform.
 
-On macOS, if change record tests report `workspace_mismatch` under `/var/folders`,
-use `TMPDIR=/private/tmp` for the unit-test command. The existing change record tests
+On macOS, if review map tests report `workspace_mismatch` under `/var/folders`,
+use `TMPDIR=/private/tmp` for the unit-test command. The existing review map tests
 compare Git's canonical repository path with the temporary directory path.

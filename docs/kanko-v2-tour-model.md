@@ -1,6 +1,6 @@
 # Kankō v2 tour data contract
 
-Phase 2 adds source-backed validation to `CreateTourPlan` and `kanko_notes_check`.
+Phase 2 adds source-backed validation to `CreateTourPlan` and `kanko_map_check`.
 The schema is [tour-plan.schema.json](../schemas/tour-plan.schema.json); the
 shared implementation is [contract/tour.js](../contract/tour.js). [Editor loading and navigation](kanko-v2-tour-loading.md) are available in phase 3.
 Creating a plan does not contact the editor.
@@ -10,11 +10,11 @@ Creating a plan does not contact the editor.
 Set `presentationVersion: 2` on every `CreateTourPlan`. Every stop must include
 the required anchors and beats. Unversioned plans, other versions, and
 metadata-only stops are rejected; there is no format detection, migration, or
-compatibility path. `kanko_notes_check` validates every current plan. Change record schema
+compatibility path. `kanko_map_check` validates every current plan. Review map schema
 version and the plan's entity `version` are separate from the presentation format.
 
 Each stop needs a stable `id`, `title`, `risk` (`low`, `medium`, `high`), ordered
-`anchors`, and ordered `beats`. The existing change record coverage rule still applies:
+`anchors`, and ordered `beats`. The existing review map coverage rule still applies:
 provide `coveredEntityIds`, or use `type: "context"` for an introductory stop.
 Beat ids must be unique within their stop; stop ids must be unique in the plan.
 
@@ -28,7 +28,7 @@ Each anchor has:
 | `path` | Repository-relative file path; use the destination path for a rename |
 | `view` | `diff`, `head`, or `base` |
 | `change` | `modified`, `added`, `deleted`, or `unchanged`, verified against the two source texts |
-| `rev` | `{base, head}` identifying the change record's exact source pair |
+| `rev` | `{base, head}` identifying the review map's exact source pair |
 | `context` | `{startLine, endLine}`, one-based and inclusive |
 | `side` | Optional context coordinate side, `base` or `head` |
 | `focus` | Optional array of `{side, range, kind?, contentHash?}` spans |
@@ -48,13 +48,13 @@ A file's trailing newline does not create another valid source line. Empty,
 binary, non-UTF-8, and absent files cannot supply line anchors. Git symlinks are
 treated as their stored target text, not dereferenced.
 
-For committed change records, use the manifest's `effectiveBase` and `headCommit`.
-For working-tree change records, use `baselineCommit` and
+For committed review maps, use the manifest's `effectiveBase` and `headCommit`.
+For working-tree review maps, use `baselineCommit` and
 `WORKTREE:<manifestDigest>` (for example, `WORKTREE:sha256:...`). This binds the
 candidate to its selected manifest, not a moving `HEAD` name. The reader uses
 selected working bytes when unstaged/untracked changes are included, selected
 index blobs for staged-only changes, and the pinned current-HEAD tree otherwise.
-After changes to selected files, refresh the change record and regenerate the anchors.
+After changes to selected files, refresh the review map and regenerate the anchors.
 
 A beat is `{id, narration, active}`. Narration is Markdown and uses only
 `{{a:N}}` tokens for file references. `active` contains unique anchor numbers in
@@ -66,11 +66,11 @@ use tokens for ambiguous bare names that are not in the repository catalog.
 
 ## Findings and normalization
 
-`kanko_notes_apply` returns structured `findings` with `severity`, `code`, `location`,
+`kanko_map_apply` returns structured `findings` with `severity`, `code`, `location`,
 and `message`. Existing string `warnings` remain available. A rejected plan
 returns `invalid_tour_plan` with `details.findings`, including through MCP, and
-none of the batch's domain events are stored. `kanko_notes_check` checks the current
-v2 plan against its current change record revision without rewriting it.
+none of the batch's domain events are stored. `kanko_map_check` checks the current
+v2 plan against its current review map revision without rewriting it.
 
 | Condition | Result |
 | --- | --- |
@@ -84,7 +84,7 @@ v2 plan against its current change record revision without rewriting it.
 | Observed claim without its own evidence anchor | Warning naming the claim |
 
 Set `KANKO_TOUR_ANCHOR_LIMIT` for the MCP server, or pass `tourAnchorLimit` to
-`ChangeRecordService`. Invalid settings fail at startup. A future loader passes the
+`ReviewMapService`. Invalid settings fail at startup. A future loader passes the
 same setting as `hardLimit` to the shared validator; the ceiling is always 99.
 
 Overlaps are compared only on the same file and coordinate side. Transitive
@@ -99,7 +99,7 @@ tokens and `active` lists are rewritten together, with duplicate active numbers
 removed while retaining priority. Revalidating that normalized plan is idempotent.
 The stored numbers stay fixed for the running tour; there is no live renumbering.
 
-An observed claim means a change record claim with `truthStatus: "observed"`.
+An observed claim means a review map claim with `truthStatus: "observed"`.
 At least one anchor with `role: "evidence"` must name that claim in `claimRefs`
 somewhere in the plan. An unrelated evidence anchor does not satisfy it. This
 warning concerns presentation coverage, not whether the claim has been proved or
@@ -110,7 +110,7 @@ accepted by a reviewer.
 `validateTourPlan(plan, {readSource, revisions, repositoryPaths, claims, hardLimit})`
 returns `{ok, plan, findings}`. On errors, `plan` is null. The source reader is
 mandatory and returns `{base: textOrNull, head: textOrNull}` for a pinned anchor;
-null means an absent file, while read failures throw. The change record adapter supplies
+null means an absent file, while read failures throw. The review map adapter supplies
 the revision pair, repository catalog, and claims. A loader must supply the same
 inputs and only navigate after `ok` is true. No validator function opens files in
 an editor or changes review state.

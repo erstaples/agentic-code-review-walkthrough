@@ -1,13 +1,13 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://getkanko.dev/kanko/schemas/record.schema.json",
-  "title": "Living change record snapshot",
+  "$id": "https://getkanko.dev/kanko/schemas/review-map.schema.json",
+  "title": "Review map snapshot",
   "type": "object",
   "required": ["schemaVersion", "producerVersion", "id", "phase", "aggregateRevision", "repository", "changeRevisions", "currentChangeRevisionId", "entities", "relationships", "tourPlans", "reviewSessions", "receipts"],
   "properties": {
     "schemaVersion": { "const": 2 },
     "producerVersion": { "type": "string" },
-    "id": { "type": "string", "pattern": "^rec_[0-9a-f-]+$" },
+    "id": { "type": "string", "pattern": "^map_[0-9a-f-]+$" },
     "title": { "type": "string" },
     "phase": { "enum": ["draft", "prepared", "archived"] },
     "aggregateRevision": { "type": "integer", "minimum": 1 },

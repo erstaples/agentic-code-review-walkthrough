@@ -1,6 +1,6 @@
 {
   "name": "kanko",
-  "description": "Walks through a diff with editor navigation and persistent change notes backed by evidence.",
+  "description": "Build a review map of code changes, then walk through it with editor navigation and evidence.",
   "version": "0.1.0",
   "author": {
     "name": "Kankō",
@@ -15,6 +15,6 @@
     "diff",
     "vscode",
     "tour",
-    "change-notes"
+    "review-map"
   ]
 }

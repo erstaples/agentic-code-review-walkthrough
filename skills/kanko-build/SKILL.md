@@ -1,42 +1,43 @@
 ---
 name: kanko-build
-description: Implement a non-trivial code change from a request, issue, or specification while keeping change notes covering requirements, decisions, assumptions, risks, evidence, and final handoff context. Use for substantial implementation, fix, refactor, or migration work that should later receive an ownership walkthrough. Do not use for read-only review/explanation, trivial edits, or when the user opts out of change notes.
+description: Implement a non-trivial code change from a request, issue, or specification while maintaining a review map connecting requirements, decisions, assumptions, risks, evidence, and final handoff context. Use for substantial implementation, fix, refactor, or migration work that should later receive an ownership walkthrough. Do not use for read-only review/explanation, trivial edits, or when the user opts out of preparing a review map.
 ---
 
 # Kankō Build
 
-Implement the requested change normally while preserving the context a later
-reviewer will need. These notes preserve the decisions and evidence that matter; they are
-not a transcript, a replacement for tests, or permission to expand scope.
+Implement the requested change and prepare its review map for a later
+walkthrough. Connect requirements, code, decisions, and evidence, with change
+notes explaining the choices. Keep the map selective; it is not a transcript,
+a replacement for tests, or permission to expand scope.
 
 ## Start the task
 
 Read the request, specification, repository instructions, and relevant source
-before proposing durable change record content. Resolve the absolute Git repository
+before proposing durable review map content. Resolve the absolute Git repository
 root and inspect the current status so pre-existing user changes remain visible
 and untouched.
 
-Open a working-tree change record with `kanko_notes_open`:
+Open a working-tree review map with `kanko_map_open`:
 
 - Use baseline `HEAD` and explicitly include staged, unstaged, and untracked
   content unless the user's requested scope says otherwise.
 - Give it a short task-oriented title and identify the coding agent as the
   actor.
-- Reuse a matching change record only when its title, thesis, and requirements belong
-  to this task. If an exact or related change record belongs to another task, call
-  `kanko_notes_open` again with `forceNew: true`; never merge unrelated task history
+- Reuse a matching review map only when its title, thesis, and requirements belong
+  to this task. If an exact or related review map belongs to another task, call
+  `kanko_map_open` again with `forceNew: true`; never merge unrelated task history
   for convenience.
-- Keep the returned change record ID and latest aggregate revision. Every mutation
+- Keep the returned review map ID and latest aggregate revision. Every mutation
   must use the latest `expectedRevision`; on conflict, query current state and
   reconsider the semantic command rather than retrying blindly.
 
-If change record tools are unavailable, continue the implementation and state at
+If review map tools are unavailable, continue the implementation and state at
 handoff that durable capture was unavailable. Do not block ordinary coding on
-the editor extension; change record tools do not require it.
+the editor extension; review map tools do not require it.
 
 ## Seed durable context
 
-Record the useful source material early through typed `kanko_notes_apply` commands:
+Record the useful source material early through typed `kanko_map_apply` commands:
 
 - `SetThesis` for the problem, intended behavior, approach as currently
   understood, important non-goals, and highest uncertainty. Revise it later as
@@ -67,7 +68,7 @@ bounded observations over raw output.
 
 ## Capture while implementing
 
-Update the change record at meaningful decision points, not after every command or
+Update the review map at meaningful decision points, not after every command or
 edit:
 
 - `AddDecision` when choosing among materially different approaches. Record
@@ -93,7 +94,7 @@ not an edit log.
 
 When the implementation is stable:
 
-1. Call `kanko_notes_refresh` with the final working-tree selection. Treat earlier
+1. Call `kanko_map_refresh` with the final working-tree selection. Treat earlier
    evidence marked stale as historical, not current proof.
 2. Run the verification appropriate to the change and record current evidence.
 3. If verification itself changes tracked or generated content, refresh again,
@@ -113,7 +114,7 @@ implementation, support, contradiction, mitigation, dependency, or coverage.
 ## Prepare the ownership handoff
 
 Create a semantic tour plan with `CreateTourPlan`. Each stop should be one
-logical, commit-message-worthy unit and cover at least one change record entity unless
+logical, commit-message-worthy unit and cover at least one review map entity unless
 it is explicitly a context stop. Order foundations before consumers and put
 real risk or weak evidence where the reviewer will encounter it.
 
@@ -123,7 +124,7 @@ needs an id, risk, numbered source-backed anchors, and beats with `{{a:N}}`
 narration references and prioritized `active` numbers. Resolve validation
 findings; do not substitute unversioned or metadata-only stops.
 
-Issue `MarkPrepared` only after the current change record has:
+Issue `MarkPrepared` only after the current review map has:
 
 - a truthful final thesis;
 - at least one reviewable claim;
@@ -131,13 +132,13 @@ Issue `MarkPrepared` only after the current change record has:
 - current or explicitly missing evidence;
 - a coherent tour plan.
 
-Then run `kanko_notes_check`. If the candidate is stale, refresh and repair the
+Then run `kanko_map_check`. If the candidate is stale, refresh and repair the
 affected references, evidence, claims, and stops before handoff.
 
 Do not start or complete a review session, mark stops reviewed, accept risk on
 the human's behalf, select an approval outcome, or emit a receipt. Those actions
 belong to the later `kanko-tour` walkthrough.
 
-In the implementation handoff, report the change record ID, final change identity,
+In the implementation handoff, report the review map ID, final change identity,
 important decisions and remaining risks, verification performed, missing or
 stale evidence, and that the change is prepared for an ownership walkthrough.

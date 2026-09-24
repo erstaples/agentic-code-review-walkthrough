@@ -4,7 +4,7 @@ const fs = require("node:fs");
 const path = require("node:path");
 const { execFileSync } = require("node:child_process");
 const { digest } = require("./canonical.js");
-const { ChangeRecordError, invariant } = require("./errors.js");
+const { ReviewMapError, invariant } = require("./errors.js");
 
 function git(workspace, args, options = {}) {
   try {
@@ -15,7 +15,7 @@ function git(workspace, args, options = {}) {
     });
   } catch (error) {
     const message = error.stderr?.toString().trim() || error.message;
-    throw new ChangeRecordError("git_failed", message);
+    throw new ReviewMapError("git_failed", message);
   }
 }
 
@@ -146,7 +146,7 @@ function resolveChange(workspaceInput, selection = {}) {
   const workspace = resolveWorkspace(workspaceInput);
   if (selection.kind === "committed") return committedIdentity(workspace, selection);
   if (selection.kind === "working-tree") return workingTreeIdentity(workspace, selection);
-  throw new ChangeRecordError("invalid_selection", "selection.kind must be committed or working-tree");
+  throw new ReviewMapError("invalid_selection", "selection.kind must be committed or working-tree");
 }
 
 function repositoryIdentity(workspaceInput) {
@@ -160,7 +160,7 @@ function resolveCodeReference(workspaceInput, changeRevision, reference) {
   let bytes;
   let revision;
   if (reference.side === "working") {
-    invariant(changeRevision.kind === "working-tree", "invalid_code_reference", "working-side references require a working-tree record");
+    invariant(changeRevision.kind === "working-tree", "invalid_code_reference", "working-side references require a working-tree review map");
     const absolute = path.resolve(workspace, reference.path);
     invariant(absolute.startsWith(`${workspace}${path.sep}`), "path_outside_workspace", `path escapes workspace: ${reference.path}`);
     const stat = fs.lstatSync(absolute);

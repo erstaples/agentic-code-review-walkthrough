@@ -18,7 +18,7 @@ function buildReceipt(state, sessionId, options = {}) {
     schemaVersion: SCHEMA_VERSION,
     producerVersion: PRODUCER_VERSION,
     id: options.receiptId || id("rcp"),
-    recordId: state.id,
+    mapId: state.id,
     reviewSessionId: session.id,
     changeRevisionId: change.id,
     changeIdentity: { kind: change.kind, labels: change.labels, manifestDigest: change.manifestDigest },
@@ -43,13 +43,13 @@ function escapeCell(value) { return String(value ?? "").replace(/\|/g, "\\|").re
 
 function renderMarkdown(receipt) {
   const lines = [
-    `# Review receipt: ${receipt.thesis?.summary || receipt.recordId}`,
+    `# Review receipt: ${receipt.thesis?.summary || receipt.mapId}`,
     "",
     `- Receipt: \`${receipt.id}\``,
     `- Change: \`${receipt.changeIdentity.manifestDigest}\``,
     `- Outcome: **${receipt.outcome || "not chosen"}**`,
     `- Created: ${receipt.createdAt}`,
-    `- ChangeRecord revision: ${receipt.aggregateRevision}`,
+    `- Review map revision: ${receipt.aggregateRevision}`,
     "",
     section("Thesis", [receipt.thesis?.summary || "No thesis recorded."]),
     section("Claims", ["| Claim | Disposition |", "|---|---|", ...receipt.claims.map((item) => `| ${escapeCell(item.statement)} | ${item.disposition} |`)]),

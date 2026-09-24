@@ -8,7 +8,7 @@ const path = require("node:path");
 const { spawn } = require("node:child_process");
 const { once } = require("node:events");
 const { createInterface } = require("node:readline");
-const { stateRoot } = require("../lib/notes/file-store.js");
+const { stateRoot } = require("../lib/review-map/file-store.js");
 const { createFixture } = require("../../editor-extension/test/tour-fixture/create.js");
 
 test("state directories use the product namespace on every platform", () => {
@@ -19,7 +19,7 @@ test("state directories use the product namespace on every platform", () => {
   assert.equal(stateRoot({}, "linux"), path.join(os.homedir(), ".local", "state", "kanko"));
 });
 
-test("the stdio server opens, updates, and reloads notes through its advertised names", { timeout: 15000 }, async t => {
+test("the stdio server opens, updates, and reloads a review map through its advertised names", { timeout: 15000 }, async t => {
   const fixture = createFixture();
   const child = spawn(process.execPath, [path.join(__dirname, "../server.js")], {
     env: { ...process.env, KANKO_STATE_DIR: fixture.stateRoot }, stdio: ["pipe", "pipe", "inherit"],
@@ -44,16 +44,16 @@ test("the stdio server opens, updates, and reloads notes through its advertised 
   assert.equal((await rpc("initialize", {})).serverInfo.name, "kanko");
   const advertised = (await rpc("tools/list", {})).tools;
   assert.equal(advertised.length, 12);
-  assert.ok(advertised.every(tool => /^kanko_(notes|tour)_/.test(tool.name)));
+  assert.ok(advertised.every(tool => /^kanko_(map|tour)_/.test(tool.name)));
   const actor = { kind: "agent", id: "branding-test" };
-  const opened = await call("kanko_notes_open", { actor, selection: { kind: "committed", base: fixture.base, head: fixture.head } });
-  assert.equal(opened.recordId, fixture.recordId);
-  assert.match(opened.recordId, /^rec_/);
-  const updated = await call("kanko_notes_apply", { actor, recordId: opened.recordId, expectedRevision: opened.aggregateRevision,
-    commands: [{ type: "SetThesis", thesis: { summary: "The new names reach durable notes.", provenance: [{ kind: "execution-observed", source: { type: "test" } }] } }],
+  const opened = await call("kanko_map_open", { actor, selection: { kind: "committed", base: fixture.base, head: fixture.head } });
+  assert.equal(opened.mapId, fixture.mapId);
+  assert.match(opened.mapId, /^map_/);
+  const updated = await call("kanko_map_apply", { actor, mapId: opened.mapId, expectedRevision: opened.aggregateRevision,
+    commands: [{ type: "SetThesis", thesis: { summary: "The new names reach a durable review map.", provenance: [{ kind: "execution-observed", source: { type: "test" } }] } }],
   });
-  const loaded = await call("kanko_notes_get", { recordId: opened.recordId, selector: { kind: "overview" } });
-  assert.equal(loaded.thesis.summary, "The new names reach durable notes.");
+  const loaded = await call("kanko_map_get", { mapId: opened.mapId, selector: { kind: "overview" } });
+  assert.equal(loaded.thesis.summary, "The new names reach a durable review map.");
   assert.equal(loaded.aggregateRevision, updated.aggregateRevision);
-  assert.equal((await call("kanko_notes_check", { recordId: opened.recordId })).eventChainValid, true);
+  assert.equal((await call("kanko_map_check", { mapId: opened.mapId })).eventChainValid, true);
 });

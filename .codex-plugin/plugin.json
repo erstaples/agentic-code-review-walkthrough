@@ -1,7 +1,7 @@
 {
   "name": "kanko",
   "version": "0.1.0",
-  "description": "Walks through a diff with editor navigation and persistent change notes backed by evidence.",
+  "description": "Build a review map of code changes, then walk through it with editor navigation and evidence.",
   "author": {
     "name": "Kankō",
     "url": "https://github.com/getkanko"
@@ -15,13 +15,13 @@
     "diff",
     "vscode",
     "tour",
-    "change-notes"
+    "review-map"
   ],
   "skills": "./skills/",
   "interface": {
     "displayName": "Kankō",
     "shortDescription": "Persistent, evidence-backed code walkthroughs",
-    "longDescription": "Guides a reviewer through a diff while preserving claims, evidence, risks, questions, coverage, and review receipts in local change notes.",
+    "longDescription": "Builds a local review map connecting requirements, code, decisions, evidence, and review progress, then guides a reviewer through the change.",
     "developerName": "Kankō",
     "category": "Productivity",
     "capabilities": [
@@ -32,7 +32,7 @@
     "websiteURL": "https://github.com/getkanko/kanko",
     "defaultPrompt": [
       "Walk me through the changes in this branch.",
-      "Implement this specification with change notes."
+      "Implement this specification and prepare its review map."
     ]
   }
 }

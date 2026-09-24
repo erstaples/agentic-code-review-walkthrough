@@ -1,7 +1,7 @@
 "use strict";
 
 const { request } = require("./bridge.js");
-const { ChangeRecordService } = require("./notes/service.js");
+const { ReviewMapService } = require("./review-map/service.js");
 const tourSchema = require("../../schemas/tour-plan.schema.json");
 
 // MCP command schemas are embedded: expand local refs so clients can inspect
@@ -20,10 +20,10 @@ const WORKSPACE = {
 
 const BRIDGE_TOOLS = [
   { name: "kanko_tour_status", description: "Read the editor's current tour snapshot without changing it.", inputSchema: { type: "object", required: ["workspace"], properties: { workspace: WORKSPACE } } },
-  { name: "kanko_tour_load", description: "Validate and load the current authored record tour into the editor. Returns findings, the current stop/beat, and terminal narration. Invalid tours leave the current display unchanged.", inputSchema: { type: "object", required: ["workspace", "recordId"], properties: { workspace: WORKSPACE, recordId: { type: "string" } } } },
-  { name: "kanko_tour_navigate", description: "Navigate the loaded tour by stop or beat. Use goto with stopId and beatId for an exact destination. Presentation changes do not mark record claims or stops reviewed.", inputSchema: { type: "object", required: ["workspace", "action"], properties: { workspace: WORKSPACE, action: { enum: ["nextBeat", "previousBeat", "nextStop", "previousStop", "goto"] }, stopId: { type: "string" }, beatId: { type: "string" }, expectedRevision: { type: "integer", minimum: 0 } } } },
+  { name: "kanko_tour_load", description: "Validate and load the current authored tour from the review map into the editor. Returns findings, the current stop/beat, and terminal narration. Invalid tours leave the current display unchanged.", inputSchema: { type: "object", required: ["workspace", "mapId"], properties: { workspace: WORKSPACE, mapId: { type: "string" } } } },
+  { name: "kanko_tour_navigate", description: "Navigate the loaded tour by stop or beat. Use goto with stopId and beatId for an exact destination. Presentation changes do not mark review map claims or stops reviewed.", inputSchema: { type: "object", required: ["workspace", "action"], properties: { workspace: WORKSPACE, action: { enum: ["nextBeat", "previousBeat", "nextStop", "previousStop", "goto"] }, stopId: { type: "string" }, beatId: { type: "string" }, expectedRevision: { type: "integer", minimum: 0 } } } },
   { name: "kanko_tour_set_state", description: "Set following, exploring, or paused presentation mode for the loaded tour. Following reveals the selected anchor; exploring leaves the editor in place; paused removes presentation highlights.", inputSchema: { type: "object", required: ["workspace", "mode"], properties: { workspace: WORKSPACE, mode: { enum: ["following", "exploring", "paused"] }, expectedRevision: { type: "integer", minimum: 0 } } } },
-  { name: "kanko_tour_clear", description: "End the current presentation and clear its sidebar and highlights. Does not complete a record review.", inputSchema: { type: "object", required: ["workspace"], properties: { workspace: WORKSPACE } } },
+  { name: "kanko_tour_clear", description: "End the current presentation and clear its sidebar and highlights. Does not complete the review session.", inputSchema: { type: "object", required: ["workspace"], properties: { workspace: WORKSPACE } } },
 ];
 
 const ACTOR = {
@@ -49,8 +49,8 @@ const SELECTION = {
   ],
 };
 
-const RECORD_ID = { type: "string", pattern: "^rec_[0-9a-f-]+$" };
-const EXPECTED_REVISION = { type: "integer", minimum: 1, description: "Aggregate revision returned by the latest record call. Prevents stale writers." };
+const MAP_ID = { type: "string", pattern: "^map_[0-9a-f-]+$" };
+const EXPECTED_REVISION = { type: "integer", minimum: 1, description: "Aggregate revision returned by the latest review map call. Prevents stale writers." };
 const ENTITY_INPUT = { type: "object", description: "Typed entity fields plus a non-empty provenance array. The service assigns identity and audit fields." };
 function command(type, required = [], properties = {}) {
   return { type: "object", required: ["type", ...required], properties: { type: { const: type }, ...properties } };
@@ -76,55 +76,55 @@ const COMMAND = {
     ...["PauseReviewSession", "ResumeReviewSession"].map((type) => command(type, ["sessionId"], { sessionId: { type: "string" } })),
     command("CompleteReviewSession", ["sessionId", "outcome"], { sessionId: { type: "string" }, outcome: { type: "string", enum: ["ready-to-approve", "changes-requested", "deferred", "informational-only"] } }),
     command("CorrectEntity", ["entityId", "changes", "provenance"], { entityId: { type: "string" }, changes: { type: "object" }, provenance: { type: "array", minItems: 1 } }),
-    command("ArchiveChangeRecord"),
+    command("ArchiveReviewMap"),
   ],
 };
 
-const RECORD_TOOLS = [
+const MAP_TOOLS = [
   {
-    name: "kanko_notes_open",
-    description: "Resolve an exact Git change identity and open its local living change record, or create a private draft outside the repository. Does not run tests, fetch remotes, or modify source.",
-    inputSchema: { type: "object", required: ["workspace", "selection", "actor"], properties: { workspace: WORKSPACE, selection: SELECTION, actor: ACTOR, title: { type: "string" }, createIfMissing: { type: "boolean", default: true }, forceNew: { type: "boolean", default: false, description: "Create a separate record even when the exact change or a related lineage already has one. Use only after confirming the existing record belongs to another task." } } },
+    name: "kanko_map_open",
+    description: "Resolve an exact Git change identity and open its local review map, or create a private draft outside the repository. Does not run tests, fetch remotes, or modify source.",
+    inputSchema: { type: "object", required: ["workspace", "selection", "actor"], properties: { workspace: WORKSPACE, selection: SELECTION, actor: ACTOR, title: { type: "string" }, createIfMissing: { type: "boolean", default: true }, forceNew: { type: "boolean", default: false, description: "Create a separate review map even when the exact change or a related lineage already has one. Use only after confirming the existing review map belongs to another task." } } },
   },
   {
-    name: "kanko_notes_get",
-    description: "Read a bounded record projection. Use overview first, then request only the entity, tour, recap, open items, evidence matrix, or storage location needed.",
+    name: "kanko_map_get",
+    description: "Read a bounded review map projection. Use overview first, then request only the entity, tour, recap, open items, evidence matrix, or storage location needed.",
     inputSchema: {
-      type: "object", required: ["workspace", "recordId", "selector"],
+      type: "object", required: ["workspace", "mapId", "selector"],
       properties: {
-        workspace: WORKSPACE, recordId: RECORD_ID,
+        workspace: WORKSPACE, mapId: MAP_ID,
         selector: { type: "object", required: ["kind"], properties: { kind: { type: "string", enum: ["overview", "entity", "entities", "tour", "open-items", "evidence-matrix", "recap", "storage"] }, id: { type: "string" }, type: { type: "string" }, stopId: { type: "string" }, sessionId: { type: "string" } } },
       },
     },
   },
   {
-    name: "kanko_notes_apply",
-    description: "Atomically apply typed record domain commands. Never submit JSON Patch or a rewritten record. Important statements require structured provenance; review mutations are rejected if code drifted.",
-    inputSchema: { type: "object", required: ["workspace", "recordId", "expectedRevision", "actor", "commands"], properties: { workspace: WORKSPACE, recordId: RECORD_ID, expectedRevision: EXPECTED_REVISION, actor: ACTOR, commands: { type: "array", minItems: 1, items: COMMAND } } },
+    name: "kanko_map_apply",
+    description: "Atomically apply typed review map domain commands. Never submit JSON Patch or a rewritten review map. Important statements require structured provenance; review mutations are rejected if code drifted.",
+    inputSchema: { type: "object", required: ["workspace", "mapId", "expectedRevision", "actor", "commands"], properties: { workspace: WORKSPACE, mapId: MAP_ID, expectedRevision: EXPECTED_REVISION, actor: ACTOR, commands: { type: "array", minItems: 1, items: COMMAND } } },
   },
   {
-    name: "kanko_notes_check",
-    description: "Check record event integrity, schema version, and exact Git freshness without changing state.",
-    inputSchema: { type: "object", required: ["workspace", "recordId"], properties: { workspace: WORKSPACE, recordId: RECORD_ID } },
+    name: "kanko_map_check",
+    description: "Check review map event integrity, schema version, and exact Git freshness without changing state.",
+    inputSchema: { type: "object", required: ["workspace", "mapId"], properties: { workspace: WORKSPACE, mapId: MAP_ID } },
   },
   {
-    name: "kanko_notes_refresh",
+    name: "kanko_map_refresh",
     description: "Record a new exact change revision after drift and conservatively invalidate reviewed stops and evidence. Earlier review history is preserved.",
-    inputSchema: { type: "object", required: ["workspace", "recordId", "expectedRevision", "selection", "actor"], properties: { workspace: WORKSPACE, recordId: RECORD_ID, expectedRevision: EXPECTED_REVISION, selection: SELECTION, actor: ACTOR } },
+    inputSchema: { type: "object", required: ["workspace", "mapId", "expectedRevision", "selection", "actor"], properties: { workspace: WORKSPACE, mapId: MAP_ID, expectedRevision: EXPECTED_REVISION, selection: SELECTION, actor: ACTOR } },
   },
   {
-    name: "kanko_notes_receipt",
+    name: "kanko_map_receipt",
     description: "Preview or emit a deterministic review receipt tied to the exact current change. Emit writes immutable JSON and Markdown locally; it never publishes remotely.",
-    inputSchema: { type: "object", required: ["workspace", "recordId", "sessionId", "mode", "actor"], properties: { workspace: WORKSPACE, recordId: RECORD_ID, sessionId: { type: "string" }, mode: { type: "string", enum: ["preview", "emit"] }, expectedRevision: EXPECTED_REVISION, supersedesReceiptId: { type: "string" }, actor: ACTOR }, allOf: [{ if: { properties: { mode: { const: "emit" } } }, then: { required: ["expectedRevision"] } }] },
+    inputSchema: { type: "object", required: ["workspace", "mapId", "sessionId", "mode", "actor"], properties: { workspace: WORKSPACE, mapId: MAP_ID, sessionId: { type: "string" }, mode: { type: "string", enum: ["preview", "emit"] }, expectedRevision: EXPECTED_REVISION, supersedesReceiptId: { type: "string" }, actor: ACTOR }, allOf: [{ if: { properties: { mode: { const: "emit" } } }, then: { required: ["expectedRevision"] } }] },
   },
   {
-    name: "kanko_notes_delete",
-    description: "Permanently delete one local record and all of its receipts and evidence. Requires the record ID repeated as explicit confirmation and never touches repository source.",
-    inputSchema: { type: "object", required: ["workspace", "recordId", "confirmRecordId", "actor"], properties: { workspace: WORKSPACE, recordId: RECORD_ID, confirmRecordId: RECORD_ID, actor: ACTOR } },
+    name: "kanko_map_delete",
+    description: "Permanently delete one local review map and all of its receipts and evidence. Requires the review map ID repeated as explicit confirmation and never touches repository source.",
+    inputSchema: { type: "object", required: ["workspace", "mapId", "confirmMapId", "actor"], properties: { workspace: WORKSPACE, mapId: MAP_ID, confirmMapId: MAP_ID, actor: ACTOR } },
   },
 ];
 
-const TOOLS = [...BRIDGE_TOOLS, ...RECORD_TOOLS];
+const TOOLS = [...BRIDGE_TOOLS, ...MAP_TOOLS];
 
 const ROUTES = {
   kanko_tour_status: ["GET", "/status"],
@@ -134,22 +134,22 @@ const ROUTES = {
   kanko_tour_clear: ["POST", "/clear"],
 };
 
-function createCallTool({ resolveLock, recordService = new ChangeRecordService() }) {
+function createCallTool({ resolveLock, mapService = new ReviewMapService() }) {
   return async function callTool(name, args) {
-    if (name === "kanko_notes_open") return recordService.open(args);
-    if (name === "kanko_notes_get") return recordService.get(args);
-    if (name === "kanko_notes_apply") return recordService.apply(args);
-    if (name === "kanko_notes_check") return recordService.check(args);
-    if (name === "kanko_notes_refresh") return recordService.refresh(args);
-    if (name === "kanko_notes_receipt") return recordService.receipt(args);
-    if (name === "kanko_notes_delete") return recordService.delete(args);
+    if (name === "kanko_map_open") return mapService.open(args);
+    if (name === "kanko_map_get") return mapService.get(args);
+    if (name === "kanko_map_apply") return mapService.apply(args);
+    if (name === "kanko_map_check") return mapService.check(args);
+    if (name === "kanko_map_refresh") return mapService.refresh(args);
+    if (name === "kanko_map_receipt") return mapService.receipt(args);
+    if (name === "kanko_map_delete") return mapService.delete(args);
     const route = ROUTES[name];
     if (!route) throw new Error(`unknown tool: ${name}`);
     const { workspace, ...bridgeArgs } = args;
-    const payload = name === "kanko_tour_load" ? recordService.loadTour(args) : { ...bridgeArgs, workspace };
+    const payload = name === "kanko_tour_load" ? mapService.loadTour(args) : { ...bridgeArgs, workspace };
     const lock = resolveLock(workspace);
     return request(lock, route[0], route[1], payload);
   };
 }
 
-module.exports = { TOOLS, BRIDGE_TOOLS, RECORD_TOOLS, ROUTES, createCallTool };
+module.exports = { TOOLS, BRIDGE_TOOLS, MAP_TOOLS, ROUTES, createCallTool };

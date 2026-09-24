@@ -19,7 +19,7 @@ function rangeText(text, range) {
   return range.endLine > lines.length ? null : lines.slice(range.startLine - 1, range.endLine).join("\n");
 }
 
-// Focus baselines belong to the presentation session, not the record's
+// Focus baselines belong to the presentation session, not the review map's
 // context hash. Call again on activation and after worktree edits.
 async function checkAnchor(anchor, readText, baseline = []) {
   const a = normalizeAnchor(anchor);

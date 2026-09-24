@@ -9,9 +9,10 @@ work, then go unit by unit, jumping to real code and pointing at it while they
 explain. This plugin gives an agentic coding tool the same ability — a
 companion VS Code extension lets it drive your editor while it narrates.
 
-The walkthrough is backed by private, local **change notes**. They
-preserve the change thesis, claims, decisions, risks, evidence, questions,
-and explicit review coverage across process restarts. Each change record is tied to
+The walkthrough is backed by a private, local **review map**. It connects
+requirements, code, decisions, evidence, and review progress. Change notes hold
+the explanations and decisions; an event log preserves their history across
+process restarts. Each review map is tied to
 an exact committed diff or byte-level working-tree manifest, so changed code
 cannot silently inherit old review state.
 
@@ -40,7 +41,7 @@ operations. Invalid plans return findings before changing the current display.
 Up to three active anchors are presented with matching numbered colors, labels,
 and tab badges. Layout placement and the complete anchor list are subsequent phases.
 
-Questions, concerns, and decisions become sourced change record entries when they
+Questions, concerns, and decisions become sourced review map entries when they
 matter beyond the current conversation. At closeout you can save an immutable
 JSON and Markdown receipt covering what was reviewed, what evidence was
 inspected, what risk was accepted, and what remains unresolved.
@@ -173,7 +174,7 @@ For the later ownership walkthrough, ask:
 - "tour the branch head diff against main"
 - "guide me through what changed in the last three commits"
 
-The `kanko-tour` skill opens the prepared change record when one exists. If coding
+The `kanko-tour` skill opens the prepared review map when one exists. If coding
 happened without change notes, it reconstructs a draft from the selected
 diff and labels inferred rationale accordingly.
 
@@ -193,7 +194,7 @@ The two find each other through a lockfile the extension writes on activation.
 See [the loading guide](docs/kanko-v2-tour-loading.md) for the flow.
 
 The MCP server has two boundaries. Editor navigation remains a thin proxy to
-the extension. The change record application service owns durable review state in a
+the extension. The review map application service owns durable review state in a
 per-user application-state directory outside the repository. Set
 `KANKO_STATE_DIR` to override that location. The default directory is
 `~/Library/Application Support/kanko` on macOS, `%LOCALAPPDATA%/kanko`
@@ -204,17 +205,17 @@ on Windows, and `$XDG_STATE_HOME/kanko` (or `~/.local/state/kanko`) on Linux.
 | Tool | What it does |
 |---|---|
 | `kanko_tour_status` | Preflight — confirms the extension is reachable and reports the resolved workspace |
-| `kanko_tour_load` | Validates and loads the current change record plan into the sidebar |
+| `kanko_tour_load` | Validates and loads the current review map plan into the sidebar |
 | `kanko_tour_navigate` | Moves by beat, by stop, or to an explicit stop and beat |
 | `kanko_tour_set_state` | Sets Following, Exploring, or Paused |
 | `kanko_tour_clear` | Ends the presentation and removes highlights |
-| `kanko_notes_open` | Opens or creates the change record for an exact committed or working-tree change |
-| `kanko_notes_get` | Reads a bounded overview, entity set, tour, evidence matrix, or resume recap |
-| `kanko_notes_apply` | Atomically applies typed, provenance-bearing domain commands |
-| `kanko_notes_check` | Verifies event integrity, exact change freshness, and v2 tour anchors without mutation |
-| `kanko_notes_refresh` | Adds a change revision and conservatively invalidates stale review state |
-| `kanko_notes_receipt` | Previews or emits immutable local JSON and Markdown receipts |
-| `kanko_notes_delete` | Permanently deletes one explicitly confirmed local change record |
+| `kanko_map_open` | Opens or creates the review map for an exact committed or working-tree change |
+| `kanko_map_get` | Reads a bounded overview, entity set, tour, evidence matrix, or resume recap |
+| `kanko_map_apply` | Atomically applies typed, provenance-bearing domain commands |
+| `kanko_map_check` | Verifies event integrity, exact change freshness, and v2 tour anchors without mutation |
+| `kanko_map_refresh` | Adds a change revision and conservatively invalidates stale review state |
+| `kanko_map_receipt` | Previews or emits immutable local JSON and Markdown receipts |
+| `kanko_map_delete` | Permanently deletes one explicitly confirmed local review map |
 
 Kankō v2's stop, anchor, and beat authoring contract is documented in
 [the tour model guide](docs/kanko-v2-tour-model.md). It validates plans before
@@ -226,7 +227,7 @@ protocol 3; the old stop/focus tools and routes have been removed.
 this extension cannot alter your repository" is a property of the software
 rather than a promise in a prompt.
 
-The bridge has no repository write verb. Change record tools write only to local
+The bridge has no repository write verb. Review map tools write only to local
 application state, and receipt publication is intentionally absent. The
 service uses immutable hash-chained event files, a single-writer lock, and an
 `expectedRevision` check on every mutation. Secret-shaped values are redacted
@@ -247,7 +248,7 @@ under review stays still while you annotate it.
   restoration is a later phase.
 - Changed working trees conservatively invalidate review state and stale evidence.
   A loaded tour retains its captured source until it is reloaded.
-- Change record claims and review decisions remain in the agent conversation; this
+- Review map claims and review decisions remain in the agent conversation; this
   sidebar displays the authored tour and does not record human acceptance.
 
 ## Development
@@ -257,9 +258,9 @@ run `npm install`, so depending on an SDK would mean vendoring `node_modules`
 into the repository.
 
 ```
-mcp/               stdio MCP server — editor proxy and record service
+mcp/               stdio MCP server — editor proxy and review map service
 editor-extension/  VS Code extension — HTTP server, decorations, diff views
-schemas/           versioned record, event, receipt, and tool contracts
+schemas/           versioned review map, event, receipt, and tool contracts
 skills/            implementation-capture and walkthrough procedures
 docs/              design spec
 ```

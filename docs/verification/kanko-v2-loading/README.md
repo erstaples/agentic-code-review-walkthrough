@@ -14,11 +14,11 @@ captured in the real editor.
 
 ## Evidence recorded
 
-- 190 dependency-free tests pass, covering contract/source validation, change record
+- 190 dependency-free tests pass, covering contract/source validation, review map
   freshness, bridge errors, controller navigation, and escaped citation rendering.
 - The VSIX contains exactly 29 expected files; packaged files match their source.
 - All 7 native integration tests pass against the extracted VSIX in VS Code
-  1.139.0, using a disposable profile, repository, and change record store.
+  1.139.0, using a disposable profile, repository, and review map store.
 - [Automated snapshots](automated.json) record actual bridge results.
   [Check metadata](checks.json) records the package digest and missing screenshots.
 

@@ -15,18 +15,22 @@ keeps its designed lowercase letterforms.
 | VS Code extension | `getkankodev.kanko` — Kankō |
 | MCP server | `kanko` |
 | Tour tools | `kanko_tour_*` |
-| Change notes tools | `kanko_notes_*` |
+| Review map tools | `kanko_map_*` |
 | Settings and commands | `kanko.*` |
 | Revision URI scheme | `kanko-rev` |
 | Environment variables | `KANKO_*` |
 | Bridge lockfiles | `~/.kanko/tour` |
 | Application state directory | `kanko` under the platform's user state location |
 
-Call the saved context **change notes** in product language. A **change record**
-is the stored unit that contains those notes, the tour plan, and review state.
-Its API identifier is `recordId` and its generated IDs start with `rec_`.
+A **review map** connects requirements, code, decisions, evidence, the tour
+plan, and review progress. **Change notes** hold explanations and decisions
+inside the map. Its **event log** preserves the history.
 
-The rename is a clean break: bridge protocol 3 and change record schema 2 use
+`kanko-build` implements a change and prepares its review map; `kanko-tour`
+guides the reviewer through it.
+Its API identifier is `mapId` and its generated IDs start with `map_`.
+
+The rename is a clean break: bridge protocol 3 and review map schema 2 use
 only the new names and paths. There are no aliases or migrations. Update both
 the agent plugin and extension together and start a new agent session.
 

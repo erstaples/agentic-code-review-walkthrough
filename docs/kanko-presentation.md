@@ -36,7 +36,7 @@ An anchor has `path`, `side` (`base`, `head`, or `worktree`), `rev`, `context`
 loads as `context` with no focus. Hashes are SHA-256 over context lines joined
 with LF, prefixed with `sha256:`. Focus hashes are captured independently at
 activation and retained across a detour; an optional span `contentHash` permits
-comparison against an authored baseline. Immutable change record events are not rewritten.
+comparison against an authored baseline. Immutable review map events are not rewritten.
 
 Selecting code switches Following to Exploring. In Exploring the rail and
 boxes stay, labels and dimming disappear, and companions are not re-revealed.

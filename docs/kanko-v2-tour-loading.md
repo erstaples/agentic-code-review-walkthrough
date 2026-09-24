@@ -1,6 +1,6 @@
 # Kankō v2: load and navigate an authored tour
 
-Phase 3 connects a current change record plan to a native VS Code secondary sidebar.
+Phase 3 connects a current review map plan to a native VS Code secondary sidebar.
 It requires VS Code 1.139+ (the verified secondary-sidebar contribution API),
 Node 22+, and bridge protocol 3 on both ends. No old stop/focus compatibility
 routes or tools remain.
@@ -11,7 +11,7 @@ All calls take the absolute repository root as `workspace`.
 
 | Operation | Additional arguments | Result |
 | --- | --- | --- |
-| `kanko_tour_load` | `recordId` | Validated first-beat snapshot and findings |
+| `kanko_tour_load` | `mapId` | Validated first-beat snapshot and findings |
 | `kanko_tour_navigate` | `action`, optional `expectedRevision` | New snapshot |
 | `kanko_tour_set_state` | `mode`, optional `expectedRevision` | New snapshot |
 | `kanko_tour_status` | None | Workspace identity and current snapshot |
@@ -22,7 +22,7 @@ and `goto`. `goto` requires an existing `stopId` and `beatId`. Beat navigation
 crosses stop boundaries; stop navigation starts at that stop's first beat.
 Trying to move beyond the plan returns `navigation_boundary` without mutation.
 
-The change record service resolves its current plan, verifies change freshness, and
+The review map service resolves its current plan, verifies change freshness, and
 validates source-backed anchors before discovering the editor. The extension
 independently checks the open workspace, manifest, source hashes, ranges, and
 references before opening a view or publishing a snapshot. Invalid plans return
@@ -35,7 +35,7 @@ refresh, regenerated anchors, and another load.
 Every successful operation increments the presentation `revision`. Send it as
 `expectedRevision` to reject stale navigation or mode changes. The extension
 serializes operations; a rejected request does not poison the queue. This
-revision is independent of the change record's aggregate revision.
+revision is independent of the review map's aggregate revision.
 
 A loaded snapshot includes the tour/plan identity, title, mode, stop/beat
 indices and counts, current stop and beat, selected anchor, findings, and three
@@ -88,7 +88,7 @@ development dependencies:
 npm run test:integration
 ```
 
-The native runner creates a disposable Git repository, change record store, editor
+The native runner creates a disposable Git repository, review map store, editor
 profile, and extension directory. It exercises the real public MCP operations,
 authenticated loopback bridge, source views, and snapshots. Set `EXTENSION_PATH`
 to an extracted VSIX's `extension` directory to test the packaged artifact.

@@ -6,9 +6,9 @@ const fs = require("node:fs");
 const os = require("node:os");
 const path = require("node:path");
 const { execFileSync } = require("node:child_process");
-const { ChangeRecordService, redactSensitive } = require("../lib/notes/service.js");
-const { FileChangeRecordStore } = require("../lib/notes/file-store.js");
-const { resolveChange, repositoryIdentity } = require("../lib/notes/git-adapter.js");
+const { ReviewMapService, redactSensitive } = require("../lib/review-map/service.js");
+const { FileReviewMapStore } = require("../lib/review-map/file-store.js");
+const { resolveChange, repositoryIdentity } = require("../lib/review-map/git-adapter.js");
 const { tourSources } = require("../../contract/tour-sources.js");
 const { hashText } = require("../../contract/tour.js");
 
@@ -16,7 +16,7 @@ const actor = { kind: "agent", id: "test-agent" };
 const provenance = [{ kind: "model-inferred", source: { type: "code-inspection", path: "feature.txt" }, inferenceExplanation: "Observed in the diff." }];
 
 function fixture() {
-  const root = fs.mkdtempSync(path.join(os.tmpdir(), "tour-record-test-"));
+  const root = fs.mkdtempSync(path.join(os.tmpdir(), "kanko-review-map-test-"));
   const workspace = path.join(root, "repo");
   const stateRoot = path.join(root, "state");
   fs.mkdirSync(workspace);
@@ -26,7 +26,7 @@ function fixture() {
   const base = git("rev-parse", "HEAD");
   fs.writeFileSync(path.join(workspace, "feature.txt"), "after\n"); git("commit", "-qam", "change");
   const head = git("rev-parse", "HEAD");
-  return { root, workspace, stateRoot, git, base, head, service: new ChangeRecordService({ root: stateRoot }) };
+  return { root, workspace, stateRoot, git, base, head, service: new ReviewMapService({ root: stateRoot }) };
 }
 
 function open(f) {
@@ -34,36 +34,36 @@ function open(f) {
 }
 
 function prepare(f, opened) {
-  let result = f.service.apply({ workspace: f.workspace, recordId: opened.recordId, expectedRevision: opened.aggregateRevision, actor, commands: [
+  let result = f.service.apply({ workspace: f.workspace, mapId: opened.mapId, expectedRevision: opened.aggregateRevision, actor, commands: [
     { type: "SetThesis", thesis: { summary: "Change the feature behavior.", provenance } },
     { type: "AddClaim", claim: { statement: "The feature now says after.", category: "behavior", provenance } },
   ] });
-  const claim = f.service.get({ workspace: f.workspace, recordId: opened.recordId, selector: { kind: "entities", type: "claims" } }).entities[0];
+  const claim = f.service.get({ workspace: f.workspace, mapId: opened.mapId, selector: { kind: "entities", type: "claims" } }).entities[0];
   const source = tourSources(f.workspace, opened.changeRevision);
   const anchor = { n: 1, role: "change", label: "Feature behavior", path: "feature.txt", view: "diff", change: "modified", rev: source.revisions, context: { startLine: 1, endLine: 1 } };
   anchor.contentHash = hashText(source.readSource(anchor).head.split("\n")[0]);
-  result = f.service.apply({ workspace: f.workspace, recordId: opened.recordId, expectedRevision: result.aggregateRevision, actor, commands: [
+  result = f.service.apply({ workspace: f.workspace, mapId: opened.mapId, expectedRevision: result.aggregateRevision, actor, commands: [
     { type: "CreateTourPlan", presentationVersion: 2, title: "Feature tour", stops: [{ id: "behavior", title: "Behavior", risk: "low", type: "implementation", coveredEntityIds: [claim.id], anchors: [anchor], beats: [{ id: "inspect", narration: "Inspect {{a:1}}.", active: [1] }] }] },
     { type: "MarkPrepared" },
     { type: "StartReviewSession", reviewer: { kind: "reviewer", id: "human" } },
   ] });
-  const tour = f.service.get({ workspace: f.workspace, recordId: opened.recordId, selector: { kind: "tour" } });
+  const tour = f.service.get({ workspace: f.workspace, mapId: opened.mapId, selector: { kind: "tour" } });
   return { result, claim, session: tour.sessions[0], stop: tour.plan.stops[0] };
 }
 
-test("a committed record survives service restart with a verified event chain", () => {
+test("a committed review map survives service restart with a verified event chain", () => {
   const f = fixture(); const opened = open(f); const prepared = prepare(f, opened);
-  const restarted = new ChangeRecordService({ root: f.stateRoot });
-  const overview = restarted.get({ workspace: f.workspace, recordId: opened.recordId, selector: { kind: "overview" } });
+  const restarted = new ReviewMapService({ root: f.stateRoot });
+  const overview = restarted.get({ workspace: f.workspace, mapId: opened.mapId, selector: { kind: "overview" } });
   assert.strictEqual(overview.phase, "prepared");
   assert.strictEqual(overview.aggregateRevision, prepared.result.aggregateRevision);
-  assert.strictEqual(restarted.check({ workspace: f.workspace, recordId: opened.recordId }).eventChainValid, true);
+  assert.strictEqual(restarted.check({ workspace: f.workspace, mapId: opened.mapId }).eventChainValid, true);
 });
 
 test("optimistic aggregate revisions reject stale writers", () => {
   const f = fixture(); const opened = open(f);
-  f.service.apply({ workspace: f.workspace, recordId: opened.recordId, expectedRevision: 1, actor, commands: [{ type: "SetThesis", thesis: { summary: "A", provenance } }] });
-  assert.throws(() => f.service.apply({ workspace: f.workspace, recordId: opened.recordId, expectedRevision: 1, actor, commands: [{ type: "SetThesis", thesis: { summary: "B", provenance } }] }), (error) => error.code === "revision_conflict" && error.details.currentRevision === 2);
+  f.service.apply({ workspace: f.workspace, mapId: opened.mapId, expectedRevision: 1, actor, commands: [{ type: "SetThesis", thesis: { summary: "A", provenance } }] });
+  assert.throws(() => f.service.apply({ workspace: f.workspace, mapId: opened.mapId, expectedRevision: 1, actor, commands: [{ type: "SetThesis", thesis: { summary: "B", provenance } }] }), (error) => error.code === "revision_conflict" && error.details.currentRevision === 2);
 });
 
 test("working-tree byte changes are detected before review state is written", () => {
@@ -72,8 +72,8 @@ test("working-tree byte changes are detected before review state is written", ()
   const opened = f.service.open({ workspace: f.workspace, selection: { kind: "working-tree" }, actor, title: "Dirty change" });
   const prepared = prepare(f, opened);
   fs.writeFileSync(path.join(f.workspace, "feature.txt"), "dirty two\n");
-  assert.strictEqual(f.service.check({ workspace: f.workspace, recordId: opened.recordId }).freshness, "stale");
-  assert.throws(() => f.service.apply({ workspace: f.workspace, recordId: opened.recordId, expectedRevision: prepared.result.aggregateRevision, actor, commands: [{ type: "StartStop", sessionId: prepared.session.id, stopId: prepared.stop.id }] }), (error) => error.code === "stale_change");
+  assert.strictEqual(f.service.check({ workspace: f.workspace, mapId: opened.mapId }).freshness, "stale");
+  assert.throws(() => f.service.apply({ workspace: f.workspace, mapId: opened.mapId, expectedRevision: prepared.result.aggregateRevision, actor, commands: [{ type: "StartStop", sessionId: prepared.session.id, stopId: prepared.stop.id }] }), (error) => error.code === "stale_change");
 });
 
 test("refresh preserves history while invalidating review and evidence conservatively", () => {
@@ -81,44 +81,44 @@ test("refresh preserves history while invalidating review and evidence conservat
   fs.writeFileSync(path.join(f.workspace, "feature.txt"), "dirty one\n");
   const opened = f.service.open({ workspace: f.workspace, selection: { kind: "working-tree" }, actor, title: "Dirty change" });
   let prepared = prepare(f, opened);
-  let result = f.service.apply({ workspace: f.workspace, recordId: opened.recordId, expectedRevision: prepared.result.aggregateRevision, actor, commands: [
+  let result = f.service.apply({ workspace: f.workspace, mapId: opened.mapId, expectedRevision: prepared.result.aggregateRevision, actor, commands: [
     { type: "AddEvidence", evidence: { observation: "Manual inspection matched the claim.", freshness: "current", provenance } },
     { type: "StartStop", sessionId: prepared.session.id, stopId: prepared.stop.id },
     { type: "SetStopReviewState", sessionId: prepared.session.id, stopId: prepared.stop.id, reviewState: "reviewed" },
   ] });
   fs.writeFileSync(path.join(f.workspace, "feature.txt"), "dirty two\n");
-  const refreshed = f.service.refresh({ workspace: f.workspace, recordId: opened.recordId, expectedRevision: result.aggregateRevision, selection: { kind: "working-tree" }, actor });
+  const refreshed = f.service.refresh({ workspace: f.workspace, mapId: opened.mapId, expectedRevision: result.aggregateRevision, selection: { kind: "working-tree" }, actor });
   assert.strictEqual(refreshed.changed, true);
   assert.deepStrictEqual(refreshed.invalidationPlan.invalidatedStops, [prepared.stop.id]);
   assert.strictEqual(refreshed.invalidationPlan.staleEvidence.length, 1);
-  const tour = f.service.get({ workspace: f.workspace, recordId: opened.recordId, selector: { kind: "tour" } });
+  const tour = f.service.get({ workspace: f.workspace, mapId: opened.mapId, selector: { kind: "tour" } });
   assert.strictEqual(tour.plan.stops[0].reviewState, "invalidated");
 });
 
 test("completed review emits immutable JSON and Markdown receipts", () => {
   const f = fixture(); const opened = open(f); const prepared = prepare(f, opened);
-  const result = f.service.apply({ workspace: f.workspace, recordId: opened.recordId, expectedRevision: prepared.result.aggregateRevision, actor, commands: [
+  const result = f.service.apply({ workspace: f.workspace, mapId: opened.mapId, expectedRevision: prepared.result.aggregateRevision, actor, commands: [
     { type: "StartStop", sessionId: prepared.session.id, stopId: prepared.stop.id },
     { type: "SetStopReviewState", sessionId: prepared.session.id, stopId: prepared.stop.id, reviewState: "reviewed" },
     { type: "CompleteReviewSession", sessionId: prepared.session.id, outcome: "ready-to-approve" },
   ] });
-  const preview = f.service.receipt({ workspace: f.workspace, recordId: opened.recordId, sessionId: prepared.session.id, mode: "preview", actor });
+  const preview = f.service.receipt({ workspace: f.workspace, mapId: opened.mapId, sessionId: prepared.session.id, mode: "preview", actor });
   assert.match(preview.markdown, /Outcome: \*\*ready-to-approve\*\*/);
   assert.match(preview.markdown, /## Tour narration/);
   assert.match(preview.receipt.stops[0].beats[0].narration, /① .+:1–1 @/);
   assert.doesNotMatch(preview.markdown, /\{\{a:/);
-  const emitted = f.service.receipt({ workspace: f.workspace, recordId: opened.recordId, sessionId: prepared.session.id, mode: "emit", expectedRevision: result.aggregateRevision, actor });
+  const emitted = f.service.receipt({ workspace: f.workspace, mapId: opened.mapId, sessionId: prepared.session.id, mode: "emit", expectedRevision: result.aggregateRevision, actor });
   assert.ok(fs.existsSync(emitted.jsonPath)); assert.ok(fs.existsSync(emitted.markdownPath));
   assert.throws(() => fs.openSync(emitted.jsonPath, "wx"), (error) => error.code === "EEXIST");
 });
 
 test("event corruption is detected instead of silently replayed", () => {
   const f = fixture(); const opened = open(f);
-  const store = new FileChangeRecordStore({ root: f.stateRoot });
+  const store = new FileReviewMapStore({ root: f.stateRoot });
   const repositoryKey = repositoryIdentity(f.workspace).repositoryKey;
-  const event = path.join(store.recordDir(repositoryKey, opened.recordId), "events", "000000000001.json");
+  const event = path.join(store.mapDir(repositoryKey, opened.mapId), "events", "000000000001.json");
   const body = JSON.parse(fs.readFileSync(event, "utf8")); body.payload.title = "tampered"; fs.writeFileSync(event, JSON.stringify(body));
-  assert.throws(() => store.load(repositoryKey, opened.recordId), (error) => error.code === "event_hash_invalid");
+  assert.throws(() => store.load(repositoryKey, opened.mapId), (error) => error.code === "event_hash_invalid");
 });
 
 test("staged-only identity ignores out-of-scope unstaged bytes", () => {
@@ -134,19 +134,19 @@ test("staged-only identity ignores out-of-scope unstaged bytes", () => {
 
 test("raw evidence is stored by digest and omitted from event JSON", () => {
   const f = fixture(); const opened = open(f);
-  const result = f.service.apply({ workspace: f.workspace, recordId: opened.recordId, expectedRevision: 1, actor, commands: [{ type: "AddEvidence", evidence: { observation: "A bounded test output.", rawOutput: "PASS secret-free output", provenance } }] });
+  const result = f.service.apply({ workspace: f.workspace, mapId: opened.mapId, expectedRevision: 1, actor, commands: [{ type: "AddEvidence", evidence: { observation: "A bounded test output.", rawOutput: "PASS secret-free output", provenance } }] });
   assert.match(result.warnings.join(" "), /evidence blob/);
-  const evidence = f.service.get({ workspace: f.workspace, recordId: opened.recordId, selector: { kind: "entities", type: "evidence" } }).entities[0];
+  const evidence = f.service.get({ workspace: f.workspace, mapId: opened.mapId, selector: { kind: "entities", type: "evidence" } }).entities[0];
   assert.match(evidence.blobRef.digest, /^sha256:/); assert.strictEqual(evidence.rawOutput, undefined);
   const repositoryKey = repositoryIdentity(f.workspace).repositoryKey;
-  const eventPath = path.join(new FileChangeRecordStore({ root: f.stateRoot }).recordDir(repositoryKey, opened.recordId), "events", "000000000002.json");
+  const eventPath = path.join(new FileReviewMapStore({ root: f.stateRoot }).mapDir(repositoryKey, opened.mapId), "events", "000000000002.json");
   assert.doesNotMatch(fs.readFileSync(eventPath, "utf8"), /PASS secret-free output/);
 });
 
 test("code references are resolved to exact revisions and content digests", () => {
   const f = fixture(); const opened = open(f);
-  f.service.apply({ workspace: f.workspace, recordId: opened.recordId, expectedRevision: 1, actor, commands: [{ type: "AddCodeReference", codeReference: { path: "feature.txt", side: "head", startLine: 1, endLine: 1, provenance } }] });
-  const reference = f.service.get({ workspace: f.workspace, recordId: opened.recordId, selector: { kind: "entities", type: "codeReferences" } }).entities[0];
+  f.service.apply({ workspace: f.workspace, mapId: opened.mapId, expectedRevision: 1, actor, commands: [{ type: "AddCodeReference", codeReference: { path: "feature.txt", side: "head", startLine: 1, endLine: 1, provenance } }] });
+  const reference = f.service.get({ workspace: f.workspace, mapId: opened.mapId, selector: { kind: "entities", type: "codeReferences" } }).entities[0];
   assert.strictEqual(reference.revision, f.head);
   assert.match(reference.contentDigest, /^sha256:[0-9a-f]{64}$/);
   assert.strictEqual(reference.changeRevisionId, opened.changeRevision.id);
@@ -154,8 +154,8 @@ test("code references are resolved to exact revisions and content digests", () =
 
 test("material review questions use the RecordQuestion command vocabulary", () => {
   const f = fixture(); const opened = open(f); const prepared = prepare(f, opened);
-  f.service.apply({ workspace: f.workspace, recordId: opened.recordId, expectedRevision: prepared.result.aggregateRevision, actor, commands: [{ type: "RecordQuestion", question: { question: "Does this preserve compatibility?", relatedEntityIds: [prepared.claim.id], provenance: [{ kind: "reviewer-stated", source: { type: "review-session", id: prepared.session.id } }] } }] });
-  const openItems = f.service.get({ workspace: f.workspace, recordId: opened.recordId, selector: { kind: "open-items" } });
+  f.service.apply({ workspace: f.workspace, mapId: opened.mapId, expectedRevision: prepared.result.aggregateRevision, actor, commands: [{ type: "RecordQuestion", question: { question: "Does this preserve compatibility?", relatedEntityIds: [prepared.claim.id], provenance: [{ kind: "reviewer-stated", source: { type: "review-session", id: prepared.session.id } }] } }] });
+  const openItems = f.service.get({ workspace: f.workspace, mapId: opened.mapId, selector: { kind: "open-items" } });
   assert.strictEqual(openItems.questions[0].question, "Does this preserve compatibility?");
   assert.strictEqual(openItems.questions[0].disposition, "open");
 });
@@ -168,11 +168,11 @@ test("secret-shaped command content is redacted before persistence", () => {
   assert.doesNotMatch(JSON.stringify(result.value), /abc\.def|AKIA123/);
 });
 
-test("record deletion requires exact confirmation and is narrowly scoped", () => {
+test("review map deletion requires exact confirmation and is narrowly scoped", () => {
   const f = fixture(); const opened = open(f);
-  assert.throws(() => f.service.delete({ workspace: f.workspace, recordId: opened.recordId, confirmRecordId: "rec_00000000-0000-0000-0000-000000000000", actor }), (error) => error.code === "confirmation_required");
-  assert.deepStrictEqual(f.service.delete({ workspace: f.workspace, recordId: opened.recordId, confirmRecordId: opened.recordId, actor }), { deleted: true, recordId: opened.recordId, recoverable: false });
-  assert.throws(() => f.service.get({ workspace: f.workspace, recordId: opened.recordId, selector: { kind: "overview" } }), (error) => error.code === "record_not_found");
+  assert.throws(() => f.service.delete({ workspace: f.workspace, mapId: opened.mapId, confirmMapId: "map_00000000-0000-0000-0000-000000000000", actor }), (error) => error.code === "confirmation_required");
+  assert.deepStrictEqual(f.service.delete({ workspace: f.workspace, mapId: opened.mapId, confirmMapId: opened.mapId, actor }), { deleted: true, mapId: opened.mapId, recoverable: false });
+  assert.throws(() => f.service.get({ workspace: f.workspace, mapId: opened.mapId, selector: { kind: "overview" } }), (error) => error.code === "map_not_found");
 });
 
 test("forceNew separates distinct tasks that begin from the same working tree", () => {
@@ -180,7 +180,7 @@ test("forceNew separates distinct tasks that begin from the same working tree", 
   const selection = { kind: "working-tree" };
   const first = f.service.open({ workspace: f.workspace, selection, actor, title: "First task" });
   const reused = f.service.open({ workspace: f.workspace, selection, actor, title: "Second task" });
-  assert.strictEqual(reused.recordId, first.recordId);
+  assert.strictEqual(reused.mapId, first.mapId);
   const second = f.service.open({ workspace: f.workspace, selection, actor, title: "Second task", forceNew: true });
-  assert.notStrictEqual(second.recordId, first.recordId);
+  assert.notStrictEqual(second.mapId, first.mapId);
 });

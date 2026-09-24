@@ -9,4 +9,4 @@
   `kanko` namespace.
 - Authenticated local connection through `~/.kanko/tour` using bridge protocol 3.
 - Paired `kanko-build` and `kanko-tour` skills with `kanko_tour_*` and
-  `kanko_notes_*` agent tools.
+  `kanko_map_*` agent tools.

@@ -1,7 +1,7 @@
 "use strict";
 
 const { id } = require("./canonical.js");
-const { ChangeRecordError, invariant } = require("./errors.js");
+const { ReviewMapError, invariant } = require("./errors.js");
 
 const SCHEMA_VERSION = 2;
 const PRODUCER_VERSION = "0.1.0";
@@ -33,9 +33,9 @@ function validateProvenance(provenance, required = true) {
   }
 }
 
-function newAggregate({ recordId, title, repository, changeRevision, actor, occurredAt }) {
+function newAggregate({ mapId, title, repository, changeRevision, actor, occurredAt }) {
   return {
-    schemaVersion: SCHEMA_VERSION, producerVersion: PRODUCER_VERSION, id: recordId, title,
+    schemaVersion: SCHEMA_VERSION, producerVersion: PRODUCER_VERSION, id: mapId, title,
     createdAt: occurredAt, updatedAt: occurredAt, phase: "draft", aggregateRevision: 0,
     repository, changeRevisions: [changeRevision], currentChangeRevisionId: changeRevision.id,
     thesis: null,
@@ -106,7 +106,7 @@ function makeEntity(state, command, actor, occurredAt) {
 function eventForCommand(state, command, actor, occurredAt = now()) {
   invariant(command && typeof command.type === "string", "invalid_command", "every command requires a type");
   validateActor(actor);
-  if (state.phase === "archived" && command.type !== "EmitReceipt") throw new ChangeRecordError("record_archived", "the record is archived and read-only");
+  if (state.phase === "archived" && command.type !== "EmitReceipt") throw new ReviewMapError("map_archived", "the review map is archived and read-only");
 
   if (command.type === "SetThesis") {
     const thesis = command.thesis;
@@ -149,10 +149,10 @@ function eventForCommand(state, command, actor, occurredAt = now()) {
     invariant(state.thesis, "not_ready", "a thesis is required before preparation");
     invariant(Object.keys(state.entities.claims).length > 0, "not_ready", "at least one claim is required before preparation");
     invariant(state.currentTourPlanId, "not_ready", "a tour plan is required before preparation");
-    return { eventType: "ChangeRecordPrepared", payload: {} };
+    return { eventType: "ReviewMapPrepared", payload: {} };
   }
   if (command.type === "StartReviewSession") {
-    invariant(state.phase === "prepared", "not_prepared", "prepare the record before starting review");
+    invariant(state.phase === "prepared", "not_prepared", "prepare the review map before starting review");
     const sessionId = command.sessionId || id("ses");
     return { eventType: "ReviewSessionStarted", payload: { session: { id: sessionId, reviewer: clone(command.reviewer || actor), state: "in_progress", outcome: null, tourPlanId: state.currentTourPlanId, tourPlanVersion: state.tourPlans[state.currentTourPlanId].version, changeRevisionId: state.currentChangeRevisionId, currentStopId: null, startedAt: occurredAt, updatedAt: occurredAt } } };
   }
@@ -201,20 +201,20 @@ function eventForCommand(state, command, actor, occurredAt = now()) {
     invariant(!forbidden.some((key) => key in command.changes), "invalid_correction", "identity and audit fields cannot be corrected");
     return { eventType: "EntityCorrected", payload: { collection: found.collection, entityId: command.entityId, changes: clone(command.changes), provenance: clone(command.provenance) } };
   }
-  if (command.type === "ArchiveChangeRecord") return { eventType: "ChangeRecordArchived", payload: {} };
-  throw new ChangeRecordError("unknown_command", `unknown record command: ${command.type}`);
+  if (command.type === "ArchiveReviewMap") return { eventType: "ReviewMapArchived", payload: {} };
+  throw new ReviewMapError("unknown_command", `unknown review map command: ${command.type}`);
 }
 
 function applyEvent(state, event) {
-  if (event.eventType === "ChangeRecordCreated") state = newAggregate(event.payload);
+  if (event.eventType === "ReviewMapCreated") state = newAggregate(event.payload);
   else {
-    invariant(state, "corrupt_history", "event history does not begin with ChangeRecordCreated");
+    invariant(state, "corrupt_history", "event history does not begin with ReviewMapCreated");
     const p = event.payload;
     if (event.eventType === "ThesisSet") state.thesis = p.thesis;
     else if (/^(Requirement|Claim|Decision|Assumption|Invariant|Risk|Evidence|CodeReference|Question|Concern)(Added|Recorded)$/.test(event.eventType)) state.entities[p.collection][p.entity.id] = p.entity;
     else if (event.eventType === "RelationshipAdded") state.relationships[p.relationship.id] = p.relationship;
     else if (event.eventType === "TourPlanCreated") { state.tourPlans[p.plan.id] = p.plan; state.currentTourPlanId = p.plan.id; }
-    else if (event.eventType === "ChangeRecordPrepared") state.phase = "prepared";
+    else if (event.eventType === "ReviewMapPrepared") state.phase = "prepared";
     else if (event.eventType === "ReviewSessionStarted") state.reviewSessions[p.session.id] = p.session;
     else if (event.eventType === "StopStarted") { const s = state.reviewSessions[p.sessionId]; s.currentStopId = p.stopId; const stop = state.tourPlans[s.tourPlanId].stops.find((x) => x.id === p.stopId); if (stop.reviewState === "not-visited") stop.reviewState = "presented"; }
     else if (event.eventType === "ClaimDispositionChanged") state.entities.claims[p.entityId].disposition = p.disposition;
@@ -228,8 +228,8 @@ function applyEvent(state, event) {
     else if (event.eventType === "ChangeRevisionAdded") { state.changeRevisions.find((r) => r.id === state.currentChangeRevisionId).state = "superseded"; state.changeRevisions.push(p.changeRevision); state.currentChangeRevisionId = p.changeRevision.id; for (const evidence of Object.values(state.entities.evidence)) if (evidence.status === "active") evidence.freshness = "stale"; for (const plan of Object.values(state.tourPlans)) for (const stop of plan.stops) if (["presented", "reviewed", "reviewed-with-concern"].includes(stop.reviewState)) stop.reviewState = "invalidated"; }
     else if (event.eventType === "DriftDetected") state.changeRevisions.find((r) => r.id === state.currentChangeRevisionId).state = "stale";
     else if (event.eventType === "ReceiptEmitted") state.receipts.push(p.receiptRef);
-    else if (event.eventType === "ChangeRecordArchived") { state.phase = "archived"; state.archivedAt = event.occurredAt; }
-    else throw new ChangeRecordError("unknown_event", `unknown event type: ${event.eventType}`);
+    else if (event.eventType === "ReviewMapArchived") { state.phase = "archived"; state.archivedAt = event.occurredAt; }
+    else throw new ReviewMapError("unknown_event", `unknown event type: ${event.eventType}`);
   }
   state.aggregateRevision = event.sequence;
   state.updatedAt = event.occurredAt;
@@ -244,7 +244,7 @@ function projectionOverview(state) {
   const values = (name) => Object.values(state.entities[name]).filter((item) => item.status !== "redacted");
   const stops = state.currentTourPlanId ? state.tourPlans[state.currentTourPlanId].stops : [];
   return {
-    recordId: state.id, title: state.title, phase: state.phase, aggregateRevision: state.aggregateRevision,
+    mapId: state.id, title: state.title, phase: state.phase, aggregateRevision: state.aggregateRevision,
     changeRevision: state.changeRevisions.find((item) => item.id === state.currentChangeRevisionId), thesis: state.thesis,
     counts: {
       requirements: values("requirements").length, claims: values("claims").length, decisions: values("decisions").length,

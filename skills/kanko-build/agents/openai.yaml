@@ -1,4 +1,4 @@
 interface:
   display_name: "Kankō Build"
-  short_description: "Build changes with a durable decision record"
-  default_prompt: "Use $kanko-build to implement this change while preserving requirements, decisions, risks, and evidence."
+  short_description: "Build changes and prepare their review maps"
+  default_prompt: "Use $kanko-build to implement this change and prepare its review map."

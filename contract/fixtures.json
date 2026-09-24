@@ -53,7 +53,7 @@
         "body": {
           "protocolVersion": 3,
           "workspace": "/repo",
-          "tourId": "record",
+          "tourId": "map",
           "plan": {
             "presentationVersion": 2,
             "stops": []

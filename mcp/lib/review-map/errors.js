@@ -1,16 +1,16 @@
 "use strict";
 
-class ChangeRecordError extends Error {
+class ReviewMapError extends Error {
   constructor(code, message, details) {
     super(message);
-    this.name = "ChangeRecordError";
+    this.name = "ReviewMapError";
     this.code = code;
     if (details !== undefined) this.details = details;
   }
 }
 
 function invariant(condition, code, message, details) {
-  if (!condition) throw new ChangeRecordError(code, message, details);
+  if (!condition) throw new ReviewMapError(code, message, details);
 }
 
-module.exports = { ChangeRecordError, invariant };
+module.exports = { ReviewMapError, invariant };

@@ -109,7 +109,7 @@ durable authoring context it is reverse-engineering another agent's work and
 can produce a plausible, false explanation.
 
 The four-way labeling — stated / recorded / repository-derived / reconstructed
-— ships in v1. What does not is *capturing* the recorded category: a small
+— ships in v1. What does not is *capturing* the review maped category: a small
 artifact written during the coding session carrying the original request,
 acceptance criteria, constraints and non-goals, design decisions, rejected
 alternatives and why, assumptions, checks performed, and known gaps.
