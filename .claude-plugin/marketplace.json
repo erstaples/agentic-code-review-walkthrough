@@ -6,14 +6,14 @@
   },
   "metadata": {
     "description": "Persistent, evidence-backed, editor-driven walkthroughs of a code diff",
-    "version": "0.3.0"
+    "version": "0.1.0"
   },
   "plugins": [
     {
       "name": "kanko",
       "source": "./",
       "description": "Walks through a diff with editor navigation and persistent change notes backed by evidence.",
-      "version": "0.3.0",
+      "version": "0.1.0",
       "author": {
         "name": "Kankō",
         "url": "https://github.com/getkanko"

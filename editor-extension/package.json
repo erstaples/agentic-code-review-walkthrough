@@ -2,7 +2,7 @@
   "name": "kanko",
   "displayName": "Kankō",
   "description": "Let your coding agent guide you through code changes with focused highlights, native diffs, and editor citations.",
-  "version": "0.2.0",
+  "version": "0.1.0",
   "publisher": "getkankodev",
   "license": "MIT",
   "repository": {

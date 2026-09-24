@@ -13,7 +13,7 @@ const { PROTOCOL_VERSION } = require("./lib/bridge.js");
 const LOCK_DIR = path.join(os.homedir(), ".kanko", "tour");
 
 const dispatcher = createDispatcher({
-  serverInfo: { name: "kanko", version: "0.3.0" },
+  serverInfo: { name: "kanko", version: "0.1.0" },
   tools: TOOLS,
   callTool: createCallTool({
     resolveLock: (workspace) => resolveLock({

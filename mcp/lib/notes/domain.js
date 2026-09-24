@@ -4,7 +4,7 @@ const { id } = require("./canonical.js");
 const { ChangeRecordError, invariant } = require("./errors.js");
 
 const SCHEMA_VERSION = 2;
-const PRODUCER_VERSION = "0.3.0";
+const PRODUCER_VERSION = "0.1.0";
 const PROVENANCE_KINDS = new Set(["user-stated", "source-document", "session-recorded", "repository-observed", "execution-observed", "reviewer-stated", "model-inferred"]);
 const ENTITY_COLLECTIONS = {
   requirement: "requirements", claim: "claims", decision: "decisions", assumption: "assumptions",

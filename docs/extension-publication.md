@@ -72,11 +72,11 @@ entry in a PR:
 ```sh
 cd editor-extension
 npm version patch --no-git-tag-version
-# Edit CHANGELOG.md: add a heading such as "## 0.2.0" and release notes.
+# Edit CHANGELOG.md: add a heading such as "## 0.1.1" and release notes.
 npm run check:release
 ```
 
-The current Kankō extension version is `0.2.0`. Before tagging any release, confirm
+The current Kankō extension version is `0.1.0`. Before tagging any release, confirm
 that its version has not already been published through the Marketplace UI.
 If it has, bump the version and add release notes before tagging.
 
