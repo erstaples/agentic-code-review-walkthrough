@@ -43,7 +43,7 @@ function describe(editor) {
   if (uri.scheme === "file") {
     return { path: path.relative(workspaceRoot(), uri.fsPath), side: "working", ref: null };
   }
-  if (uri.scheme === "git" || uri.scheme === "relay-rev") {
+  if (uri.scheme === "git" || uri.scheme === "kanko-rev") {
     try {
       const q = JSON.parse(uri.query);
       // A rename's base side is read from its old on-disk path (canonicalPath
@@ -105,12 +105,12 @@ function decorate(editor, store, sideResolver) {
   const { stop, focus } = store.rangesFor({ path: d.path, side });
 
   const p = store.paintFor ? store.paintFor(d.path, side) : {};
-  presenter.configure(vscode.workspace.getConfiguration("relay.presentation").get("dimOpacity", 0.45));
-  const companion = editor.document.uri.scheme === "relay-rev" && JSON.parse(editor.document.uri.query).relay === "companion";
+  presenter.configure(vscode.workspace.getConfiguration("kanko.presentation").get("dimOpacity", 0.45));
+  const companion = editor.document.uri.scheme === "kanko-rev" && JSON.parse(editor.document.uri.query).kanko === "companion";
   presenter.paint(editor, {
     context: stop.length ? stop : focus ? [focus] : [], focus: focus ? [focus] : [],
     state: store.state ? store.state() : "following", label: focus?.note,
-    showLabels: vscode.workspace.getConfiguration("relay.presentation").get("showLabels", true),
+    showLabels: vscode.workspace.getConfiguration("kanko.presentation").get("showLabels", true),
     ...p, removedLines: companion ? p.removedLines : [],
   });
 
@@ -133,8 +133,8 @@ async function reveal(relPath, side, startLine, endLine, sideResolver) {
   });
   // Prefer the real companion over the hidden original TextEditor that VS
   // Code can still report for an inline diff.
-  const target = candidates.find((e) => e.document.uri.scheme === "relay-rev" && JSON.parse(e.document.uri.query).relay === "companion") || candidates.find((e) => {
-    if (side !== "base" || e.document.uri.scheme !== "relay-rev") return true;
+  const target = candidates.find((e) => e.document.uri.scheme === "kanko-rev" && JSON.parse(e.document.uri.query).kanko === "companion") || candidates.find((e) => {
+    if (side !== "base" || e.document.uri.scheme !== "kanko-rev") return true;
     const config = vscode.workspace.getConfiguration("diffEditor");
     return config.get("renderSideBySide", true) && !config.get("useInlineViewWhenSpaceIsLimited", true);
   });

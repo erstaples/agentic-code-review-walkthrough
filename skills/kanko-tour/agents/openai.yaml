@@ -1,0 +1,4 @@
+interface:
+  display_name: "Kankō Tour"
+  short_description: "Walk through code changes one logical step at a time"
+  default_prompt: "Use $kanko-tour to walk me through the changes in this branch."

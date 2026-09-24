@@ -5,8 +5,8 @@ const path = require("node:path");
 const contract = require("../contract/protocol.js");
 const fixtures = require("../contract/fixtures.json");
 
-test("the protocol version is 2", () => {
-  assert.strictEqual(contract.PROTOCOL_VERSION, 2);
+test("the protocol version is 3", () => {
+  assert.strictEqual(contract.PROTOCOL_VERSION, 3);
 });
 
 test("every documented error code is declared exactly once", () => {
@@ -26,7 +26,7 @@ test("sides, modes, and stop types are closed sets", () => {
 
 test("every route maps a tool name to a method and path", () => {
   for (const [tool, route] of Object.entries(contract.ROUTES)) {
-    assert.match(tool, /^(tour|relay)_[a-z_]+$/);
+    assert.match(tool, /^kanko_[a-z_]+$/);
     assert.ok(["GET", "POST"].includes(route.method), `${tool} has a bad method`);
     assert.match(route.path, /^\/[a-z/]+$/);
   }

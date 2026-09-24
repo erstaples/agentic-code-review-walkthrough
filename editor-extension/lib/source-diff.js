@@ -9,7 +9,7 @@ const { parseHunks } = require("./hunks.js");
 // Reading the current Git index here could misplace a removal seam after drift.
 function sourceHunks({ base, head }) {
   if (base === head) return [];
-  const root = fs.mkdtempSync(path.join(os.tmpdir(), "relay-diff-"));
+  const root = fs.mkdtempSync(path.join(os.tmpdir(), "kanko-diff-"));
   try {
     const left = path.join(root, "base"), right = path.join(root, "head");
     fs.writeFileSync(left, base ?? ""); fs.writeFileSync(right, head ?? "");

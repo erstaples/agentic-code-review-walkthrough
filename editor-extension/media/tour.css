@@ -19,7 +19,7 @@ code { color: var(--vscode-textPreformat-foreground); background: var(--vscode-t
 .chip { border-radius: 50%; padding: 0; width: 25px; height: 25px; margin: 0 3px; font: 600 11px var(--vscode-font-family); color: var(--vscode-editor-background); background: var(--chip-color); vertical-align: baseline; }
 .chip:hover { background: var(--chip-color); outline: 2px solid var(--chip-color); outline-offset: 2px; }
 .chip.active { box-shadow: 0 0 0 2px var(--vscode-sideBar-background), 0 0 0 3px var(--chip-color); }
-.color-1 { --chip-color: var(--vscode-relay-anchor1); }.color-2 { --chip-color: var(--vscode-relay-anchor2); }.color-3 { --chip-color: var(--vscode-relay-anchor3); }.color-4 { --chip-color: var(--vscode-relay-anchor4); }.color-5 { --chip-color: var(--vscode-relay-anchor5); }.color-6 { --chip-color: var(--vscode-relay-anchor6); }
+.color-1 { --chip-color: var(--vscode-kanko-anchor1); }.color-2 { --chip-color: var(--vscode-kanko-anchor2); }.color-3 { --chip-color: var(--vscode-kanko-anchor3); }.color-4 { --chip-color: var(--vscode-kanko-anchor4); }.color-5 { --chip-color: var(--vscode-kanko-anchor5); }.color-6 { --chip-color: var(--vscode-kanko-anchor6); }
 .navigation { display: flex; justify-content: space-between; gap: 8px; margin: 10px 0; }.navigation button { flex: 1; font-size: 11px; }
 .stops button, .end { background: transparent; color: var(--vscode-descriptionForeground); }.end { margin-top: 17px; font-size: 11px; }
 #error { color: var(--vscode-errorForeground); font-size: 12px; }

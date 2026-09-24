@@ -1,13 +1,13 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://getkanko.dev/kanko/schemas/event.schema.json",
-  "title": "Living change dossier event",
+  "title": "Living change record event",
   "type": "object",
   "additionalProperties": false,
-  "required": ["schemaVersion", "dossierId", "sequence", "eventId", "eventType", "occurredAt", "actor", "changeRevisionId", "expectedAggregateRevision", "payload", "previousEventHash", "eventHash"],
+  "required": ["schemaVersion", "recordId", "sequence", "eventId", "eventType", "occurredAt", "actor", "changeRevisionId", "expectedAggregateRevision", "payload", "previousEventHash", "eventHash"],
   "properties": {
-    "schemaVersion": { "const": 1 },
-    "dossierId": { "type": "string", "pattern": "^dos_[0-9a-f-]+$" },
+    "schemaVersion": { "const": 2 },
+    "recordId": { "type": "string", "pattern": "^rec_[0-9a-f-]+$" },
     "sequence": { "type": "integer", "minimum": 1 },
     "eventId": { "type": "string", "pattern": "^evt_[0-9a-f-]+$" },
     "eventType": { "type": "string", "minLength": 1 },

@@ -1,9 +1,9 @@
 {
   "name": "kanko",
-  "displayName": "Kanko",
+  "displayName": "Kankō",
   "description": "Let your coding agent guide you through code changes with focused highlights, native diffs, and editor citations.",
-  "version": "0.1.1",
-  "publisher": "getkanko",
+  "version": "0.2.0",
+  "publisher": "getkankodev",
   "license": "MIT",
   "repository": {
     "type": "git",
@@ -23,7 +23,7 @@
   "contributes": {
     "colors": [
       {
-        "id": "relay.presenterRail",
+        "id": "kanko.presenterRail",
         "description": "Tour presenter rail and overview ruler",
         "defaults": {
           "dark": "#A99BF5",
@@ -33,7 +33,7 @@
         }
       },
       {
-        "id": "relay.presenterFocus",
+        "id": "kanko.presenterFocus",
         "description": "Tour focus outline",
         "defaults": {
           "dark": "#A99BF5",
@@ -43,7 +43,7 @@
         }
       },
       {
-        "id": "relay.presenterLabelBackground",
+        "id": "kanko.presenterLabelBackground",
         "description": "Beat label background",
         "defaults": {
           "dark": "#3C3489",
@@ -53,7 +53,7 @@
         }
       },
       {
-        "id": "relay.presenterLabelForeground",
+        "id": "kanko.presenterLabelForeground",
         "description": "Beat label text",
         "defaults": {
           "dark": "#EEEDFE",
@@ -63,7 +63,7 @@
         }
       },
       {
-        "id": "relay.presenterSeam",
+        "id": "kanko.presenterSeam",
         "description": "Marker where removed lines were",
         "defaults": {
           "dark": "#A99BF5",
@@ -73,7 +73,7 @@
         }
       },
       {
-        "id": "relay.anchor1",
+        "id": "kanko.anchor1",
         "description": "Tour anchor 1 identity color",
         "defaults": {
           "dark": "#A99BF5",
@@ -83,7 +83,7 @@
         }
       },
       {
-        "id": "relay.anchor2",
+        "id": "kanko.anchor2",
         "description": "Tour anchor 2 identity color",
         "defaults": {
           "dark": "#68CCBC",
@@ -93,7 +93,7 @@
         }
       },
       {
-        "id": "relay.anchor3",
+        "id": "kanko.anchor3",
         "description": "Tour anchor 3 identity color",
         "defaults": {
           "dark": "#EBC26B",
@@ -103,7 +103,7 @@
         }
       },
       {
-        "id": "relay.anchor4",
+        "id": "kanko.anchor4",
         "description": "Tour anchor 4 identity color",
         "defaults": {
           "dark": "#F19382",
@@ -113,7 +113,7 @@
         }
       },
       {
-        "id": "relay.anchor5",
+        "id": "kanko.anchor5",
         "description": "Tour anchor 5 identity color",
         "defaults": {
           "dark": "#84B8F5",
@@ -123,7 +123,7 @@
         }
       },
       {
-        "id": "relay.anchor6",
+        "id": "kanko.anchor6",
         "description": "Tour anchor 6 identity color",
         "defaults": {
           "dark": "#E6A1CF",
@@ -133,7 +133,7 @@
         }
       },
       {
-        "id": "relay.anchor1.labelBackground",
+        "id": "kanko.anchor1.labelBackground",
         "description": "Tour anchor 1 inline label background",
         "defaults": {
           "dark": "#A99BF5",
@@ -143,7 +143,7 @@
         }
       },
       {
-        "id": "relay.anchor1.labelForeground",
+        "id": "kanko.anchor1.labelForeground",
         "description": "Tour anchor 1 inline label foreground",
         "defaults": {
           "dark": "#181818",
@@ -153,7 +153,7 @@
         }
       },
       {
-        "id": "relay.anchor2.labelBackground",
+        "id": "kanko.anchor2.labelBackground",
         "description": "Tour anchor 2 inline label background",
         "defaults": {
           "dark": "#68CCBC",
@@ -163,7 +163,7 @@
         }
       },
       {
-        "id": "relay.anchor2.labelForeground",
+        "id": "kanko.anchor2.labelForeground",
         "description": "Tour anchor 2 inline label foreground",
         "defaults": {
           "dark": "#181818",
@@ -173,7 +173,7 @@
         }
       },
       {
-        "id": "relay.anchor3.labelBackground",
+        "id": "kanko.anchor3.labelBackground",
         "description": "Tour anchor 3 inline label background",
         "defaults": {
           "dark": "#EBC26B",
@@ -183,7 +183,7 @@
         }
       },
       {
-        "id": "relay.anchor3.labelForeground",
+        "id": "kanko.anchor3.labelForeground",
         "description": "Tour anchor 3 inline label foreground",
         "defaults": {
           "dark": "#181818",
@@ -193,7 +193,7 @@
         }
       },
       {
-        "id": "relay.anchor4.labelBackground",
+        "id": "kanko.anchor4.labelBackground",
         "description": "Tour anchor 4 inline label background",
         "defaults": {
           "dark": "#F19382",
@@ -203,7 +203,7 @@
         }
       },
       {
-        "id": "relay.anchor4.labelForeground",
+        "id": "kanko.anchor4.labelForeground",
         "description": "Tour anchor 4 inline label foreground",
         "defaults": {
           "dark": "#181818",
@@ -213,7 +213,7 @@
         }
       },
       {
-        "id": "relay.anchor5.labelBackground",
+        "id": "kanko.anchor5.labelBackground",
         "description": "Tour anchor 5 inline label background",
         "defaults": {
           "dark": "#84B8F5",
@@ -223,7 +223,7 @@
         }
       },
       {
-        "id": "relay.anchor5.labelForeground",
+        "id": "kanko.anchor5.labelForeground",
         "description": "Tour anchor 5 inline label foreground",
         "defaults": {
           "dark": "#181818",
@@ -233,7 +233,7 @@
         }
       },
       {
-        "id": "relay.anchor6.labelBackground",
+        "id": "kanko.anchor6.labelBackground",
         "description": "Tour anchor 6 inline label background",
         "defaults": {
           "dark": "#E6A1CF",
@@ -243,7 +243,7 @@
         }
       },
       {
-        "id": "relay.anchor6.labelForeground",
+        "id": "kanko.anchor6.labelForeground",
         "description": "Tour anchor 6 inline label foreground",
         "defaults": {
           "dark": "#181818",
@@ -254,28 +254,28 @@
       }
     ],
     "configuration": {
-      "title": "kanko Presentation",
+      "title": "Kankō Presentation",
       "properties": {
-        "relay.presentation.dimOpacity": {
+        "kanko.presentation.dimOpacity": {
           "type": "number",
           "minimum": 0.2,
           "maximum": 1,
           "default": 0.45,
           "description": "Context text opacity while following; 1 disables dimming."
         },
-        "relay.presentation.showLabels": {
+        "kanko.presentation.showLabels": {
           "type": "boolean",
           "default": true,
           "description": "Show inline beat labels."
         },
-        "relay.tour.anchorLimit": {
+        "kanko.tour.anchorLimit": {
           "type": "integer",
           "default": 24,
           "minimum": 1,
           "maximum": 99,
           "description": "Maximum anchors allowed per tour stop."
         },
-        "relay.presentation.removedCode": {
+        "kanko.presentation.removedCode": {
           "type": "string",
           "enum": [
             "companion",
@@ -288,32 +288,32 @@
     },
     "commands": [
       {
-        "command": "tourChanges.copyCitation",
-        "title": "kanko: Copy Citation"
+        "command": "kanko.copyCitation",
+        "title": "Kankō: Copy Citation"
       }
     ],
     "menus": {
       "editor/context": [
         {
-          "command": "tourChanges.copyCitation",
-          "when": "editorHasSelection && (resourceScheme == file || resourceScheme == relay-rev)",
-          "group": "tourChanges"
+          "command": "kanko.copyCitation",
+          "when": "editorHasSelection && (resourceScheme == file || resourceScheme == kanko-rev)",
+          "group": "kanko"
         }
       ]
     },
     "viewsContainers": {
       "secondarySidebar": [
         {
-          "id": "relay",
-          "title": "kanko",
+          "id": "kanko",
+          "title": "Kankō",
           "icon": "assets/kanko-sidebar.svg"
         }
       ]
     },
     "views": {
-      "relay": [
+      "kanko": [
         {
-          "id": "relay.tour",
+          "id": "kanko.tour",
           "name": "Tour",
           "type": "webview"
         }

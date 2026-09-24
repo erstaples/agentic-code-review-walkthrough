@@ -1,9 +1,9 @@
 # Publishing the VS Code extension
 
-The extension identity is `kanko.kanko`. Its version comes from
+The extension identity is `getkankodev.kanko`. Its version comes from
 `editor-extension/package.json`; the agent plugin has its own version lifecycle.
 The Marketplace package name is `kanko` and the display name is
-`kanko`. The supplied kanko logo assets are used for branding.
+**Kankō**. The supplied Kankō logo assets are used for branding.
 
 ## Branding assets
 
@@ -40,7 +40,7 @@ Actions are pinned to commits and Dependabot proposes updates weekly.
 ## One-time Marketplace setup
 
 1. In [Marketplace publisher management](https://marketplace.visualstudio.com/manage/publishers/),
-   confirm that you control the `kanko` publisher. This is the registered
+   confirm that you control the `getkankodev` publisher. This is the registered
    publisher ID, and the extension package name is `kanko`.
 2. Create an Azure DevOps Personal Access Token using the Microsoft account
    that controls the publisher. Select **All accessible organizations** and
@@ -72,11 +72,11 @@ entry in a PR:
 ```sh
 cd editor-extension
 npm version patch --no-git-tag-version
-# Edit CHANGELOG.md: add a heading such as "## 0.1.1" and release notes.
+# Edit CHANGELOG.md: add a heading such as "## 0.2.0" and release notes.
 npm run check:release
 ```
 
-The kanko asset update is version `0.1.1`. Before tagging any release, confirm
+The current Kankō extension version is `0.2.0`. Before tagging any release, confirm
 that its version has not already been published through the Marketplace UI.
 If it has, bump the version and add release notes before tagging.
 
@@ -139,6 +139,6 @@ Run host tests with
 cover stable VS Code on Linux in CI; they do not certify every supported VS Code
 version or platform.
 
-On macOS, if dossier tests report `workspace_mismatch` under `/var/folders`,
-use `TMPDIR=/private/tmp` for the unit-test command. The existing dossier tests
+On macOS, if change record tests report `workspace_mismatch` under `/var/folders`,
+use `TMPDIR=/private/tmp` for the unit-test command. The existing change record tests
 compare Git's canonical repository path with the temporary directory path.

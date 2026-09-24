@@ -1,14 +1,21 @@
 {
   "$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
   "name": "kanko",
-  "version": "0.2.0",
-  "description": "Walks through a diff with editor navigation and a persistent, evidence-backed living change dossier.",
+  "version": "0.3.0",
+  "description": "Walks through a diff with editor navigation and persistent change notes backed by evidence.",
   "author": {
-    "name": "getkanko",
+    "name": "Kankō",
     "url": "https://github.com/getkanko"
   },
   "homepage": "https://github.com/getkanko/kanko",
   "repository": "https://github.com/getkanko/kanko",
   "license": "MIT",
-  "keywords": ["code-review", "walkthrough", "diff", "tour", "vscode", "handoff"]
+  "keywords": [
+    "code-review",
+    "walkthrough",
+    "diff",
+    "tour",
+    "vscode",
+    "handoff"
+  ]
 }

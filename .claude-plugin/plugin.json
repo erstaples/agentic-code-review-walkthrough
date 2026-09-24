@@ -1,10 +1,20 @@
 {
   "name": "kanko",
-  "description": "Walks through a diff with editor navigation and a persistent, evidence-backed living change dossier.",
-  "version": "0.2.0",
-  "author": { "name": "getkanko", "url": "https://github.com/getkanko" },
+  "description": "Walks through a diff with editor navigation and persistent change notes backed by evidence.",
+  "version": "0.3.0",
+  "author": {
+    "name": "Kankō",
+    "url": "https://github.com/getkanko"
+  },
   "homepage": "https://github.com/getkanko/kanko",
   "repository": "https://github.com/getkanko/kanko",
   "license": "MIT",
-  "keywords": ["code-review", "walkthrough", "diff", "vscode", "tour", "dossier"]
+  "keywords": [
+    "code-review",
+    "walkthrough",
+    "diff",
+    "vscode",
+    "tour",
+    "change-notes"
+  ]
 }

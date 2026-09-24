@@ -7,13 +7,13 @@ const path = require("node:path");
 const { createDispatcher, parseLines } = require("./lib/rpc.js");
 const { resolveLock } = require("./lib/discovery.js");
 const { TOOLS, createCallTool } = require("./lib/tools.js");
-const { DossierService } = require("./lib/dossier/service.js");
+const { ChangeRecordService } = require("./lib/notes/service.js");
 const { PROTOCOL_VERSION } = require("./lib/bridge.js");
 
-const LOCK_DIR = path.join(os.homedir(), ".claude", "tour");
+const LOCK_DIR = path.join(os.homedir(), ".kanko", "tour");
 
 const dispatcher = createDispatcher({
-  serverInfo: { name: "tour-bridge", version: "0.2.0" },
+  serverInfo: { name: "kanko", version: "0.3.0" },
   tools: TOOLS,
   callTool: createCallTool({
     resolveLock: (workspace) => resolveLock({
@@ -21,7 +21,7 @@ const dispatcher = createDispatcher({
       cwd: workspace || process.cwd(),
       protocolVersion: PROTOCOL_VERSION,
     }),
-    dossierService: new DossierService({ tourAnchorLimit: process.env.RELAY_TOUR_ANCHOR_LIMIT === undefined ? undefined : Number(process.env.RELAY_TOUR_ANCHOR_LIMIT) }),
+    recordService: new ChangeRecordService({ tourAnchorLimit: process.env.KANKO_TOUR_ANCHOR_LIMIT === undefined ? undefined : Number(process.env.KANKO_TOUR_ANCHOR_LIMIT) }),
   }),
 });
 

@@ -1,9 +1,9 @@
 {
   "name": "kanko",
-  "version": "0.2.0+codex.20260922230718",
-  "description": "Walks through a diff with editor navigation and a persistent, evidence-backed living change dossier.",
+  "version": "0.3.0",
+  "description": "Walks through a diff with editor navigation and persistent change notes backed by evidence.",
   "author": {
-    "name": "getkanko",
+    "name": "Kankō",
     "url": "https://github.com/getkanko"
   },
   "homepage": "https://github.com/getkanko/kanko",
@@ -15,14 +15,14 @@
     "diff",
     "vscode",
     "tour",
-    "dossier"
+    "change-notes"
   ],
   "skills": "./skills/",
   "interface": {
-    "displayName": "Kanko",
+    "displayName": "Kankō",
     "shortDescription": "Persistent, evidence-backed code walkthroughs",
-    "longDescription": "Guides a reviewer through a diff while preserving claims, evidence, risks, questions, coverage, and review receipts in a local living change dossier.",
-    "developerName": "getkanko.dev",
+    "longDescription": "Guides a reviewer through a diff while preserving claims, evidence, risks, questions, coverage, and review receipts in local change notes.",
+    "developerName": "Kankō",
     "category": "Productivity",
     "capabilities": [
       "Read",
@@ -32,7 +32,7 @@
     "websiteURL": "https://github.com/getkanko/kanko",
     "defaultPrompt": [
       "Walk me through the changes in this branch.",
-      "Implement this specification with a living change dossier."
+      "Implement this specification with change notes."
     ]
   }
 }

@@ -1,6 +1,6 @@
 "use strict";
 
-const PROTOCOL_VERSION = 2;
+const PROTOCOL_VERSION = 3;
 
 const ERROR_CODES = [
   "unauthorized",
@@ -23,11 +23,11 @@ const MODES = ["diff", "file"];
 const STOP_TYPES = ["context", "implementation", "risk", "evidence", "limitation"];
 
 const ROUTES = {
-  tour_status: { method: "GET", path: "/status" },
-  relay_load_tour: { method: "POST", path: "/tour/load" },
-  relay_navigate: { method: "POST", path: "/tour/navigate" },
-  relay_set_state: { method: "POST", path: "/tour/state" },
-  tour_clear: { method: "POST", path: "/clear" },
+  kanko_tour_status: { method: "GET", path: "/status" },
+  kanko_tour_load: { method: "POST", path: "/tour/load" },
+  kanko_tour_navigate: { method: "POST", path: "/tour/navigate" },
+  kanko_tour_set_state: { method: "POST", path: "/tour/state" },
+  kanko_tour_clear: { method: "POST", path: "/clear" },
 };
 
 module.exports = { PROTOCOL_VERSION, ERROR_CODES, SIDES, MODES, STOP_TYPES, ROUTES };

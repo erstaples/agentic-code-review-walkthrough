@@ -1,13 +1,13 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://getkanko.dev/kanko/schemas/receipt.schema.json",
-  "title": "Living change dossier review receipt",
+  "title": "Living change record review receipt",
   "type": "object",
-  "required": ["schemaVersion", "producerVersion", "id", "dossierId", "reviewSessionId", "changeRevisionId", "changeIdentity", "aggregateRevision", "eventHash", "createdAt", "outcome", "claims", "risks", "evidence", "stops", "questions", "digest"],
+  "required": ["schemaVersion", "producerVersion", "id", "recordId", "reviewSessionId", "changeRevisionId", "changeIdentity", "aggregateRevision", "eventHash", "createdAt", "outcome", "claims", "risks", "evidence", "stops", "questions", "digest"],
   "properties": {
-    "schemaVersion": { "const": 1 },
+    "schemaVersion": { "const": 2 },
     "id": { "type": "string", "pattern": "^rcp_[0-9a-f-]+$" },
-    "dossierId": { "type": "string", "pattern": "^dos_[0-9a-f-]+$" },
+    "recordId": { "type": "string", "pattern": "^rec_[0-9a-f-]+$" },
     "reviewSessionId": { "type": "string", "pattern": "^ses_[0-9a-f-]+$" },
     "changeRevisionId": { "type": "string", "pattern": "^rev_[0-9a-f-]+$" },
     "producerVersion": { "type": "string" },

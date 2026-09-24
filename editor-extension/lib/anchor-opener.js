@@ -19,7 +19,7 @@ function createAnchorOpener(vscode, changed = () => {}) {
   }
   function disposable(tab) { reconcile(); return owned.has(tab) && !owned.get(tab).detached; }
   const subscriptions = [
-    vscode.workspace.registerTextDocumentContentProvider("relay-rev", { provideTextDocumentContent(uri) {
+    vscode.workspace.registerTextDocumentContentProvider("kanko-rev", { provideTextDocumentContent(uri) {
       if (!documents.has(key(uri))) throw new Error("This tour source is unavailable. Reload the tour.");
       return documents.get(key(uri));
     } }),
@@ -27,7 +27,7 @@ function createAnchorOpener(vscode, changed = () => {}) {
     vscode.window.tabGroups.onDidChangeTabGroups(() => { reconcile(); changed(); }),
   ];
   function revisionUri(state, anchor, side) {
-    const uri = vscode.Uri.from({ scheme: "relay-rev", path: `/${anchor.path}`, query: JSON.stringify({ path: path.join(state.workspace, anchor.path), ref: anchor.rev[side], side, relay: "tour", identity: state.identity }) });
+    const uri = vscode.Uri.from({ scheme: "kanko-rev", path: `/${anchor.path}`, query: JSON.stringify({ path: path.join(state.workspace, anchor.path), ref: anchor.rev[side], side, kanko: "tour", identity: state.identity }) });
     documents.set(key(uri), state.texts.get(anchor.path)[side] ?? ""); return uri;
   }
   function matchesWorking(uri, expected) {

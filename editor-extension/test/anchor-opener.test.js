@@ -6,7 +6,7 @@ const { createAnchorOpener } = require("../lib/anchor-opener.js");
 const { sourceHunks } = require("../lib/source-diff.js");
 const { createDecorationRegistry } = require("../lib/decoration-registry.js");
 function fixture(t) {
-  const workspace = fs.realpathSync(fs.mkdtempSync(path.join(os.tmpdir(), "relay-opener-")));
+  const workspace = fs.realpathSync(fs.mkdtempSync(path.join(os.tmpdir(), "kanko-opener-")));
   t.after(() => fs.rmSync(workspace, { recursive: true, force: true }));
   fs.writeFileSync(path.join(workspace, "a.js"), "head\n");
   const uri = (scheme, value, query = "") => ({ scheme, path: value, fsPath: value, query, toString() { return `${scheme}:${value}?${query}`; } });
@@ -32,9 +32,9 @@ function fixture(t) {
 }
 test('real head files require matching disk and open buffer; symlinks and drift stay immutable', t => {
   const f=fixture(t); let r=f.opener.describe(f.state,f.anchor); assert.equal(r.head.scheme,'file');
-  f.textDocuments.push({uri:r.head,getText:()=> 'unsaved\n'}); assert.equal(f.opener.describe(f.state,f.anchor).head.scheme,'relay-rev');
-  f.textDocuments.length=0; fs.writeFileSync(path.join(f.workspace,'a.js'),'changed\n'); assert.equal(f.opener.describe(f.state,f.anchor).head.scheme,'relay-rev');
-  fs.renameSync(path.join(f.workspace,'a.js'),path.join(f.workspace,'target')); fs.symlinkSync('target',path.join(f.workspace,'a.js')); assert.equal(f.opener.describe(f.state,f.anchor).head.scheme,'relay-rev');
+  f.textDocuments.push({uri:r.head,getText:()=> 'unsaved\n'}); assert.equal(f.opener.describe(f.state,f.anchor).head.scheme,'kanko-rev');
+  f.textDocuments.length=0; fs.writeFileSync(path.join(f.workspace,'a.js'),'changed\n'); assert.equal(f.opener.describe(f.state,f.anchor).head.scheme,'kanko-rev');
+  fs.renameSync(path.join(f.workspace,'a.js'),path.join(f.workspace,'target')); fs.symlinkSync('target',path.join(f.workspace,'a.js')); assert.equal(f.opener.describe(f.state,f.anchor).head.scheme,'kanko-rev');
 });
 test('existing reviewer tabs are reused in their group and never adopted or closed', async t => {
   const f=fixture(t), r=f.opener.describe(f.state,f.anchor);
@@ -70,8 +70,8 @@ test('the registry reuses six palette sets, keeps distinct colors, and disposes 
   const created=[];
   const vscode={ThemeColor:class{constructor(id){this.id=id;}},OverviewRulerLane:{Left:1},window:{createTextEditorDecorationType(options){const t={options,dispose(){this.disposed=true;}};created.push(t);return t;}}};
   const registry=createDecorationRegistry(vscode), first=registry.forAnchor(1);
-  assert.equal(registry.forAnchor(7),first); assert.equal(first.types.rail.options.borderColor.id,'relay.anchor1');
-  assert.equal(registry.forAnchor(2).types.boxOne.options.borderColor.id,'relay.anchor2');
+  assert.equal(registry.forAnchor(7),first); assert.equal(first.types.rail.options.borderColor.id,'kanko.anchor1');
+  assert.equal(registry.forAnchor(2).types.boxOne.options.borderColor.id,'kanko.anchor2');
   for(let n=1;n<=99;n++) registry.forAnchor(n);
   assert.equal(created.length,Object.keys(first.types).length*6);
   registry.dispose(); assert.ok(created.every(t=>t.disposed));

@@ -27,7 +27,7 @@ function createIdentity() {
       }
       if (pinned.base.sha !== base.sha || pinned.head.sha !== head.sha) {
         throw Object.assign(
-          new Error(`this tour is pinned to ${pinned.base.sha}..${pinned.head.sha}; got ${base.sha}..${head.sha}. Call tour_clear to start a new tour.`),
+          new Error(`this tour is pinned to ${pinned.base.sha}..${pinned.head.sha}; got ${base.sha}..${head.sha}. Call kanko_tour_clear to start a new tour.`),
           { code: "diff_identity_mismatch" }
         );
       }

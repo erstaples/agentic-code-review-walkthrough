@@ -1,7 +1,7 @@
 "use strict";
 
 const { request } = require("./bridge.js");
-const { DossierService } = require("./dossier/service.js");
+const { ChangeRecordService } = require("./notes/service.js");
 const tourSchema = require("../../schemas/tour-plan.schema.json");
 
 // MCP command schemas are embedded: expand local refs so clients can inspect
@@ -19,11 +19,11 @@ const WORKSPACE = {
 };
 
 const BRIDGE_TOOLS = [
-  { name: "tour_status", description: "Read the editor's current tour snapshot without changing it.", inputSchema: { type: "object", required: ["workspace"], properties: { workspace: WORKSPACE } } },
-  { name: "relay_load_tour", description: "Validate and load the current authored dossier tour into the editor. Returns findings, the current stop/beat, and terminal narration. Invalid tours leave the current display unchanged.", inputSchema: { type: "object", required: ["workspace", "dossierId"], properties: { workspace: WORKSPACE, dossierId: { type: "string" } } } },
-  { name: "relay_navigate", description: "Navigate the loaded tour by stop or beat. Use goto with stopId and beatId for an exact destination. Presentation changes do not mark dossier claims or stops reviewed.", inputSchema: { type: "object", required: ["workspace", "action"], properties: { workspace: WORKSPACE, action: { enum: ["nextBeat", "previousBeat", "nextStop", "previousStop", "goto"] }, stopId: { type: "string" }, beatId: { type: "string" }, expectedRevision: { type: "integer", minimum: 0 } } } },
-  { name: "relay_set_state", description: "Set following, exploring, or paused presentation mode for the loaded tour. Following reveals the selected anchor; exploring leaves the editor in place; paused removes presentation highlights.", inputSchema: { type: "object", required: ["workspace", "mode"], properties: { workspace: WORKSPACE, mode: { enum: ["following", "exploring", "paused"] }, expectedRevision: { type: "integer", minimum: 0 } } } },
-  { name: "tour_clear", description: "End the current presentation and clear its sidebar and highlights. Does not complete a dossier review.", inputSchema: { type: "object", required: ["workspace"], properties: { workspace: WORKSPACE } } },
+  { name: "kanko_tour_status", description: "Read the editor's current tour snapshot without changing it.", inputSchema: { type: "object", required: ["workspace"], properties: { workspace: WORKSPACE } } },
+  { name: "kanko_tour_load", description: "Validate and load the current authored record tour into the editor. Returns findings, the current stop/beat, and terminal narration. Invalid tours leave the current display unchanged.", inputSchema: { type: "object", required: ["workspace", "recordId"], properties: { workspace: WORKSPACE, recordId: { type: "string" } } } },
+  { name: "kanko_tour_navigate", description: "Navigate the loaded tour by stop or beat. Use goto with stopId and beatId for an exact destination. Presentation changes do not mark record claims or stops reviewed.", inputSchema: { type: "object", required: ["workspace", "action"], properties: { workspace: WORKSPACE, action: { enum: ["nextBeat", "previousBeat", "nextStop", "previousStop", "goto"] }, stopId: { type: "string" }, beatId: { type: "string" }, expectedRevision: { type: "integer", minimum: 0 } } } },
+  { name: "kanko_tour_set_state", description: "Set following, exploring, or paused presentation mode for the loaded tour. Following reveals the selected anchor; exploring leaves the editor in place; paused removes presentation highlights.", inputSchema: { type: "object", required: ["workspace", "mode"], properties: { workspace: WORKSPACE, mode: { enum: ["following", "exploring", "paused"] }, expectedRevision: { type: "integer", minimum: 0 } } } },
+  { name: "kanko_tour_clear", description: "End the current presentation and clear its sidebar and highlights. Does not complete a record review.", inputSchema: { type: "object", required: ["workspace"], properties: { workspace: WORKSPACE } } },
 ];
 
 const ACTOR = {
@@ -49,8 +49,8 @@ const SELECTION = {
   ],
 };
 
-const DOSSIER_ID = { type: "string", pattern: "^dos_[0-9a-f-]+$" };
-const EXPECTED_REVISION = { type: "integer", minimum: 1, description: "Aggregate revision returned by the latest dossier call. Prevents stale writers." };
+const RECORD_ID = { type: "string", pattern: "^rec_[0-9a-f-]+$" };
+const EXPECTED_REVISION = { type: "integer", minimum: 1, description: "Aggregate revision returned by the latest record call. Prevents stale writers." };
 const ENTITY_INPUT = { type: "object", description: "Typed entity fields plus a non-empty provenance array. The service assigns identity and audit fields." };
 function command(type, required = [], properties = {}) {
   return { type: "object", required: ["type", ...required], properties: { type: { const: type }, ...properties } };
@@ -76,80 +76,80 @@ const COMMAND = {
     ...["PauseReviewSession", "ResumeReviewSession"].map((type) => command(type, ["sessionId"], { sessionId: { type: "string" } })),
     command("CompleteReviewSession", ["sessionId", "outcome"], { sessionId: { type: "string" }, outcome: { type: "string", enum: ["ready-to-approve", "changes-requested", "deferred", "informational-only"] } }),
     command("CorrectEntity", ["entityId", "changes", "provenance"], { entityId: { type: "string" }, changes: { type: "object" }, provenance: { type: "array", minItems: 1 } }),
-    command("ArchiveDossier"),
+    command("ArchiveChangeRecord"),
   ],
 };
 
-const DOSSIER_TOOLS = [
+const RECORD_TOOLS = [
   {
-    name: "dossier_open",
-    description: "Resolve an exact Git change identity and open its local living change dossier, or create a private draft outside the repository. Does not run tests, fetch remotes, or modify source.",
-    inputSchema: { type: "object", required: ["workspace", "selection", "actor"], properties: { workspace: WORKSPACE, selection: SELECTION, actor: ACTOR, title: { type: "string" }, createIfMissing: { type: "boolean", default: true }, forceNew: { type: "boolean", default: false, description: "Create a separate dossier even when the exact change or a related lineage already has one. Use only after confirming the existing dossier belongs to another task." } } },
+    name: "kanko_notes_open",
+    description: "Resolve an exact Git change identity and open its local living change record, or create a private draft outside the repository. Does not run tests, fetch remotes, or modify source.",
+    inputSchema: { type: "object", required: ["workspace", "selection", "actor"], properties: { workspace: WORKSPACE, selection: SELECTION, actor: ACTOR, title: { type: "string" }, createIfMissing: { type: "boolean", default: true }, forceNew: { type: "boolean", default: false, description: "Create a separate record even when the exact change or a related lineage already has one. Use only after confirming the existing record belongs to another task." } } },
   },
   {
-    name: "dossier_get",
-    description: "Read a bounded dossier projection. Use overview first, then request only the entity, tour, recap, open items, evidence matrix, or storage location needed.",
+    name: "kanko_notes_get",
+    description: "Read a bounded record projection. Use overview first, then request only the entity, tour, recap, open items, evidence matrix, or storage location needed.",
     inputSchema: {
-      type: "object", required: ["workspace", "dossierId", "selector"],
+      type: "object", required: ["workspace", "recordId", "selector"],
       properties: {
-        workspace: WORKSPACE, dossierId: DOSSIER_ID,
+        workspace: WORKSPACE, recordId: RECORD_ID,
         selector: { type: "object", required: ["kind"], properties: { kind: { type: "string", enum: ["overview", "entity", "entities", "tour", "open-items", "evidence-matrix", "recap", "storage"] }, id: { type: "string" }, type: { type: "string" }, stopId: { type: "string" }, sessionId: { type: "string" } } },
       },
     },
   },
   {
-    name: "dossier_apply",
-    description: "Atomically apply typed dossier domain commands. Never submit JSON Patch or a rewritten dossier. Important statements require structured provenance; review mutations are rejected if code drifted.",
-    inputSchema: { type: "object", required: ["workspace", "dossierId", "expectedRevision", "actor", "commands"], properties: { workspace: WORKSPACE, dossierId: DOSSIER_ID, expectedRevision: EXPECTED_REVISION, actor: ACTOR, commands: { type: "array", minItems: 1, items: COMMAND } } },
+    name: "kanko_notes_apply",
+    description: "Atomically apply typed record domain commands. Never submit JSON Patch or a rewritten record. Important statements require structured provenance; review mutations are rejected if code drifted.",
+    inputSchema: { type: "object", required: ["workspace", "recordId", "expectedRevision", "actor", "commands"], properties: { workspace: WORKSPACE, recordId: RECORD_ID, expectedRevision: EXPECTED_REVISION, actor: ACTOR, commands: { type: "array", minItems: 1, items: COMMAND } } },
   },
   {
-    name: "dossier_check",
-    description: "Check dossier event integrity, schema version, and exact Git freshness without changing state.",
-    inputSchema: { type: "object", required: ["workspace", "dossierId"], properties: { workspace: WORKSPACE, dossierId: DOSSIER_ID } },
+    name: "kanko_notes_check",
+    description: "Check record event integrity, schema version, and exact Git freshness without changing state.",
+    inputSchema: { type: "object", required: ["workspace", "recordId"], properties: { workspace: WORKSPACE, recordId: RECORD_ID } },
   },
   {
-    name: "dossier_refresh",
+    name: "kanko_notes_refresh",
     description: "Record a new exact change revision after drift and conservatively invalidate reviewed stops and evidence. Earlier review history is preserved.",
-    inputSchema: { type: "object", required: ["workspace", "dossierId", "expectedRevision", "selection", "actor"], properties: { workspace: WORKSPACE, dossierId: DOSSIER_ID, expectedRevision: EXPECTED_REVISION, selection: SELECTION, actor: ACTOR } },
+    inputSchema: { type: "object", required: ["workspace", "recordId", "expectedRevision", "selection", "actor"], properties: { workspace: WORKSPACE, recordId: RECORD_ID, expectedRevision: EXPECTED_REVISION, selection: SELECTION, actor: ACTOR } },
   },
   {
-    name: "dossier_receipt",
+    name: "kanko_notes_receipt",
     description: "Preview or emit a deterministic review receipt tied to the exact current change. Emit writes immutable JSON and Markdown locally; it never publishes remotely.",
-    inputSchema: { type: "object", required: ["workspace", "dossierId", "sessionId", "mode", "actor"], properties: { workspace: WORKSPACE, dossierId: DOSSIER_ID, sessionId: { type: "string" }, mode: { type: "string", enum: ["preview", "emit"] }, expectedRevision: EXPECTED_REVISION, supersedesReceiptId: { type: "string" }, actor: ACTOR }, allOf: [{ if: { properties: { mode: { const: "emit" } } }, then: { required: ["expectedRevision"] } }] },
+    inputSchema: { type: "object", required: ["workspace", "recordId", "sessionId", "mode", "actor"], properties: { workspace: WORKSPACE, recordId: RECORD_ID, sessionId: { type: "string" }, mode: { type: "string", enum: ["preview", "emit"] }, expectedRevision: EXPECTED_REVISION, supersedesReceiptId: { type: "string" }, actor: ACTOR }, allOf: [{ if: { properties: { mode: { const: "emit" } } }, then: { required: ["expectedRevision"] } }] },
   },
   {
-    name: "dossier_delete",
-    description: "Permanently delete one local dossier and all of its receipts and evidence. Requires the dossier ID repeated as explicit confirmation and never touches repository source.",
-    inputSchema: { type: "object", required: ["workspace", "dossierId", "confirmDossierId", "actor"], properties: { workspace: WORKSPACE, dossierId: DOSSIER_ID, confirmDossierId: DOSSIER_ID, actor: ACTOR } },
+    name: "kanko_notes_delete",
+    description: "Permanently delete one local record and all of its receipts and evidence. Requires the record ID repeated as explicit confirmation and never touches repository source.",
+    inputSchema: { type: "object", required: ["workspace", "recordId", "confirmRecordId", "actor"], properties: { workspace: WORKSPACE, recordId: RECORD_ID, confirmRecordId: RECORD_ID, actor: ACTOR } },
   },
 ];
 
-const TOOLS = [...BRIDGE_TOOLS, ...DOSSIER_TOOLS];
+const TOOLS = [...BRIDGE_TOOLS, ...RECORD_TOOLS];
 
 const ROUTES = {
-  tour_status: ["GET", "/status"],
-  relay_load_tour: ["POST", "/tour/load"],
-  relay_navigate: ["POST", "/tour/navigate"],
-  relay_set_state: ["POST", "/tour/state"],
-  tour_clear: ["POST", "/clear"],
+  kanko_tour_status: ["GET", "/status"],
+  kanko_tour_load: ["POST", "/tour/load"],
+  kanko_tour_navigate: ["POST", "/tour/navigate"],
+  kanko_tour_set_state: ["POST", "/tour/state"],
+  kanko_tour_clear: ["POST", "/clear"],
 };
 
-function createCallTool({ resolveLock, dossierService = new DossierService() }) {
+function createCallTool({ resolveLock, recordService = new ChangeRecordService() }) {
   return async function callTool(name, args) {
-    if (name === "dossier_open") return dossierService.open(args);
-    if (name === "dossier_get") return dossierService.get(args);
-    if (name === "dossier_apply") return dossierService.apply(args);
-    if (name === "dossier_check") return dossierService.check(args);
-    if (name === "dossier_refresh") return dossierService.refresh(args);
-    if (name === "dossier_receipt") return dossierService.receipt(args);
-    if (name === "dossier_delete") return dossierService.delete(args);
+    if (name === "kanko_notes_open") return recordService.open(args);
+    if (name === "kanko_notes_get") return recordService.get(args);
+    if (name === "kanko_notes_apply") return recordService.apply(args);
+    if (name === "kanko_notes_check") return recordService.check(args);
+    if (name === "kanko_notes_refresh") return recordService.refresh(args);
+    if (name === "kanko_notes_receipt") return recordService.receipt(args);
+    if (name === "kanko_notes_delete") return recordService.delete(args);
     const route = ROUTES[name];
     if (!route) throw new Error(`unknown tool: ${name}`);
     const { workspace, ...bridgeArgs } = args;
-    const payload = name === "relay_load_tour" ? dossierService.loadTour(args) : { ...bridgeArgs, workspace };
+    const payload = name === "kanko_tour_load" ? recordService.loadTour(args) : { ...bridgeArgs, workspace };
     const lock = resolveLock(workspace);
     return request(lock, route[0], route[1], payload);
   };
 }
 
-module.exports = { TOOLS, BRIDGE_TOOLS, DOSSIER_TOOLS, ROUTES, createCallTool };
+module.exports = { TOOLS, BRIDGE_TOOLS, RECORD_TOOLS, ROUTES, createCallTool };
