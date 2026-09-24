@@ -3,6 +3,7 @@ const fs = require("node:fs");
 const { tourSources } = require("./tour-sources.js");
 const { validateTourPlan } = require("./tour-contract.js");
 const { createDecorationRegistry } = require("./decoration-registry.js");
+const { createLayoutEngine } = require("./layout-engine.js");
 const { createAnchorOpener } = require("./anchor-opener.js");
 const { sourceHunks } = require("./source-diff.js");
 const { mapRange, seamLineFor, removedBaseLines0 } = require("./hunks.js");
@@ -14,6 +15,7 @@ function createTourHost(vscode, { changed = () => {}, explore = () => {} } = {})
   let current = null, records = [], navigating = 0, timer;
   const key = uri => uri?.toString();
   const opener = createAnchorOpener(vscode, schedule);
+  const layout = createLayoutEngine(vscode, opener);
   const settings = () => vscode.workspace.getConfiguration("kanko.presentation");
   const inline = () => { const c = vscode.workspace.getConfiguration("diffEditor"); return !c.get("renderSideBySide", true) || c.get("useInlineViewWhenSpaceIsLimited", true); };
   function prepare(body) {
@@ -41,9 +43,9 @@ function createTourHost(vscode, { changed = () => {}, explore = () => {} } = {})
   function stale(record) { return record.head.scheme === "file" && !opener.matchesWorking(record.head, current.texts.get(record.anchor.path).head); }
   function snapshot() {
     if (!current) return { anchors: [] };
-    return { anchors: records.map(record => {
+    return { layout: layout.snapshot(), anchors: records.map(record => {
       const entry = opener.find(record), companion = record.companion && opener.find(record, true);
-      const visible = entry && representative(record) === record && vscode.window.visibleTextEditors.some(e => key(e.document.uri) === key(record.target));
+      const visible = layout.visible(record) && representative(record) === record && vscode.window.visibleTextEditors.some(e => key(e.document.uri) === key(record.target));
       return { n: record.anchor.n, path: record.anchor.path, status: stale(record) ? "stale" : visible ? "visible" : entry ? "open" : "not-open", column: entry?.column ?? null,
         source: record.target.scheme, companionColumn: companion?.column ?? null, removedCode: record.removedCode || null };
     }) };
@@ -81,7 +83,10 @@ function createTourHost(vscode, { changed = () => {}, explore = () => {} } = {})
   }
   function schedule() {
     clearTimeout(timer);
-    timer = setTimeout(() => { paint(); badgeEvents.fire(undefined); changed(); }, 30);
+    timer = setTimeout(async () => {
+      try { if (!navigating) await layout.observe(); paint(); badgeEvents.fire(undefined); changed(); }
+      catch (error) { console.error("Kanko layout observation:", error); }
+    }, 30);
   }
   function reveal(record) {
     const editor = vscode.window.visibleTextEditors.find(e => key(e.document.uri) === key(record.anchor.side === "base" ? record.base : record.head));
@@ -99,34 +104,32 @@ function createTourHost(vscode, { changed = () => {}, explore = () => {} } = {})
         if (retained) { record.companion = retained.companion; record.removedCode = retained.removedCode; }
         return record;
       });
+      await layout.begin(state, records);
       const active = [...new Set([state.selectedAnchor, ...beat.active].filter(Boolean))];
       if (state.mode === "following" || focus) {
-        // Keep every anchor of this stop, including inactive previews. Obsolete
-        // previews and companions are closed only if they are still tour-owned.
-        const targets = new Set(records.map(r => key(r.target)));
-        await opener.closeExcept(tab => targets.has(key(tab.input?.uri)) || targets.has(key(tab.input?.modified)));
-        const used = new Set();
-        const candidates = (focus && state.mode !== "following" ? [state.selectedAnchor] : active).map(n => records.find(r => r.anchor.n === n));
-        const desired = candidates.filter((r, i) => candidates.findIndex(other => key(other.target) === key(r.target)) === i).slice(0, 3);
-        // Reserve existing target groups before opening anything so opening an
-        // earlier anchor cannot replace a later anchor's preview.
-        for (const record of desired) { const found = opener.find(record); if (found) used.add(found.column); }
-        for (let i = 0; i < desired.length; i++) {
-          const record = desired[i], existing = opener.find(record);
-          if (existing) used.delete(existing.column);
-          const entry = await opener.open(record, used, { focus: i === 0 });
-          if (entry) reveal(record);
-        }
-        for (const record of desired) {
-          if (!opener.find(record) || record.anchor.view !== "diff" || !inline() || !record.anchor.focus.some(f => f.side === "base")) continue;
-          const companion = settings().get("removedCode", "companion") === "companion" && await opener.open(record, used, { companion: true });
-          record.companion = Boolean(companion); record.removedCode = companion ? "companion" : "peek";
-          if (companion) {
-            const editor = vscode.window.visibleTextEditors.find(e => key(e.document.uri) === key(record.base));
-            const first = record.anchor.focus.find(f => f.side === "base");
-            editor?.revealRange(new vscode.Range(first.range.startLine - 1, 0, first.range.endLine - 1, 0), vscode.TextEditorRevealType.InCenterIfOutsideViewport);
+        await layout.transaction(async () => {
+          const targets = new Set(records.map(r => key(r.target)));
+          await opener.closeExcept(tab => layout.isPinnedTab(tab) || targets.has(key(tab.input?.uri)) || targets.has(key(tab.input?.modified)));
+        });
+        const requested = (focus && state.mode !== "following" ? [state.selectedAnchor] : active).map(n => records.find(r => r.anchor.n === n));
+        const candidates = requested.filter((r, i) => requested.findIndex(other => key(other.target) === key(r.target)) === i);
+        await layout.apply(state, candidates, { focus });
+        for (const record of candidates) if (layout.visible(record)) reveal(record);
+        await layout.transaction(async () => {
+          const used = new Set(layout.snapshot().slots.filter(s => s.anchor || s.pinned).map(s => s.column));
+          for (const record of records) { record.companion = false; record.removedCode = null; }
+          for (const record of candidates) {
+            if (!layout.visible(record) || record.anchor.view !== "diff" || !inline() || !record.anchor.focus.some(f => f.side === "base")) continue;
+            const companion = settings().get("removedCode", "companion") === "companion" && await layout.companion(record, used);
+            record.companion = Boolean(companion); record.removedCode = companion ? "companion" : "peek";
+            if (companion) {
+              used.add(companion.column);
+              const editor = vscode.window.visibleTextEditors.find(e => key(e.document.uri) === key(record.base));
+              const first = record.anchor.focus.find(f => f.side === "base");
+              editor?.revealRange(new vscode.Range(first.range.startLine - 1, 0, first.range.endLine - 1, 0), vscode.TextEditorRevealType.InCenterIfOutsideViewport);
+            }
           }
-        }
+        });
       }
       paint(); badgeEvents.fire(undefined); opener.prune(records.flatMap(r => [r.base, r.head])); return snapshot();
     } finally { navigating--; }
@@ -151,14 +154,18 @@ function createTourHost(vscode, { changed = () => {}, explore = () => {} } = {})
       return { badge: String(a.n), color: new vscode.ThemeColor(`kanko.anchor${colorIndex(a.n)}`), tooltip: `Stop ${current.stopIndex + 1} · ${a.n} ${a.label}${stale(record) ? " · source changed" : ""}` };
     } }),
     vscode.window.onDidChangeVisibleTextEditors(schedule),
+    vscode.window.onDidChangeTextEditorVisibleRanges(schedule),
     vscode.workspace.onDidChangeTextDocument(schedule),
     vscode.workspace.onDidChangeConfiguration(e => { if (e.affectsConfiguration("kanko.presentation") || e.affectsConfiguration("diffEditor")) schedule(); }),
     vscode.window.onDidChangeTextEditorSelection(e => { if ([vscode.TextEditorSelectionChangeKind.Keyboard, vscode.TextEditorSelectionChangeKind.Mouse].includes(e.kind) && !navigating && current?.mode === "following") explore(); }),
     badgeEvents,
   ];
   return { prepare, present, snapshot,
+    async layoutAction(body, state) { navigating++; try { await layout.action(body, state);
+      if (body.action === "overrideSequence") return await present(state);
+      paint(); return snapshot(); } finally { navigating--; } },
     citation(uri) { const r = current && records.find(r => key(r.head) === key(uri) && !stale(r)); return r ? { side: "head", ref: r.anchor.rev.head } : null; },
-    async clear() { navigating++; try { current = null; records = []; clearPaint(); badgeEvents.fire(undefined); await opener.closeExcept(() => false); opener.prune(); } finally { navigating--; } },
+    async clear() { navigating++; try { current = null; records = []; clearPaint(); badgeEvents.fire(undefined); await opener.closeExcept(tab => layout.isPinnedTab(tab)); opener.prune(); layout.clear(); } finally { navigating--; } },
     dispose() { clearTimeout(timer); subscriptions.forEach(s => s.dispose()); opener.dispose(); registry.dispose(); },
   };
 }

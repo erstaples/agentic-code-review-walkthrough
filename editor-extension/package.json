@@ -1,6 +1,6 @@
 {
   "name": "kanko",
-  "displayName": "Kankō",
+  "displayName": "Kank\u014d",
   "description": "Let your coding agent guide you through code changes with focused highlights, native diffs, and editor citations.",
   "version": "0.1.0",
   "publisher": "getkankodev",
@@ -254,7 +254,7 @@
       }
     ],
     "configuration": {
-      "title": "Kankō Presentation",
+      "title": "Kank\u014d Presentation",
       "properties": {
         "kanko.presentation.dimOpacity": {
           "type": "number",
@@ -283,13 +283,43 @@
           ],
           "default": "companion",
           "description": "Show removed base focus beside an inline diff when there is room, or offer a seam with Peek removed code."
+        },
+        "kanko.layout.maxGroups": {
+          "type": "integer",
+          "minimum": 2,
+          "maximum": 4,
+          "default": 3,
+          "description": "Maximum editor groups the tour may create. Existing reviewer groups are preserved."
+        },
+        "kanko.layout.orientation": {
+          "type": "string",
+          "enum": [
+            "auto",
+            "stacked",
+            "columns"
+          ],
+          "default": "auto",
+          "description": "Two-group layout. Auto stacks side-by-side diffs and uses columns for single-file views; three and four groups use split rows."
+        },
+        "kanko.layout.sequenceFallback": {
+          "type": "boolean",
+          "default": true,
+          "description": "Use one editor group when an untouched tour layout shows fewer than 18 lines. The tour also offers a per-stop override."
         }
       }
     },
     "commands": [
       {
         "command": "kanko.copyCitation",
-        "title": "Kankō: Copy Citation"
+        "title": "Kank\u014d: Copy Citation"
+      },
+      {
+        "command": "kanko.tour.pinActive",
+        "title": "Kank\u014d: Toggle Pin on Active Tour Anchor"
+      },
+      {
+        "command": "kanko.tour.overrideSequence",
+        "title": "Kank\u014d: Show Multiple Groups for This Stop"
       }
     ],
     "menus": {
@@ -305,7 +335,7 @@
       "secondarySidebar": [
         {
           "id": "kanko",
-          "title": "Kankō",
+          "title": "Kank\u014d",
           "icon": "assets/kanko-sidebar.svg"
         }
       ]

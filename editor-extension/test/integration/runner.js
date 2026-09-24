@@ -9,11 +9,11 @@ async function main() {
   fs.mkdirSync(output, { recursive: true });
   const user = path.join(f.root, 'user'); fs.mkdirSync(path.join(user, 'User'), { recursive: true });
   fs.writeFileSync(path.join(user, 'User/settings.json'), JSON.stringify({
-    'security.workspace.trust.enabled': false, 'workbench.startupEditor': 'none', 'window.restoreWindows': 'none',
+    'security.workspace.trust.enabled': false, 'workbench.startupEditor': 'none', 'window.restoreWindows': 'none', 'window.newWindowDimensions': 'maximized',
     'telemetry.telemetryLevel': 'off', 'workbench.colorTheme': 'Default Dark Modern', 'editor.fontSize': 15,
     'diffEditor.renderSideBySide': false, 'diffEditor.useInlineViewWhenSpaceIsLimited': false,
     'workbench.editor.closeEmptyGroups': false, 'editor.minimap.enabled': false,
-    'workbench.editor.openSideBySideDirection': 'down',
+    'workbench.editor.openSideBySideDirection': 'down', 'kanko.layout.orientation': 'stacked', 'kanko.layout.sequenceFallback': false,
     'workbench.secondarySideBar.defaultVisibility': 'visible', 'window.title': 'Kankō acceptance · ${rootName}',
   }));
   let executable = process.env.VSCODE_EXECUTABLE_PATH || await downloadAndUnzipVSCode(process.env.VSCODE_VERSION || 'stable');

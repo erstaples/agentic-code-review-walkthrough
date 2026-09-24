@@ -15,7 +15,16 @@ module.exports = function register({ test, before }) {
   const results = [];
   const record = (name, value) => { results.push({ name, value }); fs.writeFileSync(path.join(output, 'automated.json'), JSON.stringify({ vscode: vscode.version, results }, null, 2)); };
   const api = (name, args = {}) => call(name, { workspace: fixture.workspace, ...args });
-  const load = () => api('kanko_tour_load', { mapId: fixture.mapId });
+  const load = async () => {
+    let result = await api('kanko_tour_load', { mapId: fixture.mapId });
+    // These phase 3/4 scenarios exercise simultaneous editors. Sequence itself
+    // has separate native coverage below, independent of the window size.
+    if (result.snapshot.presentation.layout.sequence) {
+      await vscode.commands.executeCommand('kanko.tour.overrideSequence');
+      result = await api('kanko_tour_status');
+    }
+    return result;
+  };
   const http = async (route, body) => (await fetch(`http://127.0.0.1:${lock.port}${route}`, { method: 'POST', headers: { authorization: `Bearer ${lock.authToken}`, 'content-type': 'application/json' }, body: JSON.stringify({ ...body, protocolVersion: 3 }) })).json();
   const tabs = () => vscode.window.tabGroups.all.flatMap(g => g.tabs.map(t => ({ label: t.label, uri: (t.input?.uri || t.input?.modified)?.toString() })));
   before(async () => {
@@ -69,6 +78,7 @@ module.exports = function register({ test, before }) {
     const previousClipboard = await vscode.env.clipboard.readText();
     try {
       editor.selection = new vscode.Selection(2, 0, 4, 0);
+      await sleep(100);
       const copied = await vscode.commands.executeCommand('kanko.copyCitation');
       assert.match(copied, /service.test.js:3-4 \[head@/); assert.equal(await vscode.env.clipboard.readText(), copied);
     } finally { await vscode.env.clipboard.writeText(previousClipboard); }
@@ -179,6 +189,89 @@ module.exports = function register({ test, before }) {
     assert.equal(Object.keys(state.reviewSessions).length, 0); assert.equal(state.phase, 'prepared');
     r = await load(); assert.equal(r.snapshot.beat.id, 'guard'); record('reloaded', r.snapshot);
   });
+  const layoutCommand = body => vscode.commands.executeCommand('kanko.tour.layout', body);
+  const layoutConfig = vscode.workspace.getConfiguration('kanko.layout');
+  async function layoutFixture({cap=3,beat='pair',sequence=false,single=false}={}) {
+    await api('kanko_tour_clear');
+    await vscode.commands.executeCommand('workbench.action.closeAllEditors');
+    await vscode.commands.executeCommand('workbench.action.editorLayoutSingle');
+    await layoutConfig.update('maxGroups',cap,vscode.ConfigurationTarget.Workspace);
+    await layoutConfig.update('sequenceFallback',sequence,vscode.ConfigurationTarget.Workspace);
+    const payload=service.loadTour({workspace:fixture.workspace,mapId:fixture.mapId});
+    const stop=payload.plan.stops.find(s=>s.id==='layout');
+    stop.beats=[...stop.beats.filter(b=>b.id===beat),...stop.beats.filter(b=>b.id!==beat)];
+    if(single)stop.beats[0].active=[1];
+    payload.plan.stops=[stop];payload.plan.title='Reviewer-controlled layouts';
+    const result=await http('/tour/load',payload);assert.equal(result.ok,true,JSON.stringify(result));return result.snapshot;
+  }
+  test('layout caps 2, 3 and 4 produce stack, split bottom and grid without duplicating visible anchors',async()=>{
+    const shapes={2:'stack',3:'stackSplitBottom',4:'grid'};
+    for(const cap of [2,3,4]){
+      const s=await layoutFixture({cap,beat:'four'});
+      assert.equal(s.presentation.layout.shape,shapes[cap]);assert.equal(vscode.window.tabGroups.all.length,cap);
+      assert.equal(s.presentation.anchors.filter(a=>a.status==='visible').length,cap);
+      const before=await vscode.commands.executeCommand('vscode.getEditorLayout'),beforeTabs=tabs();
+      await api('kanko_tour_navigate',{action:'goto',stopId:'layout',beatId:'four'});
+      assert.deepEqual(await vscode.commands.executeCommand('vscode.getEditorLayout'),before);assert.deepEqual(tabs(),beforeTabs);
+      record(`layout-cap-${cap}`,{snapshot:s,geometry:before});
+    }
+  });
+  test('tour pins block all replacement and unpinning makes exactly that group eligible',async()=>{
+    await layoutFixture({cap:2});
+    for(const anchor of [1,2])await layoutCommand({action:'pin',anchor,pinned:true});
+    const before=tabs();let r=await api('kanko_tour_navigate',{action:'goto',stopId:'layout',beatId:'missing'});
+    assert.deepEqual(tabs(),before);assert.deepEqual(r.snapshot.presentation.layout.unplaced,[3]);
+    record('all-pinned',r.snapshot);
+    await layoutCommand({action:'pin',anchor:2,pinned:false});
+    r=await api('kanko_tour_navigate',{action:'goto',stopId:'layout',beatId:'missing'});
+    assert.equal(r.snapshot.presentation.anchors.find(a=>a.n===1).status,'visible');
+    assert.equal(r.snapshot.presentation.anchors.find(a=>a.n===2).status,'not-open');
+    assert.equal(r.snapshot.presentation.anchors.find(a=>a.n===3).column,2);record('unpin-replace',r.snapshot);
+  });
+  test('reviewer resize prevents growth and Exploring leaves both geometry and editors alone',async()=>{
+    await layoutFixture();
+    await vscode.commands.executeCommand('vscode.setEditorLayout',{orientation:1,groups:[{size:.7},{size:.3}]});
+    const before=await vscode.commands.executeCommand('vscode.getEditorLayout');
+    let r=await api('kanko_tour_navigate',{action:'goto',stopId:'layout',beatId:'four'});
+    assert.equal(r.snapshot.presentation.layout.customized,true);assert.equal(vscode.window.tabGroups.all.length,2);
+    assert.deepEqual(await vscode.commands.executeCommand('vscode.getEditorLayout'),before);
+    await api('kanko_tour_set_state',{mode:'exploring'});const beforeTabs=tabs();
+    r=await api('kanko_tour_navigate',{action:'goto',stopId:'layout',beatId:'long'});
+    assert.deepEqual(tabs(),beforeTabs);assert.deepEqual(await vscode.commands.executeCommand('vscode.getEditorLayout'),before);
+    record('customized-exploring',{snapshot:r.snapshot,geometry:before});
+  });
+  test('placements split either row, validate caps, and retain remembered role destinations',async()=>{
+    await vscode.workspace.getConfiguration('workbench.editor').update('closeEmptyGroups',true,vscode.ConfigurationTarget.Workspace);
+    await layoutFixture({single:true});
+    let s=await layoutCommand({action:'place',anchor:2,placement:{kind:'below',of:1},remember:true});
+    assert.equal(s.presentation.layout.shape,'stack');assert.equal(s.presentation.layout.preferences.evidence.slot,'bottom');
+    s=await layoutCommand({action:'place',anchor:3,placement:{kind:'beside',of:1}});
+    assert.equal(s.presentation.layout.shape,'stackSplitTop');
+    assert.equal(s.presentation.anchors.find(a=>a.n===1).column,1);assert.equal(s.presentation.anchors.find(a=>a.n===3).column,2);assert.equal(s.presentation.anchors.find(a=>a.n===2).column,3);
+    assert.ok(!s.presentation.layout.options[4].some(p=>['below','beside'].includes(p.kind)));
+    await assert.rejects(layoutCommand({action:'place',anchor:4,placement:{kind:'below',of:1}}),/no longer available/);
+    record('split-top',s);
+    await layoutFixture({single:true});await layoutCommand({action:'place',anchor:2,placement:{kind:'below',of:1},remember:true});
+    s=await layoutCommand({action:'place',anchor:3,placement:{kind:'beside',of:2}});
+    assert.equal(s.presentation.layout.shape,'stackSplitBottom');record('split-bottom',s);
+    await layoutFixture({single:true});await layoutCommand({action:'place',anchor:2,placement:{kind:'below',of:1},remember:true});
+    const r=await api('kanko_tour_navigate',{action:'goto',stopId:'layout',beatId:'long'});
+    assert.equal(r.snapshot.presentation.anchors.find(a=>a.n===5).column,2);record('remember-role',r.snapshot);
+    await layoutFixture({single:true});
+    s=await layoutCommand({action:'place',anchor:2,placement:{kind:'beside',of:1}});
+    assert.equal(s.presentation.layout.shape,'columns');record('columns',s);
+    await vscode.workspace.getConfiguration('workbench.editor').update('closeEmptyGroups',undefined,vscode.ConfigurationTarget.Workspace);
+  });
+  test('cramped long sources use Sequence and the one-click override restores multiple groups',async()=>{
+    await vscode.workspace.getConfiguration('editor').update('fontSize',38,vscode.ConfigurationTarget.Workspace);
+    let s=await layoutFixture({beat:'long',sequence:true});
+    assert.equal(s.presentation.layout.sequence,true);assert.equal(vscode.window.tabGroups.all.length,1);record('sequence',s);
+    s=await layoutCommand({action:'overrideSequence'});
+    assert.equal(s.presentation.layout.sequence,false);assert.equal(s.presentation.layout.sequenceOverride,true);assert.equal(vscode.window.tabGroups.all.length,2);record('sequence-override',s);
+    await vscode.workspace.getConfiguration('editor').update('fontSize',undefined,vscode.ConfigurationTarget.Workspace);
+    await layoutFixture({cap:2});
+  });
+
   if (process.env.KANKO_TOUR_MANUAL) test('manual screenshot acceptance session', async () => {
     fs.writeFileSync(path.join(output, 'ready.json'), JSON.stringify({ workspace: fixture.workspace, stateRoot: fixture.stateRoot, mapId: fixture.mapId }));
     const file = path.join(output, 'control.json'); const deadline = Date.now() + 20 * 60 * 1000;
@@ -187,7 +280,8 @@ module.exports = function register({ test, before }) {
         const command = JSON.parse(fs.readFileSync(file)); fs.unlinkSync(file);
         if (command.action === 'finish') return;
         let result;
-        if (command.action === 'load') result = await load();
+        if (command.action === 'layout') result = await layoutFixture(command.options);
+        else if (command.action === 'load') result = await load();
         else if (command.action === 'invalid') { const bad = service.loadTour({ workspace: fixture.workspace, mapId: fixture.mapId }); bad.plan.stops[0].beats[0].active = [99]; result = await http('/tour/load', bad); }
         else if (command.action === 'snapshot') result = await api('kanko_tour_status');
         else throw new Error('Unknown fixture control action');
