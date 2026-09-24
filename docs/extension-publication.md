@@ -1,9 +1,9 @@
 # Publishing the VS Code extension
 
-The extension identity is `erstaples.codewalk-review`. Its version comes from
+The extension identity is `erstaples.kanko`. Its version comes from
 `editor-extension/package.json`; the agent plugin has its own version lifecycle.
-The Marketplace package name is `codewalk-review` and the display name is
-`codewalk Review`. The supplied codewalk logo assets remain in use.
+The Marketplace package name is `kanko` and the display name is
+`kanko`. The supplied codewalk logo assets remain in use.
 
 ## Branding assets
 
@@ -40,7 +40,7 @@ Actions are pinned to commits and Dependabot proposes updates weekly.
 
 1. In [Marketplace publisher management](https://marketplace.visualstudio.com/manage/publishers/),
    confirm that you control the `erstaples` publisher. This is the registered
-   publisher ID, and the extension package name is `codewalk-review`.
+   publisher ID, and the extension package name is `kanko`.
 2. Configure a trusted publishing policy for publisher `erstaples`, repository
    `erstaples/agentic-code-review-walkthrough`, workflow `extension.yml`, and
    environment `vscode-marketplace`. See
@@ -84,7 +84,7 @@ After merging and checking CI, tag the release from the updated `main`:
 git switch main
 git pull --ff-only
 version=$(node -p 'require("./editor-extension/package.json").version')
-git tag -a "extension-v$version" -m "Release codewalk $version"
+git tag -a "extension-v$version" -m "Release kanko $version"
 git push origin "extension-v$version"
 ```
 

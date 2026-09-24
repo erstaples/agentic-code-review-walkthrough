@@ -1,6 +1,6 @@
 {
-  "name": "codewalk-review",
-  "displayName": "codewalk Review",
+  "name": "kanko",
+  "displayName": "kanko",
   "description": "Let your coding agent guide you through code changes with focused highlights, native diffs, and editor citations.",
   "version": "0.1.0",
   "publisher": "erstaples",
@@ -74,7 +74,7 @@
       }
     ],
     "configuration": {
-      "title": "codewalk Presentation",
+      "title": "kanko Presentation",
       "properties": {
         "relay.presentation.removedCode": {
           "type": "string",
@@ -112,19 +112,19 @@
     "commands": [
       {
         "command": "relay.presentation.follow",
-        "title": "codewalk: Follow Presenter"
+        "title": "kanko: Follow Presenter"
       },
       {
         "command": "relay.presentation.pause",
-        "title": "codewalk: Pause Presentation"
+        "title": "kanko: Pause Presentation"
       },
       {
         "command": "tourChanges.copyCitation",
-        "title": "codewalk: Copy Citation"
+        "title": "kanko: Copy Citation"
       },
       {
         "command": "tourChanges.toggleDiff",
-        "title": "codewalk: Toggle Diff View"
+        "title": "kanko: Toggle Diff View"
       }
     ],
     "menus": {

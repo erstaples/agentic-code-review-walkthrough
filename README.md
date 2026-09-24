@@ -1,4 +1,4 @@
-# codewalk
+# kanko
 
 Your agent walks you through a diff the way its author would — opening files,
 highlighting the lines it's talking about, and pausing for questions.
@@ -28,7 +28,7 @@ and anything non-obvious worth spotlighting.
 As it zooms in on a particular function it highlights that range specifically,
 so you're always looking at the code being discussed.
 
-Use **codewalk: Toggle Diff View** from the Command Palette or the tour
+Use **kanko: Toggle Diff View** from the Command Palette or the tour
 status bar control to show or hide the native multi-file diff without prompting
 the agent. Tour rails and focus outlines remain visible in either view without
 covering the diff's added/removed backgrounds. Only context text dims while
@@ -91,7 +91,7 @@ To rebuild the VSIX from the repository root:
 This requires Node.js 22 or newer, npm, and Python 3.9 or newer. It installs
 locked dependencies, checks release metadata, rebuilds and validates the VSIX,
 and prints its absolute path. The filename follows the package name and version
-in `editor-extension/package.json`, currently `editor-extension/codewalk-review-0.1.0.vsix`.
+in `editor-extension/package.json`, currently `editor-extension/kanko-0.1.0.vsix`.
 It replaces that version's existing package without publishing or installing it.
 From `editor-extension`, the same command is available as `npm run rebuild:vsix`.
 
@@ -190,7 +190,7 @@ The `tour-changes` skill opens the prepared dossier when one exists. If coding
 happened without dossier capture, it reconstructs a draft from the selected
 diff and labels inferred rationale accordingly.
 
-While reviewing, select one or more lines and use **codewalk: Copy
+While reviewing, select one or more lines and use **kanko: Copy
 Citation** from the editor context menu. It copies an agent-neutral,
 repository-relative marker such as `editor-extension/lib/editor.js:56-70` for
 pasting into Claude Code, Codex, another agent, or a review comment. Citations

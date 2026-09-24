@@ -71,7 +71,7 @@ exports.run = async function run() {
     });
 
   try {
-    await nodeTest.suite("codewalk", () => {
+    await nodeTest.suite("kanko", () => {
       try {
         const register = require(SUITE);
         if (typeof register !== "function") {

@@ -61,7 +61,7 @@ function resolveLock({ dir, cwd, fs = require("node:fs"), isAlive = defaultIsAli
         `tour bridge speaks protocol ${mismatch.protocolVersion}, this plugin speaks ${protocolVersion}. Update whichever is older.`);
     }
     throw fail("no_bridge",
-      `folder ${cwd} is not open in any VS Code window with the tour bridge. Install the codewalk extension and open this folder.`);
+      `folder ${cwd} is not open in any VS Code window with the tour bridge. Install the kanko extension and open this folder.`);
   }
 
   const deepest = Math.max(...candidates.map((c) => c.depth));
