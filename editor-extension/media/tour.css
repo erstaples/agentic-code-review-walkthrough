@@ -23,3 +23,56 @@ code { color: var(--vscode-textPreformat-foreground); background: var(--vscode-t
 .navigation { display: flex; justify-content: space-between; gap: 8px; margin: 10px 0; }.navigation button { flex: 1; font-size: 11px; }
 .stops button, .end { background: transparent; color: var(--vscode-descriptionForeground); }.end { margin-top: 17px; font-size: 11px; }
 #error { color: var(--vscode-errorForeground); font-size: 12px; }
+/* The inventory remains above the beat and scrolls independently at large stops. */
+main { padding: 16px 14px; }
+h1 { margin-bottom: 14px; font-size: 13px; }
+h2 { font-size: 19px; margin-top: 10px; }
+.modes { margin-top: 16px; }
+#inventory { border-top: 1px solid var(--vscode-panel-border); border-bottom: 1px solid var(--vscode-panel-border); padding: 12px 0; }
+.inventory-heading, .picker-heading, .beat-heading { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.inventory-heading { color: var(--vscode-descriptionForeground); font-size: 12px; }
+.inventory-heading button, .beat-heading button { font-size: 11px; }
+#guideline { color: var(--vscode-editorWarning-foreground); margin: 5px 0; }
+#list-tools { display: flex; gap: 5px; margin: 10px 0; }
+input[type="search"] { min-width: 0; width: 100%; box-sizing: border-box; background: var(--vscode-input-background); color: var(--vscode-input-foreground); border: 1px solid var(--vscode-input-border, transparent); border-radius: 4px; padding: 7px; font: inherit; }
+input:focus-visible { outline: 1px solid var(--vscode-focusBorder); }
+#anchor-list { max-height: 340px; overflow-y: auto; overflow-x: hidden; overflow-anchor: none; scrollbar-gutter: stable; margin-top: 6px; }
+/* Keep the whole row inside the scrollport, including overlay-scrollbar space. */
+#list-content { min-width: 0; box-sizing: border-box; padding-right: 12px; }
+.anchor-row { display: grid; grid-template-columns: 25px minmax(0, 1fr) auto; align-items: center; column-gap: 10px; height: 68px; box-sizing: border-box; padding: 5px 8px; border-top: 2px solid transparent; border-bottom: 2px solid transparent; border-radius: 6px; background-clip: padding-box; }
+.anchor-row.current-beat { background-color: color-mix(in srgb, var(--vscode-kanko-anchor1) 14%, transparent); }
+.anchor-row > .chip { margin: 0; }
+.identity { min-width: 0; }
+.filename { display: flex; align-items: center; gap: 6px; min-width: 0; line-height: 18px; font-family: var(--vscode-editor-font-family); font-size: 13px; }
+.filename strong { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-weight: 400; }
+.change { flex-shrink: 0; font: 600 10px/14px var(--vscode-font-family); border-radius: 3px; padding: 0 4px; color: #d7edff; background: #185e97; }
+.change.added { color: #d5efb3; background: #355d14; }.change.deleted { color: #ffd5d5; background: #883838; }.change.unchanged { color: #e0ddd1; background: #57564e; }
+.active-dot { flex-shrink: 0; color: var(--vscode-foreground); font-size: 8px; }
+.details { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; line-height: 15px; font-size: 11px; color: var(--vscode-descriptionForeground); }
+.stale { color: var(--vscode-editorWarning-foreground); }
+.row-controls { position: relative; display: flex; align-items: center; justify-content: flex-end; gap: 8px; align-self: stretch; min-width: 64px; }
+.row-controls button { font-size: 11px; line-height: 16px; padding: 0 5px; white-space: nowrap; }
+.row-controls > button { background: transparent; border: 1px solid var(--vscode-panel-border, #444); }
+.row-controls .role-focus { display: inline-flex; border-color: transparent; color: var(--vscode-descriptionForeground); padding: 3px; }
+.row-actions { position: absolute; right: 0; bottom: -1px; display: flex; gap: 4px; opacity: 0; }
+.row-actions button { background: transparent; font-size: 10px; padding: 0 2px; }
+.anchor-row:hover .row-actions, .anchor-row:focus-within .row-actions, .anchor-row.pinned .row-actions { opacity: 1; }
+.row-actions button:hover, .row-controls > button:hover { background: var(--vscode-toolbar-hoverBackground); }
+.role-section { display: flex; align-items: center; gap: 6px; width: 100%; height: 28px; text-align: left; color: var(--vscode-descriptionForeground); background: transparent; text-transform: uppercase; letter-spacing: .07em; font-size: 10px; padding: 5px 8px; }
+#single-file { overflow-wrap: anywhere; font: 12px var(--vscode-editor-font-family); }
+#picker { border: 1px solid var(--vscode-focusBorder); border-radius: 6px; padding: 10px; margin-top: 10px; background: var(--vscode-editor-background); }
+.picker-heading strong { font-weight: 500; font-size: 12px; overflow-wrap: anywhere; }.picker-heading button { padding: 2px 6px; }
+#placement-options { display: grid; grid-template-columns: repeat(auto-fit, minmax(92px, 1fr)); gap: 7px; margin: 8px 0 12px; }
+.placement-tile { border: 1px solid var(--vscode-panel-border); background: transparent; display: flex; flex-direction: column; align-items: center; gap: 5px; min-height: 91px; padding: 8px 4px; font-size: 12px; }
+.placement-tile small { font-size: 10px; color: var(--vscode-descriptionForeground); }
+.diagram { position: relative; display: block; width: 78px; height: 39px; }.diagram-cell { position: absolute; box-sizing: border-box; border: 1px solid var(--chip-color); border-radius: 2px; color: var(--chip-color); font-size: 9px; display: flex; align-items: center; justify-content: center; }
+.diagram-cell.incoming { background: var(--chip-color); color: var(--vscode-editor-background); }.peek-icon { font-size: 28px; height: 39px; }
+#remember-label { font-size: 11px; display: flex; align-items: center; gap: 5px; }#picker-help { margin-bottom: 0; }
+.beat-heading { color: var(--vscode-descriptionForeground); font-size: 12px; margin-top: 16px; }.narration { min-height: 0; padding-bottom: 10px; }
+@media (forced-colors: active) { .anchor-row.current-beat { outline: 1px solid Highlight; }.placement-tile { border-color: ButtonText; }.change { color: ButtonText; background: ButtonFace; border: 1px solid ButtonText; } }
+.role-icon { display: inline-flex; flex-shrink: 0; width: 16px; height: 16px; color: var(--vscode-descriptionForeground); }
+.role-icon svg { width: 100%; height: 100%; fill: none; stroke: currentColor; stroke-width: 1.5; stroke-linecap: round; stroke-linejoin: round; }
+.section-chevron { width: 8px; flex-shrink: 0; }
+.role-icon:focus-visible { outline: 1px solid var(--vscode-focusBorder); outline-offset: 3px; }
+[data-tooltip] { position: relative; }
+[data-tooltip]:hover::after, [data-tooltip]:focus-visible::after { content: attr(data-tooltip); pointer-events: none; position: absolute; right: 0; bottom: 100%; z-index: 2; padding: 3px 6px; border: 1px solid var(--vscode-editorHoverWidget-border); border-radius: 3px; background: var(--vscode-editorHoverWidget-background); color: var(--vscode-editorHoverWidget-foreground); font: 11px var(--vscode-font-family); white-space: nowrap; }

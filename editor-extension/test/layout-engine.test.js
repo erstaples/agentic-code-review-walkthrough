@@ -52,3 +52,20 @@ test('Sequence collapses only untouched engine arrangements and override prevent
 test('a pin prevents automatic shape growth even below the cap',async()=>{
   const f=fixture({cap:4});await f.apply(1,2);await f.engine.action({action:'pin',anchor:1,pinned:true},f.state);await f.apply(1,2,3);assert.equal(f.groups.length,2);assert.deepEqual(f.engine.snapshot().unplaced,[3]);
 });
+
+test('picker previews show the actual resulting anchor slots and remove pinned replacements',async()=>{
+  const f=fixture();await f.apply(1,2);
+  const option=f.engine.snapshot().options[3].find(o=>o.kind==='beside'&&o.of===1);
+  assert.deepEqual(option.preview.map(c=>c.anchor),[1,3,2]);assert.equal(option.preview[2].y,.53);
+  assert.ok(f.engine.snapshot().options[1].some(o=>o.kind==='replace'&&o.of===2));
+  await f.engine.action({action:'pin',anchor:1,pinned:true},f.state);
+  assert.deepEqual(f.engine.snapshot().options[1].map(o=>o.kind),['auto','peek']);
+  assert.ok(!f.engine.snapshot().options[3].some(o=>o.of===1));
+});
+test('reset clears tour pins and customization but preserves role preferences and reviewer tabs',async()=>{
+  const f=fixture();f.state.plan.stops[0].beats=[{active:[1,2]}];f.state.beatIndex=0;
+  await f.apply(1);await f.engine.action({action:'place',anchor:2,placement:{kind:'below',of:1},remember:true},f.state);
+  await f.engine.action({action:'pin',anchor:1,pinned:true},f.state);await f.engine.action({action:'reset'},f.state);
+  assert.ok(f.engine.snapshot().slots.every(s=>!s.pinned));assert.equal(f.engine.snapshot().preferences.evidence.slot,'bottom');
+  f.reviewerTab();const protectedTab=f.groups[0].activeTab;await f.engine.action({action:'reset'},f.state);assert.ok(f.groups[0].tabs.includes(protectedTab));
+});

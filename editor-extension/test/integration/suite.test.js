@@ -288,15 +288,65 @@ module.exports = function register({ test, before }) {
     await layoutFixture({cap:2});
   });
 
+  async function sidebarFixture({count=9,cap=3}={}) {
+    await api('kanko_tour_clear');await vscode.commands.executeCommand('workbench.action.closeAllEditors');await vscode.commands.executeCommand('workbench.action.editorLayoutSingle');
+    await layoutConfig.update('maxGroups',cap,vscode.ConfigurationTarget.Workspace);
+    await layoutConfig.update('sequenceFallback',false,vscode.ConfigurationTarget.Workspace);
+    await vscode.workspace.getConfiguration('kanko.tour').update('anchorLimit',99,vscode.ConfigurationTarget.Workspace);
+    const payload=service.loadTour({workspace:fixture.workspace,mapId:fixture.mapId}),stop=payload.plan.stops.find(s=>s.id==='sidebar');
+    if(count<=9){stop.anchors=stop.anchors.slice(0,count);if(count<9)stop.beats=stop.beats.slice(0,1);}
+    else {
+      const {tourSources}=require('../../../contract/tour-sources.js'),{hashText,rangeText}=require('../../../contract/tour.js');
+      const source=tourSources(fixture.workspace,payload.change);
+      stop.anchors=Array.from({length:count},(_,i)=>{const a={...stop.anchors[0],n:i+1,path:`source-${i+1}.js`,role:['change','evidence','callee','caller','config','schema','context'][i%7],label:`Inventory source ${i+1}`,context:{startLine:1,endLine:2},focus:[],change:'added'};a.contentHash=hashText(rangeText(source.readSource(a).head,a.context));return a;});
+      stop.beats=[{id:'large',narration:'{{a:1}} and {{a:2}} are active. Find {{a:99}} using the file picker.',active:[1,2]}];
+    }
+    payload.plan.stops=[stop];payload.plan.title='The complete stop, one beat at a time';
+    const r=await http('/tour/load',payload);assert.equal(r.ok,true,JSON.stringify(r));return r.snapshot;
+  }
+  test('stop inventory retains all seven roles and every anchor across beats',async()=>{
+    const first=await sidebarFixture();assert.equal(first.stop.anchors.length,9);assert.equal(new Set(first.stop.anchors.map(a=>a.role)).size,7);
+    const next=(await api('kanko_tour_navigate',{action:'nextBeat'})).snapshot;
+    assert.deepEqual(next.stop.anchors,first.stop.anchors);assert.notDeepEqual(next.beat.active,first.beat.active);record('stop-wide-inventory',{first,next});
+  });
+  test('explicit move reuses the native tab and reset retains role preferences',async()=>{
+    await sidebarFixture({count:3});
+    let s=await layoutCommand({action:'place',anchor:3,placement:{kind:'replace',of:2},remember:true});
+    const before=tabs().filter(t=>t.uri?.includes('/navigation.js')).length;
+    s=await layoutCommand({action:'place',anchor:3,placement:{kind:'replace',of:1}});
+    assert.equal(s.presentation.anchors.find(a=>a.n===3).column,1);assert.equal(tabs().filter(t=>t.uri?.includes('/navigation.js')).length,before);
+    await layoutCommand({action:'pin',anchor:3,pinned:true});s=await layoutCommand({action:'reset'});
+    assert.ok(s.presentation.layout.slots.every(s=>!s.pinned));assert.equal(s.presentation.layout.preferences.caller.slot,'bottom');record('move-reset',s);
+  });
+  test('moving from an emptying group tolerates native group renumbering',async()=>{
+    await sidebarFixture({count:3});await vscode.workspace.getConfiguration('workbench.editor').update('closeEmptyGroups',true,vscode.ConfigurationTarget.Workspace);
+    let preview;
+    for(let attempt=0;attempt<20;attempt++){
+      const before=(await api('kanko_tour_status')).snapshot;
+      preview=before.presentation.layout.options[1].find(o=>o.kind==='replace'&&o.of===2).preview;
+      if(preview.length===1)break;await sleep(50);
+    }
+    assert.deepEqual(preview,[{x:0,y:0,w:1,h:1,anchor:1}]);
+    const s=await layoutCommand({action:'place',anchor:1,placement:{kind:'replace',of:2}});
+    assert.equal(s.presentation.anchors.find(a=>a.n===1).status,'visible');assert.equal(tabs().filter(t=>t.uri?.includes('/service.js')).length,1);record('move-renumbered-group',s);
+    await vscode.workspace.getConfiguration('workbench.editor').update('closeEmptyGroups',undefined,vscode.ConfigurationTarget.Workspace);
+  });
+  test('99 source-backed anchors load within the configured ceiling',async()=>{
+    const s=await sidebarFixture({count:99});assert.equal(s.stop.anchors.length,99);assert.equal(s.presentation.layout.slots.length,2);record('large-stop',s);
+  });
+
   if (process.env.KANKO_TOUR_MANUAL) test('manual screenshot acceptance session', async () => {
     fs.writeFileSync(path.join(output, 'ready.json'), JSON.stringify({ workspace: fixture.workspace, stateRoot: fixture.stateRoot, mapId: fixture.mapId }));
     const file = path.join(output, 'control.json'); const deadline = Date.now() + 20 * 60 * 1000;
     while (Date.now() < deadline) {
       if (fs.existsSync(file)) {
-        const command = JSON.parse(fs.readFileSync(file)); fs.unlinkSync(file);
+        let command;
+        try { command = JSON.parse(fs.readFileSync(file)); } catch (error) { if (!(error instanceof SyntaxError)) throw error; await sleep(200); continue; }
+        fs.unlinkSync(file);
         if (command.action === 'finish') return;
         let result;
-        if (command.action === 'layout') result = await layoutFixture(command.options);
+        if (command.action === 'sidebar') result = await sidebarFixture(command.options);
+        else if (command.action === 'layout') result = await layoutFixture(command.options);
         else if (command.action === 'load') result = await load();
         else if (command.action === 'invalid') { const bad = service.loadTour({ workspace: fixture.workspace, mapId: fixture.mapId }); bad.plan.stops[0].beats[0].active = [99]; result = await http('/tour/load', bad); }
         else if (command.action === 'snapshot') result = await api('kanko_tour_status');

@@ -75,6 +75,17 @@ function createAnchorOpener(vscode, changed = () => {}) {
     if (!before.has(entry.tab)) owned.set(entry.tab, { column: entry.column, detached: false });
     return entry;
   }
+  async function move(record, column) {
+    const existing = await open(record, find(record)?.column, { focus: true });
+    if (!existing) return null;
+    // Native move preserves dirty content and tab identity instead of opening
+    // a duplicate and guessing whether it is safe to close the original.
+    const destination = vscode.window.tabGroups.all.find(g => g.viewColumn === column);
+    await vscode.commands.executeCommand("moveActiveEditor", { to: "position", by: "group", value: column });
+    const moved = find(record);
+    if (!moved || !destination?.tabs.includes(moved.tab)) throw new Error("The editor could not move to that group.");
+    return moved;
+  }
   async function closeExcept(keep) {
     reconcile();
     for (const entry of entries()) if (disposable(entry.tab) && !keep(entry.tab)) {
@@ -86,7 +97,7 @@ function createAnchorOpener(vscode, changed = () => {}) {
     const retained = new Set([...sources.map(key), ...entries().flatMap(({tab}) => [key(tab.input?.uri), key(tab.input?.original), key(tab.input?.modified)])]);
     for (const uri of documents.keys()) if (!retained.has(uri)) documents.delete(uri);
   }
-  return { keep(tab) { if (owned.has(tab)) owned.get(tab).detached = true; }, prune, describe, find, open, entries,
+  return { keep(tab) { if (owned.has(tab)) owned.get(tab).detached = true; }, prune, describe, find, open, move, entries,
     async reshape(action) {
       reconcile(); movingGroups = true;
       try { return await action(); }

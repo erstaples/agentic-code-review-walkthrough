@@ -161,13 +161,19 @@ function createTourHost(vscode, { changed = () => {}, explore = () => {} } = {})
     vscode.window.onDidChangeVisibleTextEditors(schedule),
     vscode.window.onDidChangeTextEditorVisibleRanges(schedule),
     vscode.workspace.onDidChangeTextDocument(schedule),
-    vscode.workspace.onDidChangeConfiguration(e => { if (e.affectsConfiguration("kanko.presentation") || e.affectsConfiguration("diffEditor")) schedule(); }),
+    vscode.workspace.onDidChangeConfiguration(e => { if (e.affectsConfiguration("kanko.presentation") || e.affectsConfiguration("kanko.layout") || e.affectsConfiguration("workbench.editor.closeEmptyGroups") || e.affectsConfiguration("diffEditor")) schedule(); }),
     vscode.window.onDidChangeTextEditorSelection(e => { if ([vscode.TextEditorSelectionChangeKind.Keyboard, vscode.TextEditorSelectionChangeKind.Mouse].includes(e.kind) && !navigating && current?.mode === "following") explore(); }),
     badgeEvents,
   ];
   return { prepare, present, snapshot,
     async layoutAction(body, state) { navigating++; try { await layout.action(body, state);
       if (body.action === "overrideSequence") return await present(state);
+      if (body.action === "place" && body.placement?.kind !== "peek") {
+        current = { ...state, selectedAnchor: body.anchor };
+        await layout.begin(current, records);
+        const record = records.find(r => r.anchor.n === body.anchor); if (record) reveal(record);
+      }
+      badgeEvents.fire(undefined);
       paint(); return snapshot(); } finally { navigating--; } },
     citation(uri) { const r = current && records.find(r => key(r.head) === key(uri) && !stale(r)); return r ? { side: "head", ref: r.anchor.rev.head } : null; },
     async clear() { navigating++; try { current = null; records = []; clearPaint(); badgeEvents.fire(undefined); await opener.closeExcept(tab => layout.isPinnedTab(tab)); opener.prune(); layout.clear(); } finally { navigating--; } },

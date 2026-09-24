@@ -20,6 +20,7 @@ function createFixture() {
   write('service.test.js', `import assert from 'node:assert/strict';\nimport { loadTour } from './service.js';\n\nconst current = { id: 'review-in-progress' };\nconst invalid = { validationFindings: [\n  { severity: 'error', code: 'missing_anchor' },\n] };\n\nconst result = loadTour(invalid, current);\nassert.equal(result.ok, false);\nassert.equal(result.current, current);\nassert.equal(result.findings[0].code, 'missing_anchor');\n\n// A valid candidate can replace the presentation.\nconst next = loadTour({ id: 'validated-tour' }, current);\nassert.equal(next.ok, true);\nassert.equal(next.current.validated, true);\n`);
   write('navigation.js', `export function nextBeat(state) {\n  const next = state.beatIndex + 1;\n  if (next >= state.stop.beats.length) {\n    return nextStop(state);\n  }\n  return { ...state, beatIndex: next };\n}\n\nexport function pause(state) {\n  return { ...state, mode: 'paused' };\n}\n`);
   for (const name of ['layout-a.js', 'layout-b.js']) write(name, `// Layout acceptance: ${name}\n` + Array.from({length:160}, (_,i)=>`export const line${i+1} = ${i+1};`).join('\n') + '\n');
+  for (let i=1;i<=99;i++) write(`source-${i}.js`, `// Stop inventory source ${i}\nexport const value = ${i};\n`);
   fs.unlinkSync(path.join(workspace, 'retired.js')); git('add', '-A'); git('-c', 'user.name=Kankō Fixture', '-c', 'user.email=fixture@example.invalid', 'commit', '-qm', 'head'); const head = git('rev-parse', 'HEAD');
   const stateRoot = path.join(root, 'maps'), service = new ReviewMapService({ root: stateRoot });
   const actor = { kind: 'agent', id: 'fixture' }, provenance = [{ kind: 'execution-observed', source: { type: 'fixture' } }];
@@ -44,6 +45,20 @@ function createFixture() {
       { id: 'navigation', title: 'Keep navigation explicit', risk: 'low', type: 'context', anchors: [anchor(1, 'navigation.js', 'change', 'Advance one beat', 1, 11), anchor(2, 'retired.js', 'context', 'The removed opening path', 1, 4, 'base')], beats: [
         { id: 'next', narration: '**One beat at a time.**\n\n{{a:1}} advances the cursor. Following reveals the current source; Exploring keeps your editor in place.\n\nThe removed approach is still inspectable in {{a:2}}.', active: [1] },
         { id: 'removed', narration: '**Inspect the removed path.**\n\n{{a:2}} comes from the base revision, even though the file no longer exists at the head.', active: [2] }
+      ] },
+      { id: 'sidebar', title: 'Keep every file in the stop visible', risk: 'high', type: 'context', anchors: [
+        anchor(1, 'service.js', 'change', 'Preserve the active review', 1, 11),
+        anchor(2, 'service.test.js', 'evidence', 'Rejected input regression', 3, 12),
+        anchor(3, 'navigation.js', 'caller', 'Advance the review', 1, 11),
+        anchor(4, 'source-1.js', 'callee', 'Normalize the next candidate', 1, 2),
+        anchor(5, 'source-2.js', 'config', 'Choose the group limit', 1, 2),
+        anchor(6, 'source-3.js', 'schema', 'Validate anchor roles', 1, 2),
+        anchor(7, 'source-4.js', 'context', 'Explain the surrounding flow', 1, 2),
+        anchor(8, 'layout-a.js', 'evidence', 'Another regression example', 1, 30),
+        anchor(9, 'layout-b.js', 'caller', 'A second caller', 1, 30)
+      ], beats: [
+        {id:'first',narration:'{{a:1}} preserves the review. {{a:2}} proves the rejected candidate is safe. The caller {{a:3}} is available in this stop, but is not open yet.',active:[1,2]},
+        {id:'second',narration:'{{a:4}} normalizes the candidate. {{a:6}} defines the schema; {{a:8}} is another piece of evidence. The other files remain in the stop inventory.',active:[4,6,8]}
       ] },
       { id: 'layout', title: 'Keep the reviewer in control', risk: 'medium', type: 'context', anchors: [anchor(1, 'service.js', 'change', 'Keep the guard visible', 1, 11), anchor(2, 'service.test.js', 'evidence', 'Pin the regression evidence', 3, 12), anchor(3, 'navigation.js', 'caller', 'Open the caller', 1, 11), anchor(4, 'layout-a.js', 'context', 'Inspect a long source', 1, 30), anchor(5, 'layout-b.js', 'evidence', 'Compare the next source', 1, 30)], beats: [
         {id:'pair',narration:'{{a:1}} preserves the guard. {{a:2}} supplies the evidence. Pin these anchors to keep them visible.',active:[1,2]},

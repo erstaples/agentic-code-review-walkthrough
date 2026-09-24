@@ -71,7 +71,7 @@ function createTourController({ prepare, present, clear, publish, layoutAction }
       guard(body.expectedRevision);
       if (current.mode === "paused") throw fail("bad_request", "Resume the tour before changing its layout.");
       const presentation = await layoutAction(body, current);
-      current = { ...current, presentation }; revision++; const value = snapshot(); publish(value); return value;
+      current = { ...current, presentation, selectedAnchor: body.action === "place" && body.placement?.kind !== "peek" ? body.anchor : current.selectedAnchor }; revision++; const value = snapshot(); publish(value); return value;
     }),
     clear: () => run(async () => { await clear(); current = null; revision++; const value = snapshot(); publish(value); return value; }),
   };
