@@ -6,6 +6,7 @@ const vscode = require("vscode");
 const { startServer } = require("./lib/httpserver.js");
 const { writeLock, removeLock } = require("./lib/lockfile.js");
 const { PROTOCOL_VERSION } = require("./lib/contract.js");
+const { anchorNumber, filename } = require("./lib/narration.js");
 const { formatCitation } = require("./lib/citation.js");
 const { createTourController } = require("./lib/tour-controller.js");
 const { createTourHost } = require("./lib/tour-host.js");
@@ -14,15 +15,18 @@ const LOCK_DIR = path.join(os.homedir(), ".claude", "tour");
 let server, lockPath;
 
 async function activate(context) {
-  const host = createTourHost(vscode);
+  let controller;
+  const report = error => vscode.window.showWarningMessage(`Tour presentation: ${error.message}`);
+  const host = createTourHost(vscode, { changed: () => controller?.updatePresentation(host.snapshot).catch(report), explore: () => controller?.setState({ mode: "exploring" }).catch(report) });
   const status = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Right, 100);
   status.command = "relay.tour.focus";
-  let controller;
   const view = createTourView(vscode, context.extensionUri, () => controller);
   controller = createTourController({ prepare: host.prepare, present: host.present, clear: host.clear,
     publish(snapshot) {
       view.publish(snapshot);
-      if (snapshot.loaded) { status.text = `$(book) Stop ${snapshot.stopIndex + 1}/${snapshot.stopCount} · Beat ${snapshot.beatIndex + 1}/${snapshot.beatCount} · ${snapshot.mode}`; status.show(); }
+      if (snapshot.loaded) { const anchors = snapshot.beat.active.map(n => snapshot.stop.anchors.find(a => a.n === n));
+        const identity = anchors.length > 3 ? `${anchorNumber(anchors[0].n)} ${filename(anchors[0].path)} +${anchors.length - 1}` : anchors.map(a => `${anchorNumber(a.n)} ${filename(a.path)}`).join("  ");
+        status.text = `$(book) Stop ${snapshot.stopIndex + 1}/${snapshot.stopCount} · Beat ${snapshot.beatIndex + 1}/${snapshot.beatCount} · ${identity} · ${snapshot.mode}`; status.show(); }
       else status.hide();
     },
   });
@@ -51,7 +55,8 @@ async function activate(context) {
         else if (uri.scheme === "file") {
           const folder = vscode.workspace.getWorkspaceFolder(uri);
           if (!folder) throw new Error("Select a file in the workspace.");
-          relative = path.relative(folder.uri.fsPath, uri.fsPath); side = "working";
+          relative = path.relative(folder.uri.fsPath, uri.fsPath);
+          const source = host.citation(uri); side = source?.side || "working"; ref = source?.ref;
         } else throw new Error("Select a workspace file or tour source.");
         const value = formatCitation({ path: relative, side, ref, selection: editor.selection });
         await vscode.env.clipboard.writeText(value); return value;

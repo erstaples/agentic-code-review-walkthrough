@@ -74,7 +74,7 @@
       },
       {
         "id": "relay.anchor1",
-        "description": "Tour anchor 1 chip color",
+        "description": "Tour anchor 1 identity color",
         "defaults": {
           "dark": "#A99BF5",
           "light": "#6554B5",
@@ -84,7 +84,7 @@
       },
       {
         "id": "relay.anchor2",
-        "description": "Tour anchor 2 chip color",
+        "description": "Tour anchor 2 identity color",
         "defaults": {
           "dark": "#68CCBC",
           "light": "#14786A",
@@ -94,7 +94,7 @@
       },
       {
         "id": "relay.anchor3",
-        "description": "Tour anchor 3 chip color",
+        "description": "Tour anchor 3 identity color",
         "defaults": {
           "dark": "#EBC26B",
           "light": "#936B10",
@@ -104,7 +104,7 @@
       },
       {
         "id": "relay.anchor4",
-        "description": "Tour anchor 4 chip color",
+        "description": "Tour anchor 4 identity color",
         "defaults": {
           "dark": "#F19382",
           "light": "#A13F2D",
@@ -114,7 +114,7 @@
       },
       {
         "id": "relay.anchor5",
-        "description": "Tour anchor 5 chip color",
+        "description": "Tour anchor 5 identity color",
         "defaults": {
           "dark": "#84B8F5",
           "light": "#366FAF",
@@ -124,12 +124,132 @@
       },
       {
         "id": "relay.anchor6",
-        "description": "Tour anchor 6 chip color",
+        "description": "Tour anchor 6 identity color",
         "defaults": {
           "dark": "#E6A1CF",
           "light": "#95497C",
           "highContrast": "#E6A1CF",
           "highContrastLight": "#95497C"
+        }
+      },
+      {
+        "id": "relay.anchor1.labelBackground",
+        "description": "Tour anchor 1 inline label background",
+        "defaults": {
+          "dark": "#A99BF5",
+          "light": "#6554B5",
+          "highContrast": "#000000",
+          "highContrastLight": "#FFFFFF"
+        }
+      },
+      {
+        "id": "relay.anchor1.labelForeground",
+        "description": "Tour anchor 1 inline label foreground",
+        "defaults": {
+          "dark": "#181818",
+          "light": "#FFFFFF",
+          "highContrast": "#FFFFFF",
+          "highContrastLight": "#000000"
+        }
+      },
+      {
+        "id": "relay.anchor2.labelBackground",
+        "description": "Tour anchor 2 inline label background",
+        "defaults": {
+          "dark": "#68CCBC",
+          "light": "#14786A",
+          "highContrast": "#000000",
+          "highContrastLight": "#FFFFFF"
+        }
+      },
+      {
+        "id": "relay.anchor2.labelForeground",
+        "description": "Tour anchor 2 inline label foreground",
+        "defaults": {
+          "dark": "#181818",
+          "light": "#FFFFFF",
+          "highContrast": "#FFFFFF",
+          "highContrastLight": "#000000"
+        }
+      },
+      {
+        "id": "relay.anchor3.labelBackground",
+        "description": "Tour anchor 3 inline label background",
+        "defaults": {
+          "dark": "#EBC26B",
+          "light": "#936B10",
+          "highContrast": "#000000",
+          "highContrastLight": "#FFFFFF"
+        }
+      },
+      {
+        "id": "relay.anchor3.labelForeground",
+        "description": "Tour anchor 3 inline label foreground",
+        "defaults": {
+          "dark": "#181818",
+          "light": "#FFFFFF",
+          "highContrast": "#FFFFFF",
+          "highContrastLight": "#000000"
+        }
+      },
+      {
+        "id": "relay.anchor4.labelBackground",
+        "description": "Tour anchor 4 inline label background",
+        "defaults": {
+          "dark": "#F19382",
+          "light": "#A13F2D",
+          "highContrast": "#000000",
+          "highContrastLight": "#FFFFFF"
+        }
+      },
+      {
+        "id": "relay.anchor4.labelForeground",
+        "description": "Tour anchor 4 inline label foreground",
+        "defaults": {
+          "dark": "#181818",
+          "light": "#FFFFFF",
+          "highContrast": "#FFFFFF",
+          "highContrastLight": "#000000"
+        }
+      },
+      {
+        "id": "relay.anchor5.labelBackground",
+        "description": "Tour anchor 5 inline label background",
+        "defaults": {
+          "dark": "#84B8F5",
+          "light": "#366FAF",
+          "highContrast": "#000000",
+          "highContrastLight": "#FFFFFF"
+        }
+      },
+      {
+        "id": "relay.anchor5.labelForeground",
+        "description": "Tour anchor 5 inline label foreground",
+        "defaults": {
+          "dark": "#181818",
+          "light": "#FFFFFF",
+          "highContrast": "#FFFFFF",
+          "highContrastLight": "#000000"
+        }
+      },
+      {
+        "id": "relay.anchor6.labelBackground",
+        "description": "Tour anchor 6 inline label background",
+        "defaults": {
+          "dark": "#E6A1CF",
+          "light": "#95497C",
+          "highContrast": "#000000",
+          "highContrastLight": "#FFFFFF"
+        }
+      },
+      {
+        "id": "relay.anchor6.labelForeground",
+        "description": "Tour anchor 6 inline label foreground",
+        "defaults": {
+          "dark": "#181818",
+          "light": "#FFFFFF",
+          "highContrast": "#FFFFFF",
+          "highContrastLight": "#000000"
         }
       }
     ],
@@ -154,6 +274,15 @@
           "minimum": 1,
           "maximum": 99,
           "description": "Maximum anchors allowed per tour stop."
+        },
+        "relay.presentation.removedCode": {
+          "type": "string",
+          "enum": [
+            "companion",
+            "seam"
+          ],
+          "default": "companion",
+          "description": "Show removed base focus beside an inline diff when there is room, or offer a seam with Peek removed code."
         }
       }
     },

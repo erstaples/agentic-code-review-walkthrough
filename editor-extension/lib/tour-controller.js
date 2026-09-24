@@ -13,7 +13,7 @@ function createTourController({ prepare, present, clear, publish }) {
     return structuredClone({ revision, loaded: true, tourId: state.tourId, planId: state.plan.id,
       title: state.plan.title, mode: state.mode, stopIndex: state.stopIndex, beatIndex: state.beatIndex,
       stopCount: state.plan.stops.length, beatCount: stop.beats.length, stop, beat,
-      selectedAnchor: state.selectedAnchor, findings: state.findings,
+      selectedAnchor: state.selectedAnchor, findings: state.findings, presentation: state.presentation,
       narrationHtml: renderNarration(beat.narration, stop.anchors, "sidebar"),
       narration: renderNarration(beat.narration, stop.anchors, "terminal"),
       receiptNarration: renderNarration(beat.narration, stop.anchors, "receipt"),
@@ -25,12 +25,18 @@ function createTourController({ prepare, present, clear, publish }) {
     if (expected !== undefined && expected !== revision) throw fail("stale_presentation", "The tour changed; use the latest snapshot.");
   }
   async function commit(next, { focus = false } = {}) {
-    await present(next, { focus });
+    next.presentation = await present(next, { focus });
     current = next; revision++;
     const value = snapshot(); publish(value); return value;
   }
   return {
     snapshot,
+    updatePresentation: (read) => run(async () => {
+      if (!current) return;
+      const presentation = read();
+      if (JSON.stringify(presentation) === JSON.stringify(current.presentation)) return;
+      current = { ...current, presentation }; revision++; publish(snapshot());
+    }),
     load: (body) => run(async () => {
       const validated = await prepare(body);
       const first = validated.plan.stops[0].beats[0];

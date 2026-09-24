@@ -35,8 +35,14 @@ It shows stop and beat progress, risk, pinned revisions, and narration.
 
 `relay.presentation.dimOpacity` and `relay.presentation.showLabels` control
 context opacity and inline labels. `relay.tour.anchorLimit` limits anchors per
-stop (24 by default). The current phase presents one selected anchor at a time;
-multi-anchor layout and automatic tab cleanup are still to come.
+stop (24 by default). Up to three active anchors share numbered colors, inline labels, and tab badges.
+The status bar names their files. Removed base focus opens a companion when
+there is room, otherwise a seam offers **Peek removed code**. Set
+`relay.presentation.removedCode` to `seam` to always use that fallback.
+
+The tour reuses matching tabs and closes only untouched previews that it opened.
+Pinning, editing, or moving a tab makes it yours. Selecting code switches to
+Exploring. Layout placement and restoration remain later phases.
 
 ## Local connection
 

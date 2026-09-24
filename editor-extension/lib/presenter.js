@@ -1,15 +1,16 @@
 "use strict";
 
 // Decorations are owned by one activation, never by an individual editor.
-function createPresenter(vscode) {
+function createPresenter(vscode, color) {
+  const theme = name => color ? (name === "labelBackground" || name === "labelForeground" ? `relay.anchor${color}.${name}` : `relay.anchor${color}`) : `relay.presenter${name[0].toUpperCase()}${name.slice(1)}`;
   const tc = (id) => new vscode.ThemeColor(id);
   const type = (options) => vscode.window.createTextEditorDecorationType(options);
-  const border = (width, color = "relay.presenterFocus", style = "solid") => type({
+  const border = (width, color = theme("focus"), style = "solid") => type({
     isWholeLine: true, borderStyle: style, borderColor: tc(color), borderWidth: width,
   });
   const rail = (style) => type({
-    isWholeLine: true, borderStyle: style, borderColor: tc("relay.presenterRail"),
-    borderWidth: "0 0 0 3px", overviewRulerColor: tc("relay.presenterRail"),
+    isWholeLine: true, borderStyle: style, borderColor: tc(theme("rail")),
+    borderWidth: "0 0 0 3px", overviewRulerColor: tc(theme("rail")),
     overviewRulerLane: vscode.OverviewRulerLane.Left,
   });
   const types = {
@@ -17,10 +18,10 @@ function createPresenter(vscode) {
     dim: type({ opacity: "0.45" }),
     boxTop: border("1px 1px 0 1px"), boxMid: border("0 1px 0 1px"),
     boxBot: border("0 1px 1px 1px"), boxOne: border("1px"),
-    label: type({ after: { margin: "0 0 0 2em", color: tc("relay.presenterLabelForeground"), backgroundColor: tc("relay.presenterLabelBackground") } }),
-    seam: border("2px 0 0 0", "relay.presenterSeam", "dashed"),
+    label: type({ after: { margin: "0 0 0 2em", color: tc(theme("labelForeground")), backgroundColor: tc(theme("labelBackground")) } }),
+    seam: border("2px 0 0 0", theme("seam"), "dashed"),
     // Per-range renderOptions cannot change borders; EOF needs its own type.
-    seamBottom: border("0 0 2px 0", "relay.presenterSeam", "dashed"),
+    seamBottom: border("0 0 2px 0", theme("seam"), "dashed"),
     companionRemoved: type({ isWholeLine: true, backgroundColor: tc("diffEditor.removedLineBackground") }),
   };
   let opacity = 0.45;
@@ -55,7 +56,7 @@ function createPresenter(vscode) {
         .map((n) => new vscode.Range(n, 0, n, editor.document.lineAt(n).text.length)));
     }
     const labels = [];
-    const candidates = focus.length ? lines(focus[0], count).slice(0, 3) : stale ? contexts.slice(0, 1) : [];
+    const candidates = focus.length ? lines(focus[0], count).slice(0, 3) : (stale || p.label) ? contexts.slice(0, 3) : [];
     if (candidates.length && (stale || (p.showLabels !== false && p.state !== "exploring" && p.label))) {
       const n = candidates.reduce((best, n) => editor.document.lineAt(n).text.length < editor.document.lineAt(best).text.length ? n : best);
       labels.push({ range: line(n), renderOptions: { after: { contentText: `\u2002${stale ? "Stale" : p.label}\u2002` } } });
