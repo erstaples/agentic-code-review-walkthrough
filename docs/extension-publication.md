@@ -2,8 +2,8 @@
 
 The extension identity is `erstaples.codewalk-review`. Its version comes from
 `editor-extension/package.json`; the agent plugin has its own version lifecycle.
-The Marketplace package name is `codewalk-review`; the display name and branding
-remain `codewalk`.
+The Marketplace package name is `codewalk-review` and the display name is
+`codewalk Review`. The supplied codewalk logo assets remain in use.
 
 ## Branding assets
 
