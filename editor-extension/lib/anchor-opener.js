@@ -84,8 +84,8 @@ function createAnchorOpener(vscode, changed = () => {}) {
     }
 
   }
-  function prune() {
-    const retained = new Set(entries().flatMap(({tab}) => [key(tab.input?.uri), key(tab.input?.original), key(tab.input?.modified)]));
+  function prune(sources = []) {
+    const retained = new Set([...sources.map(key), ...entries().flatMap(({tab}) => [key(tab.input?.uri), key(tab.input?.original), key(tab.input?.modified)])]);
     for (const uri of documents.keys()) if (!retained.has(uri)) documents.delete(uri);
   }
   return { prune, describe, find, open, entries, matchesWorking, disposable, closeExcept,

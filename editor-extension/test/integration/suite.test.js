@@ -138,6 +138,27 @@ module.exports = function register({ test, before }) {
     fs.unlinkSync(note.fsPath);
     await load();
   });
+  test('reusing a real file retains the pinned base source for seam peek', async () => {
+    await api('tour_clear');
+    const config = vscode.workspace.getConfiguration('relay.presentation');
+    await config.update('removedCode','seam',vscode.ConfigurationTarget.Workspace);
+    const real = vscode.Uri.file(path.join(fixture.workspace,'service.js'));
+    await vscode.window.showTextDocument(await vscode.workspace.openTextDocument(real),{preview:false,viewColumn:1});
+    const r = await load();
+    assert.equal(r.snapshot.presentation.anchors[0].removedCode,'peek');
+    assert.equal(tabs().filter(t=>t.uri===real.toString()).length,1);
+    const payload = service.loadTour({workspace:fixture.workspace,dossierId:fixture.dossierId});
+    const a = payload.plan.stops[0].anchors[0];
+    const base = vscode.Uri.from({scheme:'relay-rev',path:'/'+a.path,query:JSON.stringify({path:path.join(fixture.workspace,a.path),ref:a.rev.base,side:'base',relay:'tour',identity:payload.change.manifestDigest})});
+    const document = await vscode.workspace.openTextDocument(base);
+    assert.match(document.getText(),/current: null/);
+    record('retained-peek-source',{reusedRealFile:true,pinnedBaseAvailable:true});
+    await api('tour_clear');
+    const user = vscode.window.tabGroups.all.flatMap(g=>g.tabs).find(t=>t.input?.uri?.toString()===real.toString());
+    await vscode.window.tabGroups.close(user,true);
+    await config.update('removedCode',undefined,vscode.ConfigurationTarget.Workspace);
+    await load();
+  });
   test('clear ends presentation without recording review acceptance, then reload begins at the first beat', async () => {
     let r = await api('tour_clear'); assert.equal(r.snapshot.loaded, false);
     const state = service.locate(fixture.workspace, fixture.dossierId).state;

@@ -11,7 +11,7 @@ The PR stays draft until the visible criteria below are proved in the editor.
 - 197 dependency-free tests pass, including source matching, buffer drift,
   tab ownership/adoption, group allocation, captured-text hunks, and bounded
   six-color decoration allocation.
-- All 12 native integration checks pass against the extracted VSIX in VS Code
+- All 13 native integration checks pass against the extracted VSIX in VS Code
   1.139.0 on macOS. The 32 packaged files match source.
 - [Native observations](automated.json) contain returned presentation snapshots
   and tab-preservation results. [Check metadata](checks.json) records the package
@@ -30,6 +30,7 @@ colors, labels, badges, or tooltips look on screen.
 | See both implementation and evidence for a beat | `load`: two visible anchors plus a base companion; normal head file URIs | Pending: both sources, numbered colored rails and labels, sidebar chips |
 | Identify each source consistently | Six reusable palette sets tested; status/labels/badge provider implemented | Pending: matching chip, tab badge, inline label, status bar identity |
 | Present three anchors without a fourth group | `three-anchors-peek`: three visible anchors, three groups, seam/peek mode | Pending: all three sources and working Peek removed code link |
+| Peek at pinned base code while reusing my real-file tab | `retained-peek-source`: one real tab, base text remains available | Pending: working Peek removed code interaction |
 | Inspect two disjoint ranges in one source without duplicate tabs | `same-source-identity`: selected anchor 4 visible, anchor 1 open, one source tab | Pending: anchor 4's badge/color/label and focused range |
 | Keep my unsaved changes while reviewing pinned source | `dirty-head-protected`: stale real source, pinned replacement, dirty tab retained after ending tour | Pending: stale rail/message, immutable source alongside unsaved buffer |
 | Pin a tour tab and keep it after advancing | `pinned-tab-protected`: pinned tab retained, ordinary old previews closed | Pending: pinned tab after stop navigation |

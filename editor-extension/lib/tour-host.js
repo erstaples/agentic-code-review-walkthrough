@@ -120,7 +120,7 @@ function createTourHost(vscode, { changed = () => {}, explore = () => {} } = {})
           }
         }
       }
-      paint(); badgeEvents.fire(undefined); opener.prune(); return snapshot();
+      paint(); badgeEvents.fire(undefined); opener.prune(records.flatMap(r => [r.base, r.head])); return snapshot();
     } finally { navigating--; }
   }
   const subscriptions = [

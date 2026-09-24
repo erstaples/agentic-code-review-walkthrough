@@ -6,8 +6,8 @@
       "value": {
         "revision": 1,
         "loaded": true,
-        "tourId": "dos_bea07ee4-7a3a-461c-963e-6f6dca0ffedc",
-        "planId": "pln_82fe27c4-b4e2-4d51-b2dc-c03b7316faf9",
+        "tourId": "dos_08f9bcc5-21cf-4fc4-82fc-9028e0efa215",
+        "planId": "pln_9e037729-083c-4c53-9342-8ab26c60fe68",
         "title": "A review that stays on track",
         "mode": "following",
         "stopIndex": 0,
@@ -45,8 +45,8 @@
               "n": 1,
               "path": "service.js",
               "rev": {
-                "base": "b76f66a3209a2b81c5c3dced7391c9e94c8e72d9",
-                "head": "aa1fb7bf8944bf8ffd544a0f740fea575ed1cb93"
+                "base": "7a26818ae0619a44bff9de8f5a18c271d00452a8",
+                "head": "b9ce2f33a91f52a7b69a550acc227c1c27dca190"
               },
               "role": "change",
               "side": "head",
@@ -67,8 +67,8 @@
               "n": 2,
               "path": "service.test.js",
               "rev": {
-                "base": "b76f66a3209a2b81c5c3dced7391c9e94c8e72d9",
-                "head": "aa1fb7bf8944bf8ffd544a0f740fea575ed1cb93"
+                "base": "7a26818ae0619a44bff9de8f5a18c271d00452a8",
+                "head": "b9ce2f33a91f52a7b69a550acc227c1c27dca190"
               },
               "role": "evidence",
               "side": "head",
@@ -87,8 +87,8 @@
               "n": 3,
               "path": "navigation.js",
               "rev": {
-                "base": "b76f66a3209a2b81c5c3dced7391c9e94c8e72d9",
-                "head": "aa1fb7bf8944bf8ffd544a0f740fea575ed1cb93"
+                "base": "7a26818ae0619a44bff9de8f5a18c271d00452a8",
+                "head": "b9ce2f33a91f52a7b69a550acc227c1c27dca190"
               },
               "role": "caller",
               "side": "head",
@@ -107,8 +107,8 @@
               "n": 4,
               "path": "service.js",
               "rev": {
-                "base": "b76f66a3209a2b81c5c3dced7391c9e94c8e72d9",
-                "head": "aa1fb7bf8944bf8ffd544a0f740fea575ed1cb93"
+                "base": "7a26818ae0619a44bff9de8f5a18c271d00452a8",
+                "head": "b9ce2f33a91f52a7b69a550acc227c1c27dca190"
               },
               "role": "callee",
               "side": "head",
@@ -213,7 +213,7 @@
         },
         "narrationHtml": "<strong>Keep the current review intact.</strong>\n\n<button class=\"chip color-1\" data-anchor=\"1\" title=\"service.js:1\u201311 \u00b7 Keep the active review\" aria-label=\"Open anchor 1: service.js:1\u201311 \u00b7 Keep the active review\">1</button> checks the incoming tour before it can replace what the reviewer sees.\n\nThe regression in <button class=\"chip color-2\" data-anchor=\"2\" title=\"service.test.js:3\u201312 \u00b7 Prove rejected loads are safe\" aria-label=\"Open anchor 2: service.test.js:3\u201312 \u00b7 Prove rejected loads are safe\">2</button> proves a failed load leaves the active stop unchanged.",
         "narration": "**Keep the current review intact.**\n\n\u2460 service.js:1 checks the incoming tour before it can replace what the reviewer sees.\n\nThe regression in \u2461 service.test.js:3 proves a failed load leaves the active stop unchanged.",
-        "receiptNarration": "**Keep the current review intact.**\n\n\u2460 service.js:1\u201311 @aa1fb7b checks the incoming tour before it can replace what the reviewer sees.\n\nThe regression in \u2461 service.test.js:3\u201312 @aa1fb7b proves a failed load leaves the active stop unchanged."
+        "receiptNarration": "**Keep the current review intact.**\n\n\u2460 service.js:1\u201311 @b9ce2f3 checks the incoming tour before it can replace what the reviewer sees.\n\nThe regression in \u2461 service.test.js:3\u201312 @b9ce2f3 proves a failed load leaves the active stop unchanged."
       }
     },
     {
@@ -221,8 +221,8 @@
       "value": {
         "revision": 2,
         "loaded": true,
-        "tourId": "dos_bea07ee4-7a3a-461c-963e-6f6dca0ffedc",
-        "planId": "pln_82fe27c4-b4e2-4d51-b2dc-c03b7316faf9",
+        "tourId": "dos_08f9bcc5-21cf-4fc4-82fc-9028e0efa215",
+        "planId": "pln_9e037729-083c-4c53-9342-8ab26c60fe68",
         "title": "A review that stays on track",
         "mode": "following",
         "stopIndex": 0,
@@ -260,8 +260,8 @@
               "n": 1,
               "path": "service.js",
               "rev": {
-                "base": "b76f66a3209a2b81c5c3dced7391c9e94c8e72d9",
-                "head": "aa1fb7bf8944bf8ffd544a0f740fea575ed1cb93"
+                "base": "7a26818ae0619a44bff9de8f5a18c271d00452a8",
+                "head": "b9ce2f33a91f52a7b69a550acc227c1c27dca190"
               },
               "role": "change",
               "side": "head",
@@ -282,8 +282,8 @@
               "n": 2,
               "path": "service.test.js",
               "rev": {
-                "base": "b76f66a3209a2b81c5c3dced7391c9e94c8e72d9",
-                "head": "aa1fb7bf8944bf8ffd544a0f740fea575ed1cb93"
+                "base": "7a26818ae0619a44bff9de8f5a18c271d00452a8",
+                "head": "b9ce2f33a91f52a7b69a550acc227c1c27dca190"
               },
               "role": "evidence",
               "side": "head",
@@ -302,8 +302,8 @@
               "n": 3,
               "path": "navigation.js",
               "rev": {
-                "base": "b76f66a3209a2b81c5c3dced7391c9e94c8e72d9",
-                "head": "aa1fb7bf8944bf8ffd544a0f740fea575ed1cb93"
+                "base": "7a26818ae0619a44bff9de8f5a18c271d00452a8",
+                "head": "b9ce2f33a91f52a7b69a550acc227c1c27dca190"
               },
               "role": "caller",
               "side": "head",
@@ -322,8 +322,8 @@
               "n": 4,
               "path": "service.js",
               "rev": {
-                "base": "b76f66a3209a2b81c5c3dced7391c9e94c8e72d9",
-                "head": "aa1fb7bf8944bf8ffd544a0f740fea575ed1cb93"
+                "base": "7a26818ae0619a44bff9de8f5a18c271d00452a8",
+                "head": "b9ce2f33a91f52a7b69a550acc227c1c27dca190"
               },
               "role": "callee",
               "side": "head",
@@ -428,7 +428,7 @@
         },
         "narrationHtml": "<strong>The failure path is observable.</strong>\n\n<button class=\"chip color-2\" data-anchor=\"2\" title=\"service.test.js:3\u201312 \u00b7 Prove rejected loads are safe\" aria-label=\"Open anchor 2: service.test.js:3\u201312 \u00b7 Prove rejected loads are safe\">2</button> checks both the validation finding and the retained review.\n\nReturn to <button class=\"chip color-1\" data-anchor=\"1\" title=\"service.js:1\u201311 \u00b7 Keep the active review\" aria-label=\"Open anchor 1: service.js:1\u201311 \u00b7 Keep the active review\">1</button> to trace the guard.",
         "narration": "**The failure path is observable.**\n\n\u2461 service.test.js:3 checks both the validation finding and the retained review.\n\nReturn to \u2460 service.js:1 to trace the guard.",
-        "receiptNarration": "**The failure path is observable.**\n\n\u2461 service.test.js:3\u201312 @aa1fb7b checks both the validation finding and the retained review.\n\nReturn to \u2460 service.js:1\u201311 @aa1fb7b to trace the guard."
+        "receiptNarration": "**The failure path is observable.**\n\n\u2461 service.test.js:3\u201312 @b9ce2f3 checks both the validation finding and the retained review.\n\nReturn to \u2460 service.js:1\u201311 @b9ce2f3 to trace the guard."
       }
     },
     {
@@ -436,8 +436,8 @@
       "value": {
         "revision": 4,
         "loaded": true,
-        "tourId": "dos_bea07ee4-7a3a-461c-963e-6f6dca0ffedc",
-        "planId": "pln_82fe27c4-b4e2-4d51-b2dc-c03b7316faf9",
+        "tourId": "dos_08f9bcc5-21cf-4fc4-82fc-9028e0efa215",
+        "planId": "pln_9e037729-083c-4c53-9342-8ab26c60fe68",
         "title": "A review that stays on track",
         "mode": "following",
         "stopIndex": 1,
@@ -459,8 +459,8 @@
               "n": 1,
               "path": "navigation.js",
               "rev": {
-                "base": "b76f66a3209a2b81c5c3dced7391c9e94c8e72d9",
-                "head": "aa1fb7bf8944bf8ffd544a0f740fea575ed1cb93"
+                "base": "7a26818ae0619a44bff9de8f5a18c271d00452a8",
+                "head": "b9ce2f33a91f52a7b69a550acc227c1c27dca190"
               },
               "role": "change",
               "side": "head",
@@ -479,8 +479,8 @@
               "n": 2,
               "path": "retired.js",
               "rev": {
-                "base": "b76f66a3209a2b81c5c3dced7391c9e94c8e72d9",
-                "head": "aa1fb7bf8944bf8ffd544a0f740fea575ed1cb93"
+                "base": "7a26818ae0619a44bff9de8f5a18c271d00452a8",
+                "head": "b9ce2f33a91f52a7b69a550acc227c1c27dca190"
               },
               "role": "context",
               "side": "base",
@@ -545,7 +545,7 @@
         },
         "narrationHtml": "<strong>Inspect the removed path.</strong>\n\n<button class=\"chip color-2\" data-anchor=\"2\" title=\"retired.js:1\u20134 \u00b7 The removed opening path\" aria-label=\"Open anchor 2: retired.js:1\u20134 \u00b7 The removed opening path\">2</button> comes from the base revision, even though the file no longer exists at the head.",
         "narration": "**Inspect the removed path.**\n\n\u2461 retired.js:1 comes from the base revision, even though the file no longer exists at the head.",
-        "receiptNarration": "**Inspect the removed path.**\n\n\u2461 retired.js:1\u20134 @b76f66a comes from the base revision, even though the file no longer exists at the head."
+        "receiptNarration": "**Inspect the removed path.**\n\n\u2461 retired.js:1\u20134 @7a26818 comes from the base revision, even though the file no longer exists at the head."
       }
     },
     {
@@ -553,8 +553,8 @@
       "value": {
         "revision": 7,
         "loaded": true,
-        "tourId": "dos_bea07ee4-7a3a-461c-963e-6f6dca0ffedc",
-        "planId": "pln_82fe27c4-b4e2-4d51-b2dc-c03b7316faf9",
+        "tourId": "dos_08f9bcc5-21cf-4fc4-82fc-9028e0efa215",
+        "planId": "pln_9e037729-083c-4c53-9342-8ab26c60fe68",
         "title": "A review that stays on track",
         "mode": "exploring",
         "stopIndex": 0,
@@ -592,8 +592,8 @@
               "n": 1,
               "path": "service.js",
               "rev": {
-                "base": "b76f66a3209a2b81c5c3dced7391c9e94c8e72d9",
-                "head": "aa1fb7bf8944bf8ffd544a0f740fea575ed1cb93"
+                "base": "7a26818ae0619a44bff9de8f5a18c271d00452a8",
+                "head": "b9ce2f33a91f52a7b69a550acc227c1c27dca190"
               },
               "role": "change",
               "side": "head",
@@ -614,8 +614,8 @@
               "n": 2,
               "path": "service.test.js",
               "rev": {
-                "base": "b76f66a3209a2b81c5c3dced7391c9e94c8e72d9",
-                "head": "aa1fb7bf8944bf8ffd544a0f740fea575ed1cb93"
+                "base": "7a26818ae0619a44bff9de8f5a18c271d00452a8",
+                "head": "b9ce2f33a91f52a7b69a550acc227c1c27dca190"
               },
               "role": "evidence",
               "side": "head",
@@ -634,8 +634,8 @@
               "n": 3,
               "path": "navigation.js",
               "rev": {
-                "base": "b76f66a3209a2b81c5c3dced7391c9e94c8e72d9",
-                "head": "aa1fb7bf8944bf8ffd544a0f740fea575ed1cb93"
+                "base": "7a26818ae0619a44bff9de8f5a18c271d00452a8",
+                "head": "b9ce2f33a91f52a7b69a550acc227c1c27dca190"
               },
               "role": "caller",
               "side": "head",
@@ -654,8 +654,8 @@
               "n": 4,
               "path": "service.js",
               "rev": {
-                "base": "b76f66a3209a2b81c5c3dced7391c9e94c8e72d9",
-                "head": "aa1fb7bf8944bf8ffd544a0f740fea575ed1cb93"
+                "base": "7a26818ae0619a44bff9de8f5a18c271d00452a8",
+                "head": "b9ce2f33a91f52a7b69a550acc227c1c27dca190"
               },
               "role": "callee",
               "side": "head",
@@ -760,7 +760,7 @@
         },
         "narrationHtml": "<strong>The failure path is observable.</strong>\n\n<button class=\"chip color-2\" data-anchor=\"2\" title=\"service.test.js:3\u201312 \u00b7 Prove rejected loads are safe\" aria-label=\"Open anchor 2: service.test.js:3\u201312 \u00b7 Prove rejected loads are safe\">2</button> checks both the validation finding and the retained review.\n\nReturn to <button class=\"chip color-1\" data-anchor=\"1\" title=\"service.js:1\u201311 \u00b7 Keep the active review\" aria-label=\"Open anchor 1: service.js:1\u201311 \u00b7 Keep the active review\">1</button> to trace the guard.",
         "narration": "**The failure path is observable.**\n\n\u2461 service.test.js:3 checks both the validation finding and the retained review.\n\nReturn to \u2460 service.js:1 to trace the guard.",
-        "receiptNarration": "**The failure path is observable.**\n\n\u2461 service.test.js:3\u201312 @aa1fb7b checks both the validation finding and the retained review.\n\nReturn to \u2460 service.js:1\u201311 @aa1fb7b to trace the guard."
+        "receiptNarration": "**The failure path is observable.**\n\n\u2461 service.test.js:3\u201312 @b9ce2f3 checks both the validation finding and the retained review.\n\nReturn to \u2460 service.js:1\u201311 @b9ce2f3 to trace the guard."
       }
     },
     {
@@ -768,8 +768,8 @@
       "value": {
         "revision": 8,
         "loaded": true,
-        "tourId": "dos_bea07ee4-7a3a-461c-963e-6f6dca0ffedc",
-        "planId": "pln_82fe27c4-b4e2-4d51-b2dc-c03b7316faf9",
+        "tourId": "dos_08f9bcc5-21cf-4fc4-82fc-9028e0efa215",
+        "planId": "pln_9e037729-083c-4c53-9342-8ab26c60fe68",
         "title": "A review that stays on track",
         "mode": "paused",
         "stopIndex": 0,
@@ -807,8 +807,8 @@
               "n": 1,
               "path": "service.js",
               "rev": {
-                "base": "b76f66a3209a2b81c5c3dced7391c9e94c8e72d9",
-                "head": "aa1fb7bf8944bf8ffd544a0f740fea575ed1cb93"
+                "base": "7a26818ae0619a44bff9de8f5a18c271d00452a8",
+                "head": "b9ce2f33a91f52a7b69a550acc227c1c27dca190"
               },
               "role": "change",
               "side": "head",
@@ -829,8 +829,8 @@
               "n": 2,
               "path": "service.test.js",
               "rev": {
-                "base": "b76f66a3209a2b81c5c3dced7391c9e94c8e72d9",
-                "head": "aa1fb7bf8944bf8ffd544a0f740fea575ed1cb93"
+                "base": "7a26818ae0619a44bff9de8f5a18c271d00452a8",
+                "head": "b9ce2f33a91f52a7b69a550acc227c1c27dca190"
               },
               "role": "evidence",
               "side": "head",
@@ -849,8 +849,8 @@
               "n": 3,
               "path": "navigation.js",
               "rev": {
-                "base": "b76f66a3209a2b81c5c3dced7391c9e94c8e72d9",
-                "head": "aa1fb7bf8944bf8ffd544a0f740fea575ed1cb93"
+                "base": "7a26818ae0619a44bff9de8f5a18c271d00452a8",
+                "head": "b9ce2f33a91f52a7b69a550acc227c1c27dca190"
               },
               "role": "caller",
               "side": "head",
@@ -869,8 +869,8 @@
               "n": 4,
               "path": "service.js",
               "rev": {
-                "base": "b76f66a3209a2b81c5c3dced7391c9e94c8e72d9",
-                "head": "aa1fb7bf8944bf8ffd544a0f740fea575ed1cb93"
+                "base": "7a26818ae0619a44bff9de8f5a18c271d00452a8",
+                "head": "b9ce2f33a91f52a7b69a550acc227c1c27dca190"
               },
               "role": "callee",
               "side": "head",
@@ -975,7 +975,7 @@
         },
         "narrationHtml": "<strong>The failure path is observable.</strong>\n\n<button class=\"chip color-2\" data-anchor=\"2\" title=\"service.test.js:3\u201312 \u00b7 Prove rejected loads are safe\" aria-label=\"Open anchor 2: service.test.js:3\u201312 \u00b7 Prove rejected loads are safe\">2</button> checks both the validation finding and the retained review.\n\nReturn to <button class=\"chip color-1\" data-anchor=\"1\" title=\"service.js:1\u201311 \u00b7 Keep the active review\" aria-label=\"Open anchor 1: service.js:1\u201311 \u00b7 Keep the active review\">1</button> to trace the guard.",
         "narration": "**The failure path is observable.**\n\n\u2461 service.test.js:3 checks both the validation finding and the retained review.\n\nReturn to \u2460 service.js:1 to trace the guard.",
-        "receiptNarration": "**The failure path is observable.**\n\n\u2461 service.test.js:3\u201312 @aa1fb7b checks both the validation finding and the retained review.\n\nReturn to \u2460 service.js:1\u201311 @aa1fb7b to trace the guard."
+        "receiptNarration": "**The failure path is observable.**\n\n\u2461 service.test.js:3\u201312 @b9ce2f3 checks both the validation finding and the retained review.\n\nReturn to \u2460 service.js:1\u201311 @b9ce2f3 to trace the guard."
       }
     },
     {
@@ -1001,8 +1001,8 @@
         "unchangedSnapshot": {
           "revision": 9,
           "loaded": true,
-          "tourId": "dos_bea07ee4-7a3a-461c-963e-6f6dca0ffedc",
-          "planId": "pln_82fe27c4-b4e2-4d51-b2dc-c03b7316faf9",
+          "tourId": "dos_08f9bcc5-21cf-4fc4-82fc-9028e0efa215",
+          "planId": "pln_9e037729-083c-4c53-9342-8ab26c60fe68",
           "title": "A review that stays on track",
           "mode": "following",
           "stopIndex": 0,
@@ -1040,8 +1040,8 @@
                 "n": 1,
                 "path": "service.js",
                 "rev": {
-                  "base": "b76f66a3209a2b81c5c3dced7391c9e94c8e72d9",
-                  "head": "aa1fb7bf8944bf8ffd544a0f740fea575ed1cb93"
+                  "base": "7a26818ae0619a44bff9de8f5a18c271d00452a8",
+                  "head": "b9ce2f33a91f52a7b69a550acc227c1c27dca190"
                 },
                 "role": "change",
                 "side": "head",
@@ -1062,8 +1062,8 @@
                 "n": 2,
                 "path": "service.test.js",
                 "rev": {
-                  "base": "b76f66a3209a2b81c5c3dced7391c9e94c8e72d9",
-                  "head": "aa1fb7bf8944bf8ffd544a0f740fea575ed1cb93"
+                  "base": "7a26818ae0619a44bff9de8f5a18c271d00452a8",
+                  "head": "b9ce2f33a91f52a7b69a550acc227c1c27dca190"
                 },
                 "role": "evidence",
                 "side": "head",
@@ -1082,8 +1082,8 @@
                 "n": 3,
                 "path": "navigation.js",
                 "rev": {
-                  "base": "b76f66a3209a2b81c5c3dced7391c9e94c8e72d9",
-                  "head": "aa1fb7bf8944bf8ffd544a0f740fea575ed1cb93"
+                  "base": "7a26818ae0619a44bff9de8f5a18c271d00452a8",
+                  "head": "b9ce2f33a91f52a7b69a550acc227c1c27dca190"
                 },
                 "role": "caller",
                 "side": "head",
@@ -1102,8 +1102,8 @@
                 "n": 4,
                 "path": "service.js",
                 "rev": {
-                  "base": "b76f66a3209a2b81c5c3dced7391c9e94c8e72d9",
-                  "head": "aa1fb7bf8944bf8ffd544a0f740fea575ed1cb93"
+                  "base": "7a26818ae0619a44bff9de8f5a18c271d00452a8",
+                  "head": "b9ce2f33a91f52a7b69a550acc227c1c27dca190"
                 },
                 "role": "callee",
                 "side": "head",
@@ -1208,11 +1208,11 @@
           },
           "narrationHtml": "<strong>The failure path is observable.</strong>\n\n<button class=\"chip color-2\" data-anchor=\"2\" title=\"service.test.js:3\u201312 \u00b7 Prove rejected loads are safe\" aria-label=\"Open anchor 2: service.test.js:3\u201312 \u00b7 Prove rejected loads are safe\">2</button> checks both the validation finding and the retained review.\n\nReturn to <button class=\"chip color-1\" data-anchor=\"1\" title=\"service.js:1\u201311 \u00b7 Keep the active review\" aria-label=\"Open anchor 1: service.js:1\u201311 \u00b7 Keep the active review\">1</button> to trace the guard.",
           "narration": "**The failure path is observable.**\n\n\u2461 service.test.js:3 checks both the validation finding and the retained review.\n\nReturn to \u2460 service.js:1 to trace the guard.",
-          "receiptNarration": "**The failure path is observable.**\n\n\u2461 service.test.js:3\u201312 @aa1fb7b checks both the validation finding and the retained review.\n\nReturn to \u2460 service.js:1\u201311 @aa1fb7b to trace the guard."
+          "receiptNarration": "**The failure path is observable.**\n\n\u2461 service.test.js:3\u201312 @b9ce2f3 checks both the validation finding and the retained review.\n\nReturn to \u2460 service.js:1\u201311 @b9ce2f3 to trace the guard."
         },
         "unchangedTabs": [
           {
-            "label": "service.js (b76f66a \u2194 aa1fb7b)"
+            "label": "service.js (7a26818 \u2194 b9ce2f3)"
           },
           {
             "label": "service.test.js"
@@ -1228,8 +1228,8 @@
       "value": {
         "revision": 11,
         "loaded": true,
-        "tourId": "dos_bea07ee4-7a3a-461c-963e-6f6dca0ffedc",
-        "planId": "pln_82fe27c4-b4e2-4d51-b2dc-c03b7316faf9",
+        "tourId": "dos_08f9bcc5-21cf-4fc4-82fc-9028e0efa215",
+        "planId": "pln_9e037729-083c-4c53-9342-8ab26c60fe68",
         "title": "A review that stays on track",
         "mode": "following",
         "stopIndex": 0,
@@ -1267,8 +1267,8 @@
               "n": 1,
               "path": "service.js",
               "rev": {
-                "base": "b76f66a3209a2b81c5c3dced7391c9e94c8e72d9",
-                "head": "aa1fb7bf8944bf8ffd544a0f740fea575ed1cb93"
+                "base": "7a26818ae0619a44bff9de8f5a18c271d00452a8",
+                "head": "b9ce2f33a91f52a7b69a550acc227c1c27dca190"
               },
               "role": "change",
               "side": "head",
@@ -1289,8 +1289,8 @@
               "n": 2,
               "path": "service.test.js",
               "rev": {
-                "base": "b76f66a3209a2b81c5c3dced7391c9e94c8e72d9",
-                "head": "aa1fb7bf8944bf8ffd544a0f740fea575ed1cb93"
+                "base": "7a26818ae0619a44bff9de8f5a18c271d00452a8",
+                "head": "b9ce2f33a91f52a7b69a550acc227c1c27dca190"
               },
               "role": "evidence",
               "side": "head",
@@ -1309,8 +1309,8 @@
               "n": 3,
               "path": "navigation.js",
               "rev": {
-                "base": "b76f66a3209a2b81c5c3dced7391c9e94c8e72d9",
-                "head": "aa1fb7bf8944bf8ffd544a0f740fea575ed1cb93"
+                "base": "7a26818ae0619a44bff9de8f5a18c271d00452a8",
+                "head": "b9ce2f33a91f52a7b69a550acc227c1c27dca190"
               },
               "role": "caller",
               "side": "head",
@@ -1329,8 +1329,8 @@
               "n": 4,
               "path": "service.js",
               "rev": {
-                "base": "b76f66a3209a2b81c5c3dced7391c9e94c8e72d9",
-                "head": "aa1fb7bf8944bf8ffd544a0f740fea575ed1cb93"
+                "base": "7a26818ae0619a44bff9de8f5a18c271d00452a8",
+                "head": "b9ce2f33a91f52a7b69a550acc227c1c27dca190"
               },
               "role": "callee",
               "side": "head",
@@ -1436,7 +1436,7 @@
         },
         "narrationHtml": "<strong>All three sources.</strong> <button class=\"chip color-1\" data-anchor=\"1\" title=\"service.js:1\u201311 \u00b7 Keep the active review\" aria-label=\"Open anchor 1: service.js:1\u201311 \u00b7 Keep the active review\">1</button> rejects invalid input, <button class=\"chip color-2\" data-anchor=\"2\" title=\"service.test.js:3\u201312 \u00b7 Prove rejected loads are safe\" aria-label=\"Open anchor 2: service.test.js:3\u201312 \u00b7 Prove rejected loads are safe\">2</button> checks the result, and <button class=\"chip color-3\" data-anchor=\"3\" title=\"navigation.js:1\u201311 \u00b7 Advance the review\" aria-label=\"Open anchor 3: navigation.js:1\u201311 \u00b7 Advance the review\">3</button> advances the review.",
         "narration": "**All three sources.** \u2460 service.js:1 rejects invalid input, \u2461 service.test.js:3 checks the result, and \u2462 navigation.js:1 advances the review.",
-        "receiptNarration": "**All three sources.** \u2460 service.js:1\u201311 @aa1fb7b rejects invalid input, \u2461 service.test.js:3\u201312 @aa1fb7b checks the result, and \u2462 navigation.js:1\u201311 @aa1fb7b advances the review."
+        "receiptNarration": "**All three sources.** \u2460 service.js:1\u201311 @b9ce2f3 rejects invalid input, \u2461 service.test.js:3\u201312 @b9ce2f3 checks the result, and \u2462 navigation.js:1\u201311 @b9ce2f3 advances the review."
       }
     },
     {
@@ -1444,8 +1444,8 @@
       "value": {
         "revision": 13,
         "loaded": true,
-        "tourId": "dos_bea07ee4-7a3a-461c-963e-6f6dca0ffedc",
-        "planId": "pln_82fe27c4-b4e2-4d51-b2dc-c03b7316faf9",
+        "tourId": "dos_08f9bcc5-21cf-4fc4-82fc-9028e0efa215",
+        "planId": "pln_9e037729-083c-4c53-9342-8ab26c60fe68",
         "title": "A review that stays on track",
         "mode": "following",
         "stopIndex": 0,
@@ -1483,8 +1483,8 @@
               "n": 1,
               "path": "service.js",
               "rev": {
-                "base": "b76f66a3209a2b81c5c3dced7391c9e94c8e72d9",
-                "head": "aa1fb7bf8944bf8ffd544a0f740fea575ed1cb93"
+                "base": "7a26818ae0619a44bff9de8f5a18c271d00452a8",
+                "head": "b9ce2f33a91f52a7b69a550acc227c1c27dca190"
               },
               "role": "change",
               "side": "head",
@@ -1505,8 +1505,8 @@
               "n": 2,
               "path": "service.test.js",
               "rev": {
-                "base": "b76f66a3209a2b81c5c3dced7391c9e94c8e72d9",
-                "head": "aa1fb7bf8944bf8ffd544a0f740fea575ed1cb93"
+                "base": "7a26818ae0619a44bff9de8f5a18c271d00452a8",
+                "head": "b9ce2f33a91f52a7b69a550acc227c1c27dca190"
               },
               "role": "evidence",
               "side": "head",
@@ -1525,8 +1525,8 @@
               "n": 3,
               "path": "navigation.js",
               "rev": {
-                "base": "b76f66a3209a2b81c5c3dced7391c9e94c8e72d9",
-                "head": "aa1fb7bf8944bf8ffd544a0f740fea575ed1cb93"
+                "base": "7a26818ae0619a44bff9de8f5a18c271d00452a8",
+                "head": "b9ce2f33a91f52a7b69a550acc227c1c27dca190"
               },
               "role": "caller",
               "side": "head",
@@ -1545,8 +1545,8 @@
               "n": 4,
               "path": "service.js",
               "rev": {
-                "base": "b76f66a3209a2b81c5c3dced7391c9e94c8e72d9",
-                "head": "aa1fb7bf8944bf8ffd544a0f740fea575ed1cb93"
+                "base": "7a26818ae0619a44bff9de8f5a18c271d00452a8",
+                "head": "b9ce2f33a91f52a7b69a550acc227c1c27dca190"
               },
               "role": "callee",
               "side": "head",
@@ -1651,7 +1651,7 @@
         },
         "narrationHtml": "<strong>Two ranges, one source.</strong> <button class=\"chip color-4\" data-anchor=\"4\" title=\"service.js:13\u201319 \u00b7 Normalize the valid candidate\" aria-label=\"Open anchor 4: service.js:13\u201319 \u00b7 Normalize the valid candidate\">4</button> normalizes the candidate that <button class=\"chip color-1\" data-anchor=\"1\" title=\"service.js:1\u201311 \u00b7 Keep the active review\" aria-label=\"Open anchor 1: service.js:1\u201311 \u00b7 Keep the active review\">1</button> checked.",
         "narration": "**Two ranges, one source.** \u2463 service.js:13 normalizes the candidate that \u2460 service.js:1 checked.",
-        "receiptNarration": "**Two ranges, one source.** \u2463 service.js:13\u201319 @aa1fb7b normalizes the candidate that \u2460 service.js:1\u201311 @aa1fb7b checked."
+        "receiptNarration": "**Two ranges, one source.** \u2463 service.js:13\u201319 @b9ce2f3 normalizes the candidate that \u2460 service.js:1\u201311 @b9ce2f3 checked."
       }
     },
     {
@@ -1743,7 +1743,7 @@
       "name": "pinned-tab-protected",
       "value": {
         "labels": [
-          "service.js (b76f66a \u2194 aa1fb7b)",
+          "service.js (7a26818 \u2194 b9ce2f3)",
           "navigation.js"
         ]
       }
@@ -1756,12 +1756,19 @@
       }
     },
     {
+      "name": "retained-peek-source",
+      "value": {
+        "reusedRealFile": true,
+        "pinnedBaseAvailable": true
+      }
+    },
+    {
       "name": "reloaded",
       "value": {
-        "revision": 27,
+        "revision": 31,
         "loaded": true,
-        "tourId": "dos_bea07ee4-7a3a-461c-963e-6f6dca0ffedc",
-        "planId": "pln_82fe27c4-b4e2-4d51-b2dc-c03b7316faf9",
+        "tourId": "dos_08f9bcc5-21cf-4fc4-82fc-9028e0efa215",
+        "planId": "pln_9e037729-083c-4c53-9342-8ab26c60fe68",
         "title": "A review that stays on track",
         "mode": "following",
         "stopIndex": 0,
@@ -1799,8 +1806,8 @@
               "n": 1,
               "path": "service.js",
               "rev": {
-                "base": "b76f66a3209a2b81c5c3dced7391c9e94c8e72d9",
-                "head": "aa1fb7bf8944bf8ffd544a0f740fea575ed1cb93"
+                "base": "7a26818ae0619a44bff9de8f5a18c271d00452a8",
+                "head": "b9ce2f33a91f52a7b69a550acc227c1c27dca190"
               },
               "role": "change",
               "side": "head",
@@ -1821,8 +1828,8 @@
               "n": 2,
               "path": "service.test.js",
               "rev": {
-                "base": "b76f66a3209a2b81c5c3dced7391c9e94c8e72d9",
-                "head": "aa1fb7bf8944bf8ffd544a0f740fea575ed1cb93"
+                "base": "7a26818ae0619a44bff9de8f5a18c271d00452a8",
+                "head": "b9ce2f33a91f52a7b69a550acc227c1c27dca190"
               },
               "role": "evidence",
               "side": "head",
@@ -1841,8 +1848,8 @@
               "n": 3,
               "path": "navigation.js",
               "rev": {
-                "base": "b76f66a3209a2b81c5c3dced7391c9e94c8e72d9",
-                "head": "aa1fb7bf8944bf8ffd544a0f740fea575ed1cb93"
+                "base": "7a26818ae0619a44bff9de8f5a18c271d00452a8",
+                "head": "b9ce2f33a91f52a7b69a550acc227c1c27dca190"
               },
               "role": "caller",
               "side": "head",
@@ -1861,8 +1868,8 @@
               "n": 4,
               "path": "service.js",
               "rev": {
-                "base": "b76f66a3209a2b81c5c3dced7391c9e94c8e72d9",
-                "head": "aa1fb7bf8944bf8ffd544a0f740fea575ed1cb93"
+                "base": "7a26818ae0619a44bff9de8f5a18c271d00452a8",
+                "head": "b9ce2f33a91f52a7b69a550acc227c1c27dca190"
               },
               "role": "callee",
               "side": "head",
@@ -1967,7 +1974,7 @@
         },
         "narrationHtml": "<strong>Keep the current review intact.</strong>\n\n<button class=\"chip color-1\" data-anchor=\"1\" title=\"service.js:1\u201311 \u00b7 Keep the active review\" aria-label=\"Open anchor 1: service.js:1\u201311 \u00b7 Keep the active review\">1</button> checks the incoming tour before it can replace what the reviewer sees.\n\nThe regression in <button class=\"chip color-2\" data-anchor=\"2\" title=\"service.test.js:3\u201312 \u00b7 Prove rejected loads are safe\" aria-label=\"Open anchor 2: service.test.js:3\u201312 \u00b7 Prove rejected loads are safe\">2</button> proves a failed load leaves the active stop unchanged.",
         "narration": "**Keep the current review intact.**\n\n\u2460 service.js:1 checks the incoming tour before it can replace what the reviewer sees.\n\nThe regression in \u2461 service.test.js:3 proves a failed load leaves the active stop unchanged.",
-        "receiptNarration": "**Keep the current review intact.**\n\n\u2460 service.js:1\u201311 @aa1fb7b checks the incoming tour before it can replace what the reviewer sees.\n\nThe regression in \u2461 service.test.js:3\u201312 @aa1fb7b proves a failed load leaves the active stop unchanged."
+        "receiptNarration": "**Keep the current review intact.**\n\n\u2460 service.js:1\u201311 @b9ce2f3 checks the incoming tour before it can replace what the reviewer sees.\n\nThe regression in \u2461 service.test.js:3\u201312 @b9ce2f3 proves a failed load leaves the active stop unchanged."
       }
     }
   ]

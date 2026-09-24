@@ -6,12 +6,12 @@
     "failed": 0
   },
   "nativeTests": {
-    "passed": 12,
+    "passed": 13,
     "failed": 0
   },
   "package": {
     "files": 32,
-    "sha256": "a450a6f0f0ae0de39e40f6366089ff0eee7166217abe6cc9e5a2ba332119f12d"
+    "sha256": "4f4ce803acd17b499a0048812f4da8b2cd9fbf41676b63a2fb06674f0301f166"
   },
   "screenshots": {
     "status": "blocked",
