@@ -89,6 +89,12 @@ entities after creation. Link the entities used by each stop in
 current exact change revision, a thesis, at least one claim, and a tour plan.
 Prefer a few coherent atomic batches over one enormous brittle command batch.
 
+Every `CreateTourPlan` must use `presentationVersion: 2` and the required
+[stop, anchor, and beat contract](../../docs/relay-v2-tour-model.md). Give each
+stop an id, risk, numbered source-backed anchors, and beats with `{{a:N}}`
+narration references and prioritized `active` numbers. Fix validation findings
+before preparing the dossier; do not fall back to unversioned or metadata-only stops.
+
 A stop is one logical, commit-message-worthy change — not one file and not one
 hunk. A rename that touches five files is one stop. A file with two unrelated
 changes is two stops. Order stops so dependencies come first (e.g. a new type

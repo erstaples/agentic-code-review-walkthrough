@@ -2,6 +2,16 @@
 
 const { request } = require("./bridge.js");
 const { DossierService } = require("./dossier/service.js");
+const tourSchema = require("../../schemas/tour-plan.schema.json");
+
+// MCP command schemas are embedded: expand local refs so clients can inspect
+// the v2 shape without fetching an external schema document.
+function inlineTourSchema(value) {
+  if (Array.isArray(value)) return value.map(inlineTourSchema);
+  if (!value || typeof value !== "object") return value;
+  if (value.$ref) return inlineTourSchema(tourSchema.$defs[value.$ref.split("/").at(-1)]);
+  return Object.fromEntries(Object.entries(value).map(([key, child]) => [key, inlineTourSchema(child)]));
+}
 
 const WORKSPACE = {
   type: "string",
@@ -119,7 +129,10 @@ const COMMAND = {
     command("SetThesis", ["thesis"], { thesis: ENTITY_INPUT }),
     ...["Requirement", "Claim", "Decision", "Assumption", "Invariant", "Risk", "Evidence", "CodeReference"].map((noun) => command(`Add${noun}`, [noun[0].toLowerCase() + noun.slice(1)], { [noun[0].toLowerCase() + noun.slice(1)]: ENTITY_INPUT })),
     command("AddRelationship", ["relationship"], { relationship: ENTITY_INPUT }),
-    command("CreateTourPlan", ["stops"], { title: { type: "string" }, stops: { type: "array", minItems: 1, items: { type: "object" } } }),
+    command("CreateTourPlan", ["presentationVersion", "stops"], {
+      title: { type: "string" }, presentationVersion: { const: 2 },
+      stops: { type: "array", minItems: 1, items: inlineTourSchema(tourSchema.$defs.stop) },
+    }),
     command("MarkPrepared"),
     command("StartReviewSession", [], { reviewer: ACTOR, sessionId: { type: "string" } }),
     command("StartStop", ["sessionId", "stopId"], { sessionId: { type: "string" }, stopId: { type: "string" } }),

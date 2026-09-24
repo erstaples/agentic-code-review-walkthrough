@@ -22,3 +22,8 @@ module.exports = ${JSON.stringify(
 fs.mkdirSync(path.dirname(out), { recursive: true });
 fs.writeFileSync(out, body);
 console.log(`wrote ${out}`);
+
+// Source-backed tour validation must behave identically in the MCP and VSIX.
+const tourOut = path.join(path.dirname(out), "tour-contract.js");
+fs.writeFileSync(tourOut, fs.readFileSync(path.join(__dirname, "tour.js")));
+console.log(`wrote ${tourOut}`);

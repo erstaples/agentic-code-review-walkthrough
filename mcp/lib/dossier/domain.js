@@ -134,6 +134,7 @@ function eventForCommand(state, command, actor, occurredAt = now()) {
     return { eventType: "RelationshipAdded", payload: { relationship } };
   }
   if (command.type === "CreateTourPlan") {
+    invariant(command.presentationVersion === 2, "invalid_tour_plan", "tour plans require presentationVersion 2");
     invariant(Array.isArray(command.stops) && command.stops.length > 0, "invalid_tour_plan", "tour plan requires at least one stop");
     const planId = command.id || id("pln");
     const stops = command.stops.map((stop, index) => {
@@ -142,7 +143,7 @@ function eventForCommand(state, command, actor, occurredAt = now()) {
       invariant(stop.type === "context" || coveredEntityIds.length > 0, "invalid_tour_stop", "non-context stops must cover at least one entity");
       return { ...clone(stop), id: stop.id || id("stp"), index: index + 1, coveredEntityIds, reviewState: "not-visited", reviewedAtChangeRevisionId: null };
     });
-    return { eventType: "TourPlanCreated", payload: { plan: { id: planId, version: 1, title: command.title || state.title, createdAt: occurredAt, createdBy: clone(actor), stops } } };
+    return { eventType: "TourPlanCreated", payload: { plan: { id: planId, version: 1, presentationVersion: 2, title: command.title || state.title, createdAt: occurredAt, createdBy: clone(actor), stops } } };
   }
   if (command.type === "MarkPrepared") {
     invariant(state.thesis, "not_ready", "a thesis is required before preparation");
