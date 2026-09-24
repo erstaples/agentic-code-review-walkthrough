@@ -68,7 +68,7 @@ function renderPicker() {
   if (!row) return;
   byId("picker-title").textContent = `${row.slot ? "Move" : "Open"} ${row.n} · ${row.filename}`;
   const choices = byId("placement-options"); choices.replaceChildren();
-  for (const option of row.options.filter(o => o.kind !== "auto")) {
+  for (const option of row.options.filter(o => o.kind !== "auto").sort((a, b) => Number(a.kind === "peek") - Number(b.kind === "peek"))) {
     const slot = snapshot.presentation.layout.slots.find(s => s.anchor === option.of);
     const label = option.kind === "peek" ? "Peek" : `${({ below: "Below", beside: "Beside", replace: "Replace" })[option.kind]} ${option.of}`;
     const tile = button("", `${label}${slot ? ` in ${model.position(slot.slot)}` : ` at anchor ${row.n}`}`, { placement: option.kind, of: option.of ?? "" });

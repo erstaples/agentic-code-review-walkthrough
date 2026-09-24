@@ -2,17 +2,18 @@
 
 const crypto = require("node:crypto");
 function createTourView(vscode, extensionUri, controller) {
-  let view, latest = { loaded: false, revision: 0 };
+  let view, pendingAnchor, ready = false, latest = { loaded: false, revision: 0 };
   const publish = (snapshot) => { latest = snapshot; return view?.webview.postMessage({ type: "snapshot", snapshot }); };
   return {
     publish,
     async showAnchor(anchor) {
       await vscode.commands.executeCommand("kanko.tour.focus");
       view?.show?.(false);
-      await view?.webview.postMessage({ type: "selectAnchor", anchor });
+      pendingAnchor = anchor;
+      if (ready) { await view?.webview.postMessage({ type: "selectAnchor", anchor }); pendingAnchor = undefined; }
     },
     resolveWebviewView(resolved) {
-      view = resolved;
+      view = resolved; ready = false;
       const media = vscode.Uri.joinPath(extensionUri, "media");
       view.webview.options = { enableScripts: true, localResourceRoots: [media] };
       const script = view.webview.asWebviewUri(vscode.Uri.joinPath(media, "tour.js"));
@@ -43,7 +44,8 @@ function createTourView(vscode, extensionUri, controller) {
         if (!message || typeof message !== "object") return;
         try {
           const api = controller();
-          if (message.type === "ready") { publish(latest); return; }
+          if (message.type === "ready") { ready = true; await publish(latest); if (pendingAnchor !== undefined) { await view.webview.postMessage({ type: "selectAnchor", anchor: pendingAnchor }); pendingAnchor = undefined; } return; }
+          if (["navigate", "state", "focus", "layout", "sequenceOverride"].includes(message.type) && !Number.isInteger(message.revision)) throw new Error("Use the latest tour snapshot before changing the presentation.");
           if (message.type === "navigate") await api.navigate({ action: message.action, expectedRevision: message.revision });
           else if (message.type === "state") await api.setState({ mode: message.mode, expectedRevision: message.revision });
           else if (message.type === "focus") await api.focus({ anchor: message.anchor, expectedRevision: message.revision });

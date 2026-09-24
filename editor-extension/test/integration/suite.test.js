@@ -318,6 +318,19 @@ module.exports = function register({ test, before }) {
     await layoutCommand({action:'pin',anchor:3,pinned:true});s=await layoutCommand({action:'reset'});
     assert.ok(s.presentation.layout.slots.every(s=>!s.pinned));assert.equal(s.presentation.layout.preferences.caller.slot,'bottom');record('move-reset',s);
   });
+  test('moving from an emptying group tolerates native group renumbering',async()=>{
+    await sidebarFixture({count:3});await vscode.workspace.getConfiguration('workbench.editor').update('closeEmptyGroups',true,vscode.ConfigurationTarget.Workspace);
+    let preview;
+    for(let attempt=0;attempt<20;attempt++){
+      const before=(await api('kanko_tour_status')).snapshot;
+      preview=before.presentation.layout.options[1].find(o=>o.kind==='replace'&&o.of===2).preview;
+      if(preview.length===1)break;await sleep(50);
+    }
+    assert.deepEqual(preview,[{x:0,y:0,w:1,h:1,anchor:1}]);
+    const s=await layoutCommand({action:'place',anchor:1,placement:{kind:'replace',of:2}});
+    assert.equal(s.presentation.anchors.find(a=>a.n===1).status,'visible');assert.equal(tabs().filter(t=>t.uri?.includes('/service.js')).length,1);record('move-renumbered-group',s);
+    await vscode.workspace.getConfiguration('workbench.editor').update('closeEmptyGroups',undefined,vscode.ConfigurationTarget.Workspace);
+  });
   test('99 source-backed anchors load within the configured ceiling',async()=>{
     const s=await sidebarFixture({count:99});assert.equal(s.stop.anchors.length,99);assert.equal(s.presentation.layout.slots.length,2);record('large-stop',s);
   });
@@ -327,7 +340,9 @@ module.exports = function register({ test, before }) {
     const file = path.join(output, 'control.json'); const deadline = Date.now() + 20 * 60 * 1000;
     while (Date.now() < deadline) {
       if (fs.existsSync(file)) {
-        const command = JSON.parse(fs.readFileSync(file)); fs.unlinkSync(file);
+        let command;
+        try { command = JSON.parse(fs.readFileSync(file)); } catch (error) { if (!(error instanceof SyntaxError)) throw error; await sleep(200); continue; }
+        fs.unlinkSync(file);
         if (command.action === 'finish') return;
         let result;
         if (command.action === 'sidebar') result = await sidebarFixture(command.options);

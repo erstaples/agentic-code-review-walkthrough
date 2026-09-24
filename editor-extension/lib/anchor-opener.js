@@ -80,9 +80,10 @@ function createAnchorOpener(vscode, changed = () => {}) {
     if (!existing) return null;
     // Native move preserves dirty content and tab identity instead of opening
     // a duplicate and guessing whether it is safe to close the original.
+    const destination = vscode.window.tabGroups.all.find(g => g.viewColumn === column);
     await vscode.commands.executeCommand("moveActiveEditor", { to: "position", by: "group", value: column });
     const moved = find(record);
-    if (moved?.column !== column) throw new Error("The editor could not move to that group.");
+    if (!moved || !destination?.tabs.includes(moved.tab)) throw new Error("The editor could not move to that group.");
     return moved;
   }
   async function closeExcept(keep) {

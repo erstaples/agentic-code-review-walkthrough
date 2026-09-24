@@ -161,7 +161,7 @@ function createTourHost(vscode, { changed = () => {}, explore = () => {} } = {})
     vscode.window.onDidChangeVisibleTextEditors(schedule),
     vscode.window.onDidChangeTextEditorVisibleRanges(schedule),
     vscode.workspace.onDidChangeTextDocument(schedule),
-    vscode.workspace.onDidChangeConfiguration(e => { if (e.affectsConfiguration("kanko.presentation") || e.affectsConfiguration("diffEditor")) schedule(); }),
+    vscode.workspace.onDidChangeConfiguration(e => { if (e.affectsConfiguration("kanko.presentation") || e.affectsConfiguration("kanko.layout") || e.affectsConfiguration("workbench.editor.closeEmptyGroups") || e.affectsConfiguration("diffEditor")) schedule(); }),
     vscode.window.onDidChangeTextEditorSelection(e => { if ([vscode.TextEditorSelectionChangeKind.Keyboard, vscode.TextEditorSelectionChangeKind.Mouse].includes(e.kind) && !navigating && current?.mode === "following") explore(); }),
     badgeEvents,
   ];

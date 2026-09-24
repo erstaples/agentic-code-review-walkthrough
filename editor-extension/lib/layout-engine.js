@@ -25,14 +25,17 @@ function createLayoutEngine(vscode, opener) {
     });
   }
   const tabState = () => groups().flatMap(g => g.tabs.map(tab => ({ tab, group: g, column: g.viewColumn, active: g.activeTab === tab })));
-  async function capture() { expected = geometry(await vscode.commands.executeCommand("vscode.getEditorLayout")); tabs = tabState(); }
+  function identifyShape(layout) {
+    const topology = node => node.groups ? { orientation: node.orientation, groups: node.groups.map(topology) } : {};
+    const structure = JSON.stringify(topology(layout));
+    return Object.keys(SHAPES).find(name => JSON.stringify(topology(SHAPES[name].layout)) === structure) || null;
+  }
+  async function capture() { const layout = await vscode.commands.executeCommand("vscode.getEditorLayout"); expected = geometry(layout); shape = identifyShape(layout); tabs = tabState(); }
   async function observe() {
     if (internal || !tourId) return;
     const layout = await vscode.commands.executeCommand("vscode.getEditorLayout");
     const actual = geometry(layout);
-    const topology = node => node.groups ? { orientation: node.orientation, groups: node.groups.map(topology) } : {};
-    const structure = JSON.stringify(topology(layout));
-    shape = Object.keys(SHAPES).find(name => JSON.stringify(topology(SHAPES[name].layout)) === structure) || null;
+    shape = identifyShape(layout);
     if (internal) return;
     const now = tabState();
     if (expected && (actual !== expected || tabs.length !== now.length || tabs.some((t, i) => t.tab !== now[i]?.tab || t.column !== now[i]?.column || t.active !== now[i]?.active))) customized = true;
@@ -150,9 +153,9 @@ function createLayoutEngine(vscode, opener) {
   function options(n) {
     const r = records.find(r => r.anchor.n === n); if (!r) return [];
     const result = [{ kind: "auto" }, { kind: "peek" }];
-    const origin = slots().find(s => s.anchor === n);
-    if (origin?.pinned) return result;
-    for (const s of slots()) if (s.anchor && s.anchor !== n && !s.pinned) {
+    const origin = slots().find(s => s.column === opener.find(r)?.column);
+    if (origin?.pinned || pins.has(token(r))) return result;
+    for (const s of slots()) if (s.anchor && s.column !== origin?.column && !s.pinned) {
       // Explicit replacement can cover a kept tab, but cannot destroy a preview
       // the reviewer owns. Pins are respected even for explicit placements.
       if (s.group.tabs.every(t => !t.isPreview || opener.disposable(t))) result.push({ kind: "replace", of: s.anchor });
@@ -190,8 +193,8 @@ function createLayoutEngine(vscode, opener) {
       if (body.remember !== undefined && typeof body.remember !== "boolean") throw invalid("Remember must be true or false.");
       if (p.kind === "peek") {
         const editor = vscode.window.activeTextEditor; if (!editor) throw invalid("Focus an editor before peeking.");
-        await vscode.commands.executeCommand("editor.action.peekLocations", editor.document.uri, editor.selection.active,
-          [new vscode.Location(r.target, new vscode.Range(r.anchor.context.startLine - 1, 0, r.anchor.context.endLine - 1, 0))], "peek"); return;
+        await vscode.commands.executeCommand("editor.action.goToLocations", editor.document.uri, editor.selection.active,
+          [new vscode.Location(r.target, new vscode.Range(r.anchor.context.startLine - 1, 0, r.anchor.context.endLine - 1, 0))], "peek", undefined, true); return;
       }
       if (p.kind === "auto") { await apply(state, [r], { focus: true }); return; }
       let slot = slots().find(s => s.anchor === p.of);
@@ -216,8 +219,10 @@ function createLayoutEngine(vscode, opener) {
         if (prior && prior !== placed?.tab && opener.disposable(prior)) await vscode.window.tabGroups.close(prior, true);
       } else placed = await put(r, slot, true);
       if (!placed) throw invalid("That editor is protected. Choose another placement.");
+      await capture();
+      const destination = slots().find(s => s.column === placed.column);
       customized = true; sequence = false;
-      if (body.remember) prefs.set(r.anchor.role, { ...pref, kind: "replace", slot: slot.slot });
+      if (body.remember) prefs.set(r.anchor.role, { ...pref, kind: "replace", slot: destination?.slot || slot.slot });
     });
   }
   function preview(n, option) {
@@ -234,15 +239,31 @@ function createLayoutEngine(vscode, opener) {
       oldSlots.forEach((name, index) => values.set(remaining[index], slots()[index]?.anchor === n ? null : slots()[index]?.anchor));
     }
     values.set(destination, n);
+    const moving = records.find(r => r.anchor.n === n), existing = moving && opener.find(moving);
+    const originIndex = slots().findIndex(s => s.column === existing?.column);
+    const closeOrigin = originIndex >= 0 && groups()[originIndex].tabs.length === 1 &&
+      vscode.workspace.getConfiguration("workbench.editor").get("closeEmptyGroups", true);
+    const remaining = SHAPES[nextShape].slots.filter(name => option.kind === "replace" || name !== destination);
+    const removedSlot = closeOrigin ? remaining[originIndex] : undefined;
     let index = 0;
-    const walk = (node, orientation, x, y, w, h) => {
-      if (!node.groups) return [{ x, y, w, h, anchor: values.get(SHAPES[nextShape].slots[index++]) }];
-      const direction = node.orientation ?? orientation, total = node.groups.reduce((v, g) => v + (g.size || 1), 0); let offset = 0;
+    // Native moves may close the old group. Prune that leaf before measuring
+    // the diagram, keeping the surviving siblings in their actual order.
+    const prepare = (node, orientation) => {
+      if (!node.groups) { const slot = SHAPES[nextShape].slots[index++]; return slot === removedSlot ? null : { ...node, anchor: values.get(slot) }; }
+      const direction = node.orientation ?? orientation;
+      const children = node.groups.map(g => prepare(g, 1 - direction)).filter(Boolean);
+      if (!children.length) return null;
+      if (children.length === 1) return { ...children[0], size: node.size };
+      return { ...node, orientation: direction, groups: children };
+    };
+    const walk = (node, x, y, w, h) => {
+      if (!node.groups) return [{ x, y, w, h, anchor: node.anchor }];
+      const direction = node.orientation, total = node.groups.reduce((v, g) => v + (g.size || 1), 0); let offset = 0;
       return node.groups.flatMap(g => { const ratio = (g.size || 1) / total;
-        const cells = walk(g, 1 - direction, x + (direction === 0 ? offset * w : 0), y + (direction === 1 ? offset * h : 0), direction === 0 ? w * ratio : w, direction === 1 ? h * ratio : h); offset += ratio; return cells;
+        const cells = walk(g, x + (direction === 0 ? offset * w : 0), y + (direction === 1 ? offset * h : 0), direction === 0 ? w * ratio : w, direction === 1 ? h * ratio : h); offset += ratio; return cells;
       });
     };
-    return walk(SHAPES[nextShape].layout, 0, 0, 0, 1, 1);
+    return walk(prepare(SHAPES[nextShape].layout, 0), 0, 0, 1, 1);
   }
   function snapshot() {
     return { shape: shape || "custom", cap: cap(), customized, sequence, sequenceOverride: override, unplaced: [...unplaced],
