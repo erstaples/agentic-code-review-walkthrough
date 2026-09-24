@@ -10,7 +10,11 @@ const { TOOLS, createCallTool } = require("./lib/tools.js");
 const { DossierService } = require("./lib/dossier/service.js");
 const { PROTOCOL_VERSION } = require("./lib/bridge.js");
 
-const LOCK_DIR = path.join(os.homedir(), ".claude", "tour");
+// TOUR_CHANGES_LOCK_DIR lets the offline e2e harness pair this server with a
+// headless editor without touching the real VS Code lockfiles.
+const LOCK_DIR = process.env.TOUR_CHANGES_LOCK_DIR
+  ? path.resolve(process.env.TOUR_CHANGES_LOCK_DIR)
+  : path.join(os.homedir(), ".claude", "tour");
 
 const dispatcher = createDispatcher({
   serverInfo: { name: "tour-bridge", version: "0.2.0" },

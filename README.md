@@ -264,6 +264,7 @@ mcp/               stdio MCP server — editor proxy and dossier service
 editor-extension/  VS Code extension — HTTP server, decorations, diff views
 schemas/           versioned dossier, event, receipt, and tool contracts
 skills/            implementation-capture and walkthrough procedures
+e2e/               offline review harness — scripted agent, headless editor, scenarios
 docs/              design spec
 ```
 
@@ -272,6 +273,17 @@ Run the full dependency-free suite with:
 ```sh
 node --test test/*.test.js mcp/test/*.test.js editor-extension/test/*.test.js
 ```
+
+To step through a full review without a model, use the offline end-to-end
+harness. It replays scripted scenarios against the real MCP server, and a
+headless editor (or a real VS Code window) sits on the other side of the
+bridge:
+
+```sh
+node e2e/run.js committed-review --step
+```
+
+See [`e2e/README.md`](e2e/README.md) for options and how to write scenarios.
 
 ## Prior art
 

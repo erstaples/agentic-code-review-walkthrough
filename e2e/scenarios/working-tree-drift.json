@@ -1,0 +1,209 @@
+{
+  "name": "working-tree-drift",
+  "description": "Tour of uncommitted work where the author edits a file mid-review: stale_change, check, refresh with invalidation, pause, resume, and closeout.",
+  "repo": {
+    "baseBranch": "main",
+    "base": {
+      "src/config.js": [
+        "\"use strict\";",
+        "",
+        "module.exports = {",
+        "  timeoutMs: 1000,",
+        "  retries: 3,",
+        "};"
+      ]
+    },
+    "worktree": {
+      "src/config.js": [
+        "\"use strict\";",
+        "",
+        "module.exports = {",
+        "  timeoutMs: 5000,",
+        "  retries: 3,",
+        "};"
+      ],
+      "docs/config.md": [
+        "# Configuration",
+        "",
+        "`timeoutMs` defaults to 5 seconds."
+      ]
+    }
+  },
+  "vars": {
+    "agent": { "kind": "agent", "id": "scripted-agent" },
+    "reviewer": { "kind": "reviewer", "id": "offline-reviewer" },
+    "selection": { "kind": "working-tree" },
+    "base": { "sha": "{{ repo.base }}", "name": "{{ repo.baseName }}" },
+    "worktree": { "sha": "WORKTREE", "name": "working tree" },
+    "inferred": [{ "kind": "model-inferred", "source": { "type": "code-inspection", "path": "src/config.js" }, "inferenceExplanation": "Read from the uncommitted diff." }],
+    "reviewerSaid": [{ "kind": "reviewer-stated", "source": { "type": "review-session", "id": "offline" } }]
+  },
+  "steps": [
+    { "reviewer": "Walk me through my uncommitted changes.", "say": "Touring the working tree against HEAD (main), including untracked files." },
+    {
+      "id": "open",
+      "call": "dossier_open",
+      "args": { "workspace": "{{ repo.workspace }}", "selection": "{{ selection }}", "actor": "{{ agent }}", "title": "Raise the default timeout" },
+      "match": { "requiredNextAction": "prepare", "changeRevision": { "kind": "working-tree" } }
+    },
+    { "call": "tour_status", "args": { "workspace": "{{ repo.workspace }}" }, "match": { "ok": true } },
+    {
+      "call": "dossier_apply",
+      "args": { "workspace": "{{ repo.workspace }}", "dossierId": "{{ dossierId }}", "expectedRevision": "{{ rev }}", "actor": "{{ agent }}",
+        "commands": [
+          { "type": "SetThesis", "thesis": { "summary": "Raise the default request timeout and document it.", "provenance": "{{ inferred }}" } },
+          { "type": "AddClaim", "claim": { "statement": "The default timeout is raised.", "provenance": "{{ inferred }}" } },
+          { "type": "AddClaim", "claim": { "statement": "The documented default matches the code.", "provenance": "{{ inferred }}" } }
+        ] }
+    },
+    {
+      "id": "claims",
+      "call": "dossier_get",
+      "args": { "workspace": "{{ repo.workspace }}", "dossierId": "{{ dossierId }}", "selector": { "kind": "entities", "type": "claims" } }
+    },
+    {
+      "call": "dossier_apply",
+      "args": { "workspace": "{{ repo.workspace }}", "dossierId": "{{ dossierId }}", "expectedRevision": "{{ rev }}", "actor": "{{ agent }}",
+        "commands": [
+          { "type": "CreateTourPlan", "stops": [
+            { "id": "timeout", "title": "Raise the default timeout", "type": "implementation", "coveredEntityIds": ["{{ steps.claims.entities[statement~raised].id }}"] },
+            { "id": "docs", "title": "Document the timeout", "type": "implementation", "coveredEntityIds": ["{{ steps.claims.entities[statement~documented].id }}"] }
+          ] },
+          { "type": "MarkPrepared" },
+          { "type": "StartReviewSession", "reviewer": "{{ reviewer }}" }
+        ] }
+    },
+    {
+      "call": "dossier_get",
+      "args": { "workspace": "{{ repo.workspace }}", "dossierId": "{{ dossierId }}", "selector": { "kind": "tour" } },
+      "capture": { "sessionId": "sessions[0].id" }
+    },
+
+    { "say": "Stop 1 of 2 — Raise the default timeout." },
+    {
+      "call": "dossier_apply",
+      "args": { "workspace": "{{ repo.workspace }}", "dossierId": "{{ dossierId }}", "expectedRevision": "{{ rev }}", "actor": "{{ agent }}",
+        "commands": [{ "type": "StartStop", "sessionId": "{{ sessionId }}", "stopId": "timeout" }] }
+    },
+    {
+      "call": "tour_stop",
+      "args": { "workspace": "{{ repo.workspace }}", "stopId": "timeout", "index": 1, "total": 2, "label": "Raise the default timeout", "type": "implementation", "mode": "file",
+        "base": "{{ base }}", "head": "{{ worktree }}",
+        "files": [{ "path": "src/config.js", "ranges": [{ "side": "working", "startLine": 3, "endLine": 6 }] }] }
+    },
+    {
+      "say": "One second was too tight for the slow path; five is the new default.",
+      "call": "tour_focus",
+      "args": { "workspace": "{{ repo.workspace }}", "path": "src/config.js", "side": "working", "startLine": 4, "endLine": 4, "note": "1000 → 5000" }
+    },
+    {
+      "reviewer": "Fine. Next.",
+      "call": "dossier_apply",
+      "args": { "workspace": "{{ repo.workspace }}", "dossierId": "{{ dossierId }}", "expectedRevision": "{{ rev }}", "actor": "{{ agent }}",
+        "commands": [{ "type": "SetStopReviewState", "sessionId": "{{ sessionId }}", "stopId": "timeout", "reviewState": "reviewed" }] }
+    },
+
+    {
+      "say": "(Meanwhile the author tweaks the timeout in their editor.)",
+      "edit": { "src/config.js": ["\"use strict\";", "", "module.exports = {", "  timeoutMs: 3000,", "  retries: 3,", "};"] }
+    },
+    {
+      "say": "Stop 2 of 2 — recording the stop start, which checks freshness first.",
+      "call": "dossier_apply",
+      "args": { "workspace": "{{ repo.workspace }}", "dossierId": "{{ dossierId }}", "expectedRevision": "{{ rev }}", "actor": "{{ agent }}",
+        "commands": [{ "type": "StartStop", "sessionId": "{{ sessionId }}", "stopId": "docs" }] },
+      "expectError": "stale_change"
+    },
+    {
+      "say": "The candidate changed under us. Checking before recording anything else.",
+      "call": "dossier_check",
+      "args": { "workspace": "{{ repo.workspace }}", "dossierId": "{{ dossierId }}" },
+      "match": { "ok": false, "freshness": "stale", "eventChainValid": true }
+    },
+    {
+      "id": "refresh",
+      "call": "dossier_refresh",
+      "args": { "workspace": "{{ repo.workspace }}", "dossierId": "{{ dossierId }}", "expectedRevision": "{{ rev }}", "selection": "{{ selection }}", "actor": "{{ agent }}" },
+      "match": { "changed": true, "structuralDelta": { "modified": ["src/config.js"], "added": [], "removed": [] }, "invalidationPlan": { "invalidatedStops": ["timeout"], "requiresSemanticReassessment": true } }
+    },
+    {
+      "say": "Stop 1 was reviewed against the old bytes, so it is invalidated rather than carried forward.",
+      "call": "dossier_get",
+      "args": { "workspace": "{{ repo.workspace }}", "dossierId": "{{ dossierId }}", "selector": { "kind": "tour" } },
+      "match": { "plan": { "stops": [{ "id": "timeout", "reviewState": "invalidated" }, { "id": "docs", "reviewState": "not-visited" }] }, "freshness": "current" }
+    },
+    {
+      "reviewer": "Let's pick this up later.",
+      "call": "dossier_apply",
+      "args": { "workspace": "{{ repo.workspace }}", "dossierId": "{{ dossierId }}", "expectedRevision": "{{ rev }}", "actor": "{{ agent }}",
+        "commands": [{ "type": "PauseReviewSession", "sessionId": "{{ sessionId }}" }] }
+    },
+
+    { "reviewer": "(Later, in a new conversation) Continue the tour of my working tree." },
+    {
+      "say": "Found the existing dossier for this exact working tree; resuming from its recap, not from chat history.",
+      "call": "dossier_open",
+      "args": { "workspace": "{{ repo.workspace }}", "selection": "{{ selection }}", "actor": "{{ agent }}" },
+      "match": { "dossierId": "{{ steps.open.dossierId }}", "requiredNextAction": "resume", "freshness": "current" }
+    },
+    {
+      "call": "dossier_get",
+      "args": { "workspace": "{{ repo.workspace }}", "dossierId": "{{ dossierId }}", "selector": { "kind": "recap" } },
+      "match": { "session": { "state": "paused" }, "completedStops": { "$len": 0 }, "remainingStops": { "$len": 2 } }
+    },
+    {
+      "call": "dossier_apply",
+      "args": { "workspace": "{{ repo.workspace }}", "dossierId": "{{ dossierId }}", "expectedRevision": "{{ rev }}", "actor": "{{ agent }}",
+        "commands": [{ "type": "ResumeReviewSession", "sessionId": "{{ sessionId }}" }, { "type": "StartStop", "sessionId": "{{ sessionId }}", "stopId": "timeout" }] }
+    },
+    {
+      "say": "Revisiting stop 1 against the new bytes.",
+      "call": "tour_stop",
+      "args": { "workspace": "{{ repo.workspace }}", "stopId": "timeout", "index": 1, "total": 2, "label": "Raise the default timeout", "type": "implementation", "mode": "file",
+        "base": "{{ base }}", "head": "{{ worktree }}",
+        "files": [{ "path": "src/config.js", "ranges": [{ "side": "working", "startLine": 3, "endLine": 6 }] }] }
+    },
+    {
+      "call": "tour_focus",
+      "args": { "workspace": "{{ repo.workspace }}", "path": "src/config.js", "side": "working", "startLine": 4, "endLine": 4, "note": "now 3000" }
+    },
+    {
+      "reviewer": "Still fine.",
+      "call": "dossier_apply",
+      "args": { "workspace": "{{ repo.workspace }}", "dossierId": "{{ dossierId }}", "expectedRevision": "{{ rev }}", "actor": "{{ agent }}",
+        "commands": [
+          { "type": "SetStopReviewState", "sessionId": "{{ sessionId }}", "stopId": "timeout", "reviewState": "reviewed" },
+          { "type": "StartStop", "sessionId": "{{ sessionId }}", "stopId": "docs" }
+        ] }
+    },
+    {
+      "say": "Stop 2 of 2 — Document the timeout.",
+      "call": "tour_stop",
+      "args": { "workspace": "{{ repo.workspace }}", "stopId": "docs", "index": 2, "total": 2, "label": "Document the timeout", "type": "implementation", "mode": "file",
+        "base": "{{ base }}", "head": "{{ worktree }}",
+        "files": [{ "path": "docs/config.md", "ranges": [{ "side": "working", "startLine": 1, "endLine": 3 }] }] }
+    },
+    {
+      "say": "Worth flagging: the docs still say five seconds, but the code now says three.",
+      "call": "tour_focus",
+      "args": { "workspace": "{{ repo.workspace }}", "path": "docs/config.md", "side": "working", "startLine": 3, "endLine": 3, "note": "stale after the edit" }
+    },
+    {
+      "reviewer": "Good catch — note that.",
+      "call": "dossier_apply",
+      "args": { "workspace": "{{ repo.workspace }}", "dossierId": "{{ dossierId }}", "expectedRevision": "{{ rev }}", "actor": "{{ agent }}",
+        "commands": [
+          { "type": "RecordConcern", "concern": { "concern": "docs/config.md says 5 seconds; src/config.js now defaults to 3000 ms.", "provenance": "{{ reviewerSaid }}" } },
+          { "type": "SetClaimDisposition", "claimId": "{{ steps.claims.entities[statement~documented].id }}", "disposition": "contradicted" },
+          { "type": "SetStopReviewState", "sessionId": "{{ sessionId }}", "stopId": "docs", "reviewState": "reviewed-with-concern" },
+          { "type": "CompleteReviewSession", "sessionId": "{{ sessionId }}", "outcome": "changes-requested" }
+        ] }
+    },
+    {
+      "call": "dossier_receipt",
+      "args": { "workspace": "{{ repo.workspace }}", "dossierId": "{{ dossierId }}", "sessionId": "{{ sessionId }}", "mode": "preview", "actor": "{{ agent }}" },
+      "match": { "markdown": { "$contains": "| Raise the default timeout | reviewed |" } }
+    },
+    { "call": "tour_clear", "args": { "workspace": "{{ repo.workspace }}" } }
+  ]
+}
