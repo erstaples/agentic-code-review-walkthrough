@@ -87,6 +87,10 @@ geometry could finish after navigation changed the stop. Observation now runs
 inside the same controller queue as navigation and pin actions. A controller
 regression verifies this ordering; both native platforms pass with the fix.
 
+The final ownership-handoff check also found a stale schema-1 comparison in
+the map checker. It now compares against the shared schema version, and the
+service-restart regression asserts that a valid v2 map reports `schemaValid`.
+
 ```sh
 TMPDIR=/private/tmp node --test test/*.test.js mcp/test/*.test.js editor-extension/test/*.test.js
 npm run package --prefix editor-extension

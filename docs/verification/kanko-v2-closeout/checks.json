@@ -97,5 +97,10 @@
     "non-US keyboard layouts",
     "Light High Contrast",
     "full screen-reader audit"
-  ]
+  ],
+  "reviewMapSchemaCheck": {
+    "result": "passed",
+    "regression": "a committed review map survives service restart with a verified event chain",
+    "note": "Final closeout corrects the checker flag to use the shared v2 schema version; extension code is unchanged from testedCodeCommit."
+  }
 }

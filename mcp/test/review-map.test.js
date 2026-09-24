@@ -57,7 +57,9 @@ test("a committed review map survives service restart with a verified event chai
   const overview = restarted.get({ workspace: f.workspace, mapId: opened.mapId, selector: { kind: "overview" } });
   assert.strictEqual(overview.phase, "prepared");
   assert.strictEqual(overview.aggregateRevision, prepared.result.aggregateRevision);
-  assert.strictEqual(restarted.check({ workspace: f.workspace, mapId: opened.mapId }).eventChainValid, true);
+  const checked = restarted.check({ workspace: f.workspace, mapId: opened.mapId });
+  assert.strictEqual(checked.eventChainValid, true);
+  assert.strictEqual(checked.schemaValid, true);
 });
 
 test("optimistic aggregate revisions reject stale writers", () => {
