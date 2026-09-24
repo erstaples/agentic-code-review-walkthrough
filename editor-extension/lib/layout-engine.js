@@ -150,8 +150,9 @@ function createLayoutEngine(vscode, opener) {
   function options(n) {
     const r = records.find(r => r.anchor.n === n); if (!r) return [];
     const result = [{ kind: "auto" }, { kind: "peek" }];
-    if (opener.find(r)) return result;
-    for (const s of slots()) if (s.anchor && !s.pinned) {
+    const origin = slots().find(s => s.anchor === n);
+    if (origin?.pinned) return result;
+    for (const s of slots()) if (s.anchor && s.anchor !== n && !s.pinned) {
       // Explicit replacement can cover a kept tab, but cannot destroy a preview
       // the reviewer owns. Pins are respected even for explicit placements.
       if (s.group.tabs.every(t => !t.isPreview || opener.disposable(t))) result.push({ kind: "replace", of: s.anchor });
@@ -166,6 +167,16 @@ function createLayoutEngine(vscode, opener) {
     await observe();
     return transaction(async () => {
       if (body.action === "overrideSequence") { sequence = false; override = true; return; }
+      if (body.action === "reset") {
+        // Reset is an explicit reviewer action. Native pinned/dirty/kept tabs
+        // still belong to the reviewer; only disposable tour previews close.
+        pins.clear(); pinnedTabs.clear(); sequence = false; override = false;
+        const protectedTabs = groups().some(g => g.tabs.some(t => !opener.disposable(t)));
+        if (!protectedTabs) { await opener.closeExcept(() => false); await setShape("single"); }
+        customized = protectedTabs;
+        const beat = state.plan.stops[state.stopIndex].beats[state.beatIndex];
+        await apply(state, beat.active.map(n => records.find(r => r.anchor.n === n)), { focus: true }); return;
+      }
       const r = records.find(r => r.anchor.n === body.anchor);
       if (!r) throw invalid("Choose an anchor from the current stop.");
       if (body.action === "pin") {
@@ -197,16 +208,46 @@ function createLayoutEngine(vscode, opener) {
         });
         slot = slots().find(s => s.slot === destination);
       }
-      const placed = await put(r, slot, true);
+      const existing = opener.find(r);
+      let placed;
+      if (existing && existing.column !== slot.column) {
+        const prior = slot.group.activeTab;
+        placed = await opener.move(r, slot.column);
+        if (prior && prior !== placed?.tab && opener.disposable(prior)) await vscode.window.tabGroups.close(prior, true);
+      } else placed = await put(r, slot, true);
       if (!placed) throw invalid("That editor is protected. Choose another placement.");
       customized = true; sequence = false;
       if (body.remember) prefs.set(r.anchor.role, { ...pref, kind: "replace", slot: slot.slot });
     });
   }
+  function preview(n, option) {
+    if (["auto", "peek"].includes(option.kind)) return [];
+    const target = slots().find(s => s.anchor === option.of);
+    let nextShape = shape, destination = target?.slot;
+    if (!target || !SHAPES[shape]) return [];
+    if (option.kind !== "replace") [nextShape, destination] = splitShape(shape, target.slot, option.kind);
+    const values = new Map(slots().map(s => [s.slot, s.anchor === n ? null : s.anchor]));
+    // Splitting renames the old target leaf to its first half.
+    if (option.kind !== "replace") {
+      const oldSlots = SHAPES[shape].slots, newSlots = SHAPES[nextShape].slots;
+      const remaining = newSlots.filter(name => name !== destination);
+      oldSlots.forEach((name, index) => values.set(remaining[index], slots()[index]?.anchor === n ? null : slots()[index]?.anchor));
+    }
+    values.set(destination, n);
+    let index = 0;
+    const walk = (node, orientation, x, y, w, h) => {
+      if (!node.groups) return [{ x, y, w, h, anchor: values.get(SHAPES[nextShape].slots[index++]) }];
+      const direction = node.orientation ?? orientation, total = node.groups.reduce((v, g) => v + (g.size || 1), 0); let offset = 0;
+      return node.groups.flatMap(g => { const ratio = (g.size || 1) / total;
+        const cells = walk(g, 1 - direction, x + (direction === 0 ? offset * w : 0), y + (direction === 1 ? offset * h : 0), direction === 0 ? w * ratio : w, direction === 1 ? h * ratio : h); offset += ratio; return cells;
+      });
+    };
+    return walk(SHAPES[nextShape].layout, 0, 0, 0, 1, 1);
+  }
   function snapshot() {
     return { shape: shape || "custom", cap: cap(), customized, sequence, sequenceOverride: override, unplaced: [...unplaced],
       slots: slots().map(({ slot, column, anchor, pinned }) => ({ slot, column, anchor, pinned })),
-      options: Object.fromEntries(records.map(r => [r.anchor.n, options(r.anchor.n)])),
+      options: Object.fromEntries(records.map(r => [r.anchor.n, options(r.anchor.n).map(option => ({ ...option, preview: preview(r.anchor.n, option) }))])),
       preferences: Object.fromEntries(prefs) };
   }
   function clear() { for (const tab of pinnedTabs) opener.keep(tab); records = []; pins.clear(); pinnedTabs.clear(); prefs.clear(); activity.clear(); tourId = stopId = expected = undefined; tabs = []; customized = sequence = override = false; shape = "single"; unplaced = []; }

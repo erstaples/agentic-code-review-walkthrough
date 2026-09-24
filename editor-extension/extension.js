@@ -11,6 +11,7 @@ const { formatCitation } = require("./lib/citation.js");
 const { createTourController } = require("./lib/tour-controller.js");
 const { createTourHost } = require("./lib/tour-host.js");
 const { createTourView } = require("./lib/tour-view.js");
+const { createAnchorQuickPick } = require("./lib/anchor-quick-pick.js");
 const LOCK_DIR = path.join(os.homedir(), ".kanko", "tour");
 let server, lockPath;
 
@@ -24,12 +25,14 @@ async function activate(context) {
   controller = createTourController({ prepare: host.prepare, present: host.present, clear: host.clear, layoutAction: host.layoutAction,
     publish(snapshot) {
       view.publish(snapshot);
+      vscode.commands.executeCommand("setContext", "kanko.tourLoaded", snapshot.loaded);
       if (snapshot.loaded) { const anchors = snapshot.beat.active.map(n => snapshot.stop.anchors.find(a => a.n === n));
         const identity = anchors.length > 3 ? `${anchorNumber(anchors[0].n)} ${filename(anchors[0].path)} +${anchors.length - 1}` : anchors.map(a => `${anchorNumber(a.n)} ${filename(a.path)}`).join("  ");
         status.text = `$(book) Stop ${snapshot.stopIndex + 1}/${snapshot.stopCount} · Beat ${snapshot.beatIndex + 1}/${snapshot.beatCount} · ${identity} · ${snapshot.mode}`; status.show(); }
       else status.hide();
     },
   });
+  const quickPick = createAnchorQuickPick(vscode, controller, view);
   function scope(body) {
     if (!body.workspace || !(vscode.workspace.workspaceFolders || []).some((f) => path.resolve(f.uri.fsPath) === path.resolve(body.workspace))) throw Object.assign(new Error("The requested workspace is not open in this window."), { code: "bad_request" });
   }
@@ -70,7 +73,11 @@ async function activate(context) {
       return vscode.window.showInformationMessage("Focus a visible tour anchor to pin it.");
     }),
     vscode.commands.registerCommand("kanko.tour.overrideSequence", () => controller.layout({ action: "overrideSequence" })),
-    status, host, { dispose: () => { removeLock(lockPath); server?.close(); } },
+    vscode.commands.registerCommand("kanko.tour.quickPick", () => quickPick.choose()),
+    vscode.commands.registerCommand("kanko.tour.quickPickAccept", kind => quickPick.accept(kind)),
+    vscode.commands.registerCommand("kanko.tour.anchor", n => quickPick.numbered(n)),
+    vscode.commands.registerCommand("kanko.tour.resetLayout", () => controller.layout({ action: "reset" })),
+    quickPick, status, host, { dispose: () => { removeLock(lockPath); server?.close(); } },
   );
 }
 function deactivate() { if (lockPath) removeLock(lockPath); return server?.close(); }

@@ -1,6 +1,6 @@
 {
   "name": "kanko",
-  "displayName": "Kank\u014d",
+  "displayName": "Kankō",
   "description": "Let your coding agent guide you through code changes with focused highlights, native diffs, and editor citations.",
   "version": "0.1.0",
   "publisher": "getkankodev",
@@ -254,7 +254,7 @@
       }
     ],
     "configuration": {
-      "title": "Kank\u014d Presentation",
+      "title": "Kankō Presentation",
       "properties": {
         "kanko.presentation.dimOpacity": {
           "type": "number",
@@ -311,15 +311,23 @@
     "commands": [
       {
         "command": "kanko.copyCitation",
-        "title": "Kank\u014d: Copy Citation"
+        "title": "Kankō: Copy Citation"
       },
       {
         "command": "kanko.tour.pinActive",
-        "title": "Kank\u014d: Toggle Pin on Active Tour Anchor"
+        "title": "Kankō: Toggle Pin on Active Tour Anchor"
       },
       {
         "command": "kanko.tour.overrideSequence",
-        "title": "Kank\u014d: Show Multiple Groups for This Stop"
+        "title": "Kankō: Show Multiple Groups for This Stop"
+      },
+      {
+        "command": "kanko.tour.quickPick",
+        "title": "Kankō: Find File in Stop"
+      },
+      {
+        "command": "kanko.tour.resetLayout",
+        "title": "Kankō: Reset Stop Layout"
       }
     ],
     "menus": {
@@ -335,7 +343,7 @@
       "secondarySidebar": [
         {
           "id": "kanko",
-          "title": "Kank\u014d",
+          "title": "Kankō",
           "icon": "assets/kanko-sidebar.svg"
         }
       ]
@@ -348,7 +356,140 @@
           "type": "webview"
         }
       ]
-    }
+    },
+    "keybindings": [
+      {
+        "command": "kanko.tour.quickPick",
+        "key": "alt+0",
+        "when": "kanko.tourLoaded"
+      },
+      {
+        "command": "kanko.tour.anchor",
+        "key": "alt+1",
+        "args": 1,
+        "when": "kanko.tourLoaded && !inputFocus"
+      },
+      {
+        "command": "kanko.tour.anchor",
+        "key": "alt+2",
+        "args": 2,
+        "when": "kanko.tourLoaded && !inputFocus"
+      },
+      {
+        "command": "kanko.tour.anchor",
+        "key": "alt+3",
+        "args": 3,
+        "when": "kanko.tourLoaded && !inputFocus"
+      },
+      {
+        "command": "kanko.tour.anchor",
+        "key": "alt+4",
+        "args": 4,
+        "when": "kanko.tourLoaded && !inputFocus"
+      },
+      {
+        "command": "kanko.tour.anchor",
+        "key": "alt+5",
+        "args": 5,
+        "when": "kanko.tourLoaded && !inputFocus"
+      },
+      {
+        "command": "kanko.tour.anchor",
+        "key": "alt+6",
+        "args": 6,
+        "when": "kanko.tourLoaded && !inputFocus"
+      },
+      {
+        "command": "kanko.tour.anchor",
+        "key": "alt+7",
+        "args": 7,
+        "when": "kanko.tourLoaded && !inputFocus"
+      },
+      {
+        "command": "kanko.tour.anchor",
+        "key": "alt+8",
+        "args": 8,
+        "when": "kanko.tourLoaded && !inputFocus"
+      },
+      {
+        "command": "kanko.tour.anchor",
+        "key": "alt+9",
+        "args": 9,
+        "when": "kanko.tourLoaded && !inputFocus"
+      },
+      {
+        "command": "kanko.tour.anchor",
+        "key": "alt+shift+0",
+        "args": 10,
+        "when": "kanko.tourLoaded && !inputFocus"
+      },
+      {
+        "command": "kanko.tour.anchor",
+        "key": "alt+shift+1",
+        "args": 11,
+        "when": "kanko.tourLoaded && !inputFocus"
+      },
+      {
+        "command": "kanko.tour.anchor",
+        "key": "alt+shift+2",
+        "args": 12,
+        "when": "kanko.tourLoaded && !inputFocus"
+      },
+      {
+        "command": "kanko.tour.anchor",
+        "key": "alt+shift+3",
+        "args": 13,
+        "when": "kanko.tourLoaded && !inputFocus"
+      },
+      {
+        "command": "kanko.tour.anchor",
+        "key": "alt+shift+4",
+        "args": 14,
+        "when": "kanko.tourLoaded && !inputFocus"
+      },
+      {
+        "command": "kanko.tour.anchor",
+        "key": "alt+shift+5",
+        "args": 15,
+        "when": "kanko.tourLoaded && !inputFocus"
+      },
+      {
+        "command": "kanko.tour.anchor",
+        "key": "alt+shift+6",
+        "args": 16,
+        "when": "kanko.tourLoaded && !inputFocus"
+      },
+      {
+        "command": "kanko.tour.anchor",
+        "key": "alt+shift+7",
+        "args": 17,
+        "when": "kanko.tourLoaded && !inputFocus"
+      },
+      {
+        "command": "kanko.tour.anchor",
+        "key": "alt+shift+8",
+        "args": 18,
+        "when": "kanko.tourLoaded && !inputFocus"
+      },
+      {
+        "command": "kanko.tour.anchor",
+        "key": "alt+shift+9",
+        "args": 19,
+        "when": "kanko.tourLoaded && !inputFocus"
+      },
+      {
+        "command": "kanko.tour.quickPickAccept",
+        "key": "alt+enter",
+        "args": "peek",
+        "when": "inQuickOpen && kanko.anchorQuickPick"
+      },
+      {
+        "command": "kanko.tour.quickPickAccept",
+        "key": "shift+enter",
+        "args": "replace",
+        "when": "inQuickOpen && kanko.anchorQuickPick"
+      }
+    ]
   },
   "devDependencies": {
     "@vscode/test-electron": "^3.1.0",
