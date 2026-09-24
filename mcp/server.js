@@ -21,7 +21,7 @@ const dispatcher = createDispatcher({
       cwd: workspace || process.cwd(),
       protocolVersion: PROTOCOL_VERSION,
     }),
-    dossierService: new DossierService(),
+    dossierService: new DossierService({ tourAnchorLimit: process.env.RELAY_TOUR_ANCHOR_LIMIT === undefined ? undefined : Number(process.env.RELAY_TOUR_ANCHOR_LIMIT) }),
   }),
 });
 

@@ -221,10 +221,14 @@ per-user application-state directory outside the repository. Set
 | `dossier_open` | Opens or creates the dossier for an exact committed or working-tree change |
 | `dossier_get` | Reads a bounded overview, entity set, tour, evidence matrix, or resume recap |
 | `dossier_apply` | Atomically applies typed, provenance-bearing domain commands |
-| `dossier_check` | Verifies event integrity and exact change freshness without mutation |
+| `dossier_check` | Verifies event integrity, exact change freshness, and v2 tour anchors without mutation |
 | `dossier_refresh` | Adds a change revision and conservatively invalidates stale review state |
 | `dossier_receipt` | Previews or emits immutable local JSON and Markdown receipts |
 | `dossier_delete` | Permanently deletes one explicitly confirmed local dossier |
+
+Relay v2's stop, anchor, and beat authoring contract is documented in
+[the tour model guide](docs/relay-v2-tour-model.md). It validates plans before
+storage; editor loading and navigation are a later phase.
 
 **The bridge has no write verb.** No endpoint modifies a file, so "installing
 this extension cannot alter your repository" is a property of the software

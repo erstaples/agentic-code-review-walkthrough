@@ -40,7 +40,8 @@ function createDispatcher({ serverInfo, tools, callTool }) {
         } catch (err) {
           const errorObj = {
             code: err?.code || "internal_error",
-            message: err?.message || String(err)
+            message: err?.message || String(err),
+            ...(err?.details === undefined ? {} : { details: err.details }),
           };
           return reply({ content: [{ type: "text", text: JSON.stringify(errorObj) }], isError: true });
         }

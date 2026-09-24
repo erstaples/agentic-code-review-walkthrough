@@ -142,7 +142,7 @@ function eventForCommand(state, command, actor, occurredAt = now()) {
       invariant(stop.type === "context" || coveredEntityIds.length > 0, "invalid_tour_stop", "non-context stops must cover at least one entity");
       return { ...clone(stop), id: stop.id || id("stp"), index: index + 1, coveredEntityIds, reviewState: "not-visited", reviewedAtChangeRevisionId: null };
     });
-    return { eventType: "TourPlanCreated", payload: { plan: { id: planId, version: 1, title: command.title || state.title, createdAt: occurredAt, createdBy: clone(actor), stops } } };
+    return { eventType: "TourPlanCreated", payload: { plan: { id: planId, version: 1, ...(command.presentationVersion === 2 ? { presentationVersion: 2 } : {}), title: command.title || state.title, createdAt: occurredAt, createdBy: clone(actor), stops } } };
   }
   if (command.type === "MarkPrepared") {
     invariant(state.thesis, "not_ready", "a thesis is required before preparation");

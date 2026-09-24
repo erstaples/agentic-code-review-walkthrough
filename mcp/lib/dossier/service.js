@@ -7,6 +7,8 @@ const { eventForCommand, applyEvent, projectionOverview, findEntity, validateAct
 const { buildReceipt, renderMarkdown } = require("./receipt.js");
 const { id } = require("./canonical.js");
 const { DossierError, invariant } = require("./errors.js");
+const { isV2Tour, assertHardLimit, validateTourPlan } = require("../../../contract/tour.js");
+const { tourSources } = require("./tour-sources.js");
 
 const REVIEW_COMMANDS = new Set(["StartReviewSession", "StartStop", "SetClaimDisposition", "SetRiskDisposition", "SetStopReviewState", "RecordQuestion", "RecordConcern", "RecordAnswer", "PauseReviewSession", "ResumeReviewSession", "CompleteReviewSession"]);
 const SENSITIVE_KEY = /^(?:password|passwd|secret|token|api[_-]?key|authorization|credential)$/i;
@@ -41,7 +43,18 @@ function selectionFor(change) {
 function currentChange(state) { return state.changeRevisions.find((item) => item.id === state.currentChangeRevisionId); }
 
 class DossierService {
-  constructor(options = {}) { this.store = options.store || new FileDossierStore(options); }
+  constructor(options = {}) {
+    this.store = options.store || new FileDossierStore(options);
+    this.tourAnchorLimit = assertHardLimit(options.tourAnchorLimit);
+  }
+
+  validateTour(state, plan) {
+    return validateTourPlan(plan, {
+      ...tourSources(state.repository.workspace, currentChange(state)),
+      hardLimit: this.tourAnchorLimit,
+      claims: Object.values(state.entities.claims),
+    });
+  }
 
   open(args) {
     validateActor(args.actor);
@@ -119,6 +132,7 @@ class DossierService {
     invariant(Array.isArray(args.commands) && args.commands.length > 0, "invalid_commands", "commands must be a non-empty array");
     const sanitized = redactSensitive(args.commands);
     const commands = sanitized.value;
+    const findings = [];
     const { repository } = this.locate(args.workspace, args.dossierId);
     let blobsStored = 0;
     for (const command of commands) {
@@ -141,6 +155,14 @@ class DossierService {
       let state = structuredClone(initialState);
       const specs = [];
       for (const command of commands) {
+        if (command.type === "CreateTourPlan" && isV2Tour(command)) {
+          const fresh = this.freshness(state);
+          invariant(fresh.freshness === "current", "stale_change", "refresh the dossier before authoring a tour for changed sources", fresh);
+          const validated = this.validateTour(state, command);
+          invariant(validated.ok, "invalid_tour_plan", "Tour validation failed; fix the reported locations before loading.", { findings: validated.findings });
+          Object.assign(command, validated.plan);
+          findings.push(...validated.findings);
+        }
         if (command.type === "AddCodeReference") {
           const field = command.entity ? "entity" : "codeReference";
           command[field] = resolveCodeReference(initialState.repository.workspace, currentChange(initialState), command[field]);
@@ -151,17 +173,25 @@ class DossierService {
       }
       return specs;
     });
-    const warnings = [];
+    const warnings = findings.filter((f) => f.severity === "warning").map((f) => f.message);
     if (commands.some((command) => JSON.stringify(command).includes('"model-inferred"'))) warnings.push("This mutation includes model-inferred content; present it as reconstruction, not recorded intent.");
     if (sanitized.redacted) warnings.push("Secret-shaped content was redacted before persistence.");
     if (blobsStored) warnings.push(`${blobsStored} bounded evidence blob${blobsStored === 1 ? " was" : "s were"} stored by content digest.`);
-    return { dossierId: result.state.id, aggregateRevision: result.state.aggregateRevision, emittedEventIds: result.emittedEventIds, changed: projectionOverview(result.state), warnings };
+    return { dossierId: result.state.id, aggregateRevision: result.state.aggregateRevision, emittedEventIds: result.emittedEventIds, changed: projectionOverview(result.state), warnings, findings };
   }
 
   check(args) {
     const { state } = this.locate(args.workspace, args.dossierId);
     const freshness = this.freshness(state);
-    return { ok: freshness.freshness === "current", dossierId: state.id, aggregateRevision: state.aggregateRevision, schemaValid: state.schemaVersion === 1, eventChainValid: true, ...freshness };
+    const plan = state.tourPlans[state.currentTourPlanId];
+    let findings = [];
+    // Only new, versioned plans opt into validation during reads. Older events
+    // may contain arbitrary presentation metadata and must still replay as-is.
+    if (plan?.presentationVersion === 2) {
+      try { findings = this.validateTour(state, plan).findings; }
+      catch (error) { findings = [{ severity: "error", code: "source_unavailable", location: "stops", message: error.message }]; }
+    }
+    return { ok: freshness.freshness === "current" && !findings.some((f) => f.severity === "error"), dossierId: state.id, aggregateRevision: state.aggregateRevision, schemaValid: state.schemaVersion === 1, eventChainValid: true, ...freshness, findings };
   }
 
   refresh(args) {

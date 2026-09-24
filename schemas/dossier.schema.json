@@ -17,7 +17,14 @@
     "thesis": { "type": ["object", "null"] },
     "entities": { "type": "object" },
     "relationships": { "type": "object" },
-    "tourPlans": { "type": "object" },
+    "tourPlans": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "object",
+        "if": { "required": ["presentationVersion"], "properties": { "presentationVersion": { "const": 2 } } },
+        "then": { "$ref": "tour-plan.schema.json" }
+      }
+    },
     "reviewSessions": { "type": "object" },
     "receipts": { "type": "array" }
   },
