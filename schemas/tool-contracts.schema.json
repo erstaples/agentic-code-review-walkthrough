@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://erstaples.dev/tour-changes/schemas/tool-contracts.schema.json",
+  "$id": "https://getkanko.dev/kanko/schemas/tool-contracts.schema.json",
   "title": "Dossier MCP tool shared contracts",
   "$defs": {
     "actor": {

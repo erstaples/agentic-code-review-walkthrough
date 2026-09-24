@@ -1,6 +1,6 @@
-# kanko
+# Kankō diff tours: Over-the-shoulder code reviews in the age of AI
 
-Your agent walks you through a diff the way its author would — opening files,
+Kanko walks you through a diff the way a human author would — opening files,
 highlighting the lines it's talking about, and pausing for questions.
 
 Reviewing a large diff cold is hard. The usual fix is to ask the author to
@@ -15,7 +15,7 @@ and explicit review coverage across process restarts. Each dossier is tied to
 an exact committed diff or byte-level working-tree manifest, so changed code
 cannot silently inherit old review state.
 
-## What a tour looks like
+## What a diff tour looks like
 
 You ask for a tour of a diff. The agent reads the full changed files rather
 than just the hunks, groups the change into *stops* — one logical,
@@ -61,8 +61,8 @@ that aren't VS Code.
 ### Step 1 — the VS Code extension (all agents)
 
 ```sh
-git clone https://github.com/erstaples/agentic-code-review-walkthrough.git
-cd agentic-code-review-walkthrough
+git clone https://github.com/getkanko/kanko.git
+cd kanko
 ./install.sh
 ```
 
@@ -85,7 +85,7 @@ From `editor-extension`, the same command is available as `npm run rebuild:vsix`
 To install the rebuilt extension locally, run `./install.sh`.
 
 Published VSIX files and checksums are attached to
-[extension releases](https://github.com/erstaples/agentic-code-review-walkthrough/releases).
+[extension releases](https://github.com/getkanko/kanko/releases).
 See [the publication guide](docs/extension-publication.md) for CI, Marketplace
 setup, and the release procedure.
 
@@ -100,8 +100,8 @@ it resolved, which makes a mismatch obvious immediately.
 <summary><strong>Claude Code</strong></summary>
 
 ```sh
-/plugin marketplace add erstaples/claude-code-review-walkthrough
-/plugin install tour-changes@code-review-walkthrough
+/plugin marketplace add kanko/kanko
+/plugin install kanko-tour@kanko
 ```
 
 </details>
@@ -113,8 +113,8 @@ Codex uses the portable Agent Plugins manifest and MCP configuration included
 at the repository root:
 
 ```sh
-codex plugin marketplace add erstaples/claude-code-review-walkthrough
-codex plugin add tour-changes@code-review-walkthrough
+codex plugin marketplace add kanko/kanko
+codex plugin add kanko-tour@kanko
 ```
 
 Start a new Codex thread after installation so it loads the plugin's skill and
@@ -139,14 +139,14 @@ These tools have no plugin manifest, so registration is manual. Two steps:
   "mcpServers": {
     "tour-bridge": {
       "command": "node",
-      "args": ["/absolute/path/to/claude-code-review-walkthrough/mcp/server.js"]
+      "args": ["/absolute/path/to/kanko/mcp/server.js"]
     }
   }
 }
 ```
 
 **Give the agent the procedure.** Point the tool's rules or instructions file
-at [`skills/tour-changes/SKILL.md`](skills/tour-changes/SKILL.md). Reference
+at [`skills/kanko-tour/SKILL.md`](skills/kanko-tour/SKILL.md). Reference
 the file rather than copying its contents — it's the single source of truth,
 and a copy will drift.
 
@@ -173,7 +173,7 @@ For the later ownership walkthrough, ask:
 - "tour the branch head diff against main"
 - "guide me through what changed in the last three commits"
 
-The `tour-changes` skill opens the prepared dossier when one exists. If coding
+The `kanko-tour` skill opens the prepared dossier when one exists. If coding
 happened without dossier capture, it reconstructs a draft from the selected
 diff and labels inferred rationale accordingly.
 

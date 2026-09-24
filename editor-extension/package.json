@@ -1,13 +1,13 @@
 {
   "name": "kanko",
-  "displayName": "kanko",
+  "displayName": "Kanko",
   "description": "Let your coding agent guide you through code changes with focused highlights, native diffs, and editor citations.",
   "version": "0.1.1",
-  "publisher": "erstaples",
+  "publisher": "getkanko",
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/erstaples/agentic-code-review-walkthrough.git",
+    "url": "git+https://github.com/getkanko/kanko.git",
     "directory": "editor-extension"
   },
   "engines": {
@@ -331,9 +331,9 @@
     "rebuild:vsix": "bash ../scripts/build-vsix.sh",
     "check:release": "node ../scripts/check-extension-release.js"
   },
-  "homepage": "https://github.com/erstaples/agentic-code-review-walkthrough#readme",
+  "homepage": "https://github.com/getkanko/kanko#readme",
   "bugs": {
-    "url": "https://github.com/erstaples/agentic-code-review-walkthrough/issues"
+    "url": "https://github.com/getkanko/kanko/issues"
   },
   "files": [
     "extension.js",

@@ -119,7 +119,7 @@ The extension binds `127.0.0.1:0`, reads the assigned port, and writes
   "pid": 1472,
   "ideName": "Visual Studio Code",
   "extensionVersion": "0.1.0",
-  "workspaceFolders": ["/home/estaples/code/github.com/erstaples/example"]
+  "workspaceFolders": ["/home/estaples/code/github.com/getkanko/example"]
 }
 ```
 
@@ -342,7 +342,7 @@ Returns `no_active_editor` when no editor is focused.
   "protocolVersion": 1,
   "extensionVersion": "0.1.0",
   "ideName": "Visual Studio Code",
-  "workspaceFolders": ["/home/estaples/code/github.com/erstaples/example"]
+  "workspaceFolders": ["/home/estaples/code/github.com/getkanko/example"]
 }
 ```
 
@@ -413,7 +413,7 @@ bridge's read-only property structural rather than instructional.
 ## Repository layout
 
 ```
-claude-code-review-walkthrough/
+kanko/
 ├── .claude-plugin/
 │   ├── marketplace.json
 │   └── plugin.json

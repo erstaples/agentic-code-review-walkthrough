@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://erstaples.dev/tour-changes/schemas/receipt.schema.json",
+  "$id": "https://getkanko.dev/kanko/schemas/receipt.schema.json",
   "title": "Living change dossier review receipt",
   "type": "object",
   "required": ["schemaVersion", "producerVersion", "id", "dossierId", "reviewSessionId", "changeRevisionId", "changeIdentity", "aggregateRevision", "eventHash", "createdAt", "outcome", "claims", "risks", "evidence", "stops", "questions", "digest"],

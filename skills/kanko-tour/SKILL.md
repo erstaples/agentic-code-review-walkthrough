@@ -1,5 +1,5 @@
 ---
-name: tour-changes
+name: kanko-tour
 description: Interactively walk the reviewer through a diff, one logical change at a time, narrating what changed, why, and how it connects to the rest of the code, flagging anything that looks off against repo conventions along the way. Use when the user says "tour the changes", "walk me through this diff", "guide me through what changed", "/tour-changes", or asks for a guided review of a diff/PR/branch rather than reading it themselves.
 ---
 

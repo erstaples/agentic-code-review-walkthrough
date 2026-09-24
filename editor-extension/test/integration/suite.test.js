@@ -19,7 +19,7 @@ module.exports = function register({ test, before }) {
   const http = async (route, body) => (await fetch(`http://127.0.0.1:${lock.port}${route}`, { method: 'POST', headers: { authorization: `Bearer ${lock.authToken}`, 'content-type': 'application/json' }, body: JSON.stringify({ ...body, protocolVersion: 2 }) })).json();
   const tabs = () => vscode.window.tabGroups.all.flatMap(g => g.tabs.map(t => ({ label: t.label, uri: (t.input?.uri || t.input?.modified)?.toString() })));
   before(async () => {
-    await vscode.extensions.getExtension('erstaples.kanko').activate();
+    await vscode.extensions.getExtension('getkanko.kanko').activate();
     const dir = path.join(os.homedir(), '.claude/tour');
     lock = fs.readdirSync(dir).filter(n => n.endsWith('.lock')).map(n => JSON.parse(fs.readFileSync(path.join(dir, n)))).find(l => l.pid === process.pid);
     assert.ok(lock); call = createCallTool({ dossierService: service, resolveLock: () => lock });

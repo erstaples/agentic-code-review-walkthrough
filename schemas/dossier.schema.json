@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://erstaples.dev/tour-changes/schemas/dossier.schema.json",
+  "$id": "https://getkanko.dev/kanko/schemas/dossier.schema.json",
   "title": "Living change dossier snapshot",
   "type": "object",
   "required": ["schemaVersion", "producerVersion", "id", "phase", "aggregateRevision", "repository", "changeRevisions", "currentChangeRevisionId", "entities", "relationships", "tourPlans", "reviewSessions", "receipts"],

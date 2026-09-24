@@ -400,7 +400,7 @@ longer addresses a specific person.
 
 **Interfaces:**
 - Consumes: nothing
-- Produces: plugin name `tour-changes`, marketplace name `code-review-walkthrough`, skill directory `skills/tour-changes/`
+- Produces: plugin name `tour-changes`, marketplace name `kanko`, skill directory `skills/tour-changes/`
 
 - [ ] **Step 1: Write the failing test**
 
@@ -417,7 +417,7 @@ const readJson = (p) => JSON.parse(fs.readFileSync(path.join(root, p), "utf8"));
 
 test("marketplace declares the tour-changes plugin from the repo root", () => {
   const m = readJson(".claude-plugin/marketplace.json");
-  assert.strictEqual(m.name, "code-review-walkthrough");
+  assert.strictEqual(m.name, "kanko");
   const plugin = m.plugins.find((p) => p.name === "tour-changes");
   assert.ok(plugin, "tour-changes plugin missing from marketplace");
   assert.strictEqual(plugin.source, "./");
@@ -454,8 +454,8 @@ Expected: FAIL — `ENOENT` on `.claude-plugin/marketplace.json`.
 
 ```json
 {
-  "name": "code-review-walkthrough",
-  "owner": { "name": "erstaples", "url": "https://github.com/erstaples" },
+  "name": "kanko",
+  "owner": { "name": "kanko", "url": "https://github.com/getkanko" },
   "metadata": {
     "description": "Guided, editor-driven walkthroughs of a code diff",
     "version": "0.1.0"
@@ -466,9 +466,9 @@ Expected: FAIL — `ENOENT` on `.claude-plugin/marketplace.json`.
       "source": "./",
       "description": "Walks you through a diff one logical change at a time, driving VS Code to open and highlight the code under discussion.",
       "version": "0.1.0",
-      "author": { "name": "erstaples", "url": "https://github.com/erstaples" },
-      "homepage": "https://github.com/erstaples/claude-code-review-walkthrough",
-      "repository": "https://github.com/erstaples/claude-code-review-walkthrough",
+      "author": { "name": "kanko", "url": "https://github.com/getkanko" },
+      "homepage": "https://github.com/getkanko/kanko",
+      "repository": "https://github.com/getkanko/kanko",
       "license": "MIT",
       "keywords": ["code-review", "walkthrough", "diff", "vscode", "tour"],
       "category": "productivity"
@@ -484,9 +484,9 @@ Expected: FAIL — `ENOENT` on `.claude-plugin/marketplace.json`.
   "name": "tour-changes",
   "description": "Walks you through a diff one logical change at a time, driving VS Code to open and highlight the code under discussion.",
   "version": "0.1.0",
-  "author": { "name": "erstaples", "url": "https://github.com/erstaples" },
-  "homepage": "https://github.com/erstaples/claude-code-review-walkthrough",
-  "repository": "https://github.com/erstaples/claude-code-review-walkthrough",
+  "author": { "name": "kanko", "url": "https://github.com/getkanko" },
+  "homepage": "https://github.com/getkanko/kanko",
+  "repository": "https://github.com/getkanko/kanko",
   "license": "MIT",
   "keywords": ["code-review", "walkthrough", "diff", "vscode", "tour"]
 }
@@ -1106,7 +1106,7 @@ Create `editor-extension/package.json`:
   "version": "0.1.0",
   "publisher": "estaples",
   "license": "MIT",
-  "repository": { "type": "git", "url": "git+https://github.com/erstaples/claude-code-review-walkthrough.git" },
+  "repository": { "type": "git", "url": "git+https://github.com/getkanko/kanko.git" },
   "engines": { "vscode": "^1.90.0" },
   "categories": ["Other"],
   "activationEvents": ["onStartupFinished"],
@@ -2200,9 +2200,9 @@ Extension installed. Reload the VS Code window so it activates:
 
 Then install the plugin for your agent:
   Claude Code:  /plugin marketplace add $root
-                /plugin install tour-changes@code-review-walkthrough
+                /plugin install tour-changes@kanko
   Codex CLI:    codex plugin marketplace add $root
-                codex plugin add tour-changes@code-review-walkthrough
+                codex plugin add tour-changes@kanko
 EOF
 ```
 
@@ -3796,7 +3796,7 @@ Create `editor-extension/README.md`:
 ```markdown
 # Claude Tour
 
-Companion extension for the [tour-changes](https://github.com/erstaples/claude-code-review-walkthrough)
+Companion extension for the [tour-changes](https://github.com/getkanko/kanko)
 plugin. It lets an agentic coding tool open files, highlight ranges, render
 diffs, and read your current editor context while walking you through a change.
 

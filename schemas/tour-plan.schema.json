@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://erstaples.dev/tour-changes/schemas/tour-plan.schema.json",
+  "$id": "https://getkanko.dev/kanko/schemas/tour-plan.schema.json",
   "title": "Relay v2 tour presentation",
   "type": "object",
   "required": ["presentationVersion", "stops"],

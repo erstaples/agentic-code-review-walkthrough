@@ -11,9 +11,9 @@ const { validateEvent, validateSnapshot, validateReceipt } = require("./validati
 
 function stateRoot(env = process.env, platform = process.platform) {
   if (env.TOUR_CHANGES_STATE_DIR) return path.resolve(env.TOUR_CHANGES_STATE_DIR);
-  if (platform === "win32") return path.join(env.LOCALAPPDATA || path.join(os.homedir(), "AppData", "Local"), "tour-changes");
-  if (platform === "darwin") return path.join(os.homedir(), "Library", "Application Support", "tour-changes");
-  return path.join(env.XDG_STATE_HOME || path.join(os.homedir(), ".local", "state"), "tour-changes");
+  if (platform === "win32") return path.join(env.LOCALAPPDATA || path.join(os.homedir(), "AppData", "Local"), "kanko-tour");
+  if (platform === "darwin") return path.join(os.homedir(), "Library", "Application Support", "kanko-tour");
+  return path.join(env.XDG_STATE_HOME || path.join(os.homedir(), ".local", "state"), "kanko-tour");
 }
 
 function mkdir(directory) { fs.mkdirSync(directory, { recursive: true, mode: 0o700 }); }

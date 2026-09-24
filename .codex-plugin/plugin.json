@@ -1,13 +1,13 @@
 {
-  "name": "tour-changes",
+  "name": "kanko",
   "version": "0.2.0+codex.20260922230718",
   "description": "Walks through a diff with editor navigation and a persistent, evidence-backed living change dossier.",
   "author": {
-    "name": "erstaples",
-    "url": "https://github.com/erstaples"
+    "name": "getkanko",
+    "url": "https://github.com/getkanko"
   },
-  "homepage": "https://github.com/erstaples/codewalk",
-  "repository": "https://github.com/erstaples/codewalk",
+  "homepage": "https://github.com/getkanko/kanko",
+  "repository": "https://github.com/getkanko/kanko",
   "license": "MIT",
   "keywords": [
     "code-review",
@@ -19,17 +19,17 @@
   ],
   "skills": "./skills/",
   "interface": {
-    "displayName": "Tour Changes",
+    "displayName": "Kanko",
     "shortDescription": "Persistent, evidence-backed code walkthroughs",
     "longDescription": "Guides a reviewer through a diff while preserving claims, evidence, risks, questions, coverage, and review receipts in a local living change dossier.",
-    "developerName": "erstaples",
+    "developerName": "getkanko.dev",
     "category": "Productivity",
     "capabilities": [
       "Read",
       "Interactive",
       "Write"
     ],
-    "websiteURL": "https://github.com/erstaples/codewalk",
+    "websiteURL": "https://github.com/getkanko/kanko",
     "defaultPrompt": [
       "Walk me through the changes in this branch.",
       "Implement this specification with a living change dossier."

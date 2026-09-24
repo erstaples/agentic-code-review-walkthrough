@@ -47,7 +47,7 @@ exports.run = async () => {
     }
     write("automated.json", results);
   };
-  const product = vscode.extensions.getExtension("erstaples.kanko");
+  const product = vscode.extensions.getExtension("getkanko.kanko");
   await product.activate();
   const probe = await vscode.extensions.getExtension("kanko-test.relay-layout-spike").activate();
   const root = vscode.workspace.workspaceFolders[0].uri.fsPath;

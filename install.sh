@@ -30,8 +30,8 @@ Extension installed. Reload the VS Code window so it activates:
 
 Then install the plugin for your agent:
   Claude Code:  /plugin marketplace add $root
-                /plugin install tour-changes@code-review-walkthrough
+                /plugin install kanko-tour@kanko
   Codex CLI:    codex plugin marketplace add $root
-                codex plugin add tour-changes@code-review-walkthrough
+                codex plugin add kanko-tour@kanko
                 # Start a new thread after installation.
 EOF
