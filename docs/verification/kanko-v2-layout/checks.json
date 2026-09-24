@@ -1,15 +1,15 @@
 {
-  "productionCommit": "d03cf37f04794f71efc0a58fe2b22d1aaeb47530",
+  "productionCommit": "17174508dbd903ef018a7333515aa9a689e85ee2",
   "vscode": "1.139.0",
   "platform": "macOS arm64",
   "unitTests": {
     "command": "TMPDIR=/private/tmp node --test test/*.test.js mcp/test/*.test.js editor-extension/test/*.test.js",
-    "passed": 207,
+    "passed": 208,
     "failed": 0
   },
   "nativeTests": {
     "command": "node editor-extension/test/integration/runner.js",
-    "passed": 18,
+    "passed": 19,
     "failed": 0,
     "manualSessionCompleted": true,
     "hostExitCode": 0,
@@ -27,5 +27,6 @@
     "08-sequence-override.png",
     "09-cap-three.png",
     "10-cap-four.png"
-  ]
+  ],
+  "screenshotCommit": "d03cf37"
 }

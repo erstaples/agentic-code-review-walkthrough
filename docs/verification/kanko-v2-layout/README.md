@@ -1,13 +1,16 @@
 # Task 5: layout engine acceptance
 
 Verified September 24, 2026 on macOS arm64, VS Code 1.139.0, with the
-packaged `getkankodev.kanko` 0.1.0 extension. Production candidate: `d03cf37`.
-Later commits in this PR add evidence only. Base: `dev` at `fe95fd9`.
+packaged `getkankodev.kanko` 0.1.0 extension. Production candidate: `1717450`.
+The ten screenshots were captured at `d03cf37`; the final guard change prevents
+automatic growth with pins and avoids closing customized companion groups.
+Those additional cases pass in the final packaged suite; the pictured scenarios
+remain applicable. Later commits add evidence only. Base: `dev` at `fe95fd9`.
 
 ## Results
 
-- 207 unit, contract and MCP tests pass.
-- 18 native integration scenarios pass against the extracted VSIX, followed by
+- 208 unit, contract and MCP tests pass.
+- 19 native integration scenarios pass against the extracted VSIX, followed by
   a completed manual screenshot session. The host exited with code 0.
 - Release metadata and all 34 packaged files match the source.
 - Ten unmodified screenshots show actual editor interaction and presentation.
@@ -16,7 +19,8 @@ Later commits in this PR add evidence only. Base: `dev` at `fe95fd9`.
 [Automated snapshots](automated.json) include the six shapes, caps 2/3/4,
 all-visible preservation, all-pinned refusal, unpin replacement, customized
 geometry, Exploring, both split-row placements, remembered role destination,
-Sequence and its override. Placement checks also run with the normal
+Sequence and its override, pinned layouts below capacity, and customized
+companion groups with native empty-group cleanup enabled. Placement checks also run with the normal
 `closeEmptyGroups` behavior enabled. [Check summary](checks.json) identifies
 the candidate and test commands.
 

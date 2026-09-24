@@ -6,8 +6,8 @@
       "value": {
         "revision": 1,
         "loaded": true,
-        "tourId": "map_9fc0a32c-7ae4-4008-8137-736fc0ef9978",
-        "planId": "pln_1f5dc62c-887a-4889-a9f4-9a653d6a2081",
+        "tourId": "map_ebbeb97b-2ffe-4aeb-b780-c1082b01c05c",
+        "planId": "pln_fd70bd79-385f-4806-b1f4-1011e42ee3a4",
         "title": "A review that stays on track",
         "mode": "following",
         "stopIndex": 0,
@@ -45,8 +45,8 @@
               "n": 1,
               "path": "service.js",
               "rev": {
-                "base": "56b83cfa05db3e66036dc184823b557079286067",
-                "head": "7472bf5bf68289422f62d0bb2673f45aeda1441a"
+                "base": "a35e950bc086076a28eb9d4f25cbe040bd0c3f80",
+                "head": "b4112ddfdce334ab30875233cd52b8f84c29fc19"
               },
               "role": "change",
               "side": "head",
@@ -67,8 +67,8 @@
               "n": 2,
               "path": "service.test.js",
               "rev": {
-                "base": "56b83cfa05db3e66036dc184823b557079286067",
-                "head": "7472bf5bf68289422f62d0bb2673f45aeda1441a"
+                "base": "a35e950bc086076a28eb9d4f25cbe040bd0c3f80",
+                "head": "b4112ddfdce334ab30875233cd52b8f84c29fc19"
               },
               "role": "evidence",
               "side": "head",
@@ -87,8 +87,8 @@
               "n": 3,
               "path": "navigation.js",
               "rev": {
-                "base": "56b83cfa05db3e66036dc184823b557079286067",
-                "head": "7472bf5bf68289422f62d0bb2673f45aeda1441a"
+                "base": "a35e950bc086076a28eb9d4f25cbe040bd0c3f80",
+                "head": "b4112ddfdce334ab30875233cd52b8f84c29fc19"
               },
               "role": "caller",
               "side": "head",
@@ -107,8 +107,8 @@
               "n": 4,
               "path": "service.js",
               "rev": {
-                "base": "56b83cfa05db3e66036dc184823b557079286067",
-                "head": "7472bf5bf68289422f62d0bb2673f45aeda1441a"
+                "base": "a35e950bc086076a28eb9d4f25cbe040bd0c3f80",
+                "head": "b4112ddfdce334ab30875233cd52b8f84c29fc19"
               },
               "role": "callee",
               "side": "head",
@@ -290,7 +290,7 @@
         },
         "narrationHtml": "<strong>Keep the current review intact.</strong>\n\n<button class=\"chip color-1\" data-anchor=\"1\" title=\"service.js:1–11 · Keep the active review\" aria-label=\"Open anchor 1: service.js:1–11 · Keep the active review\">1</button> checks the incoming tour before it can replace what the reviewer sees.\n\nThe regression in <button class=\"chip color-2\" data-anchor=\"2\" title=\"service.test.js:3–12 · Prove rejected loads are safe\" aria-label=\"Open anchor 2: service.test.js:3–12 · Prove rejected loads are safe\">2</button> proves a failed load leaves the active stop unchanged.",
         "narration": "**Keep the current review intact.**\n\n① service.js:1 checks the incoming tour before it can replace what the reviewer sees.\n\nThe regression in ② service.test.js:3 proves a failed load leaves the active stop unchanged.",
-        "receiptNarration": "**Keep the current review intact.**\n\n① service.js:1–11 @7472bf5 checks the incoming tour before it can replace what the reviewer sees.\n\nThe regression in ② service.test.js:3–12 @7472bf5 proves a failed load leaves the active stop unchanged."
+        "receiptNarration": "**Keep the current review intact.**\n\n① service.js:1–11 @b4112dd checks the incoming tour before it can replace what the reviewer sees.\n\nThe regression in ② service.test.js:3–12 @b4112dd proves a failed load leaves the active stop unchanged."
       }
     },
     {
@@ -298,8 +298,8 @@
       "value": {
         "revision": 2,
         "loaded": true,
-        "tourId": "map_9fc0a32c-7ae4-4008-8137-736fc0ef9978",
-        "planId": "pln_1f5dc62c-887a-4889-a9f4-9a653d6a2081",
+        "tourId": "map_ebbeb97b-2ffe-4aeb-b780-c1082b01c05c",
+        "planId": "pln_fd70bd79-385f-4806-b1f4-1011e42ee3a4",
         "title": "A review that stays on track",
         "mode": "following",
         "stopIndex": 0,
@@ -337,8 +337,8 @@
               "n": 1,
               "path": "service.js",
               "rev": {
-                "base": "56b83cfa05db3e66036dc184823b557079286067",
-                "head": "7472bf5bf68289422f62d0bb2673f45aeda1441a"
+                "base": "a35e950bc086076a28eb9d4f25cbe040bd0c3f80",
+                "head": "b4112ddfdce334ab30875233cd52b8f84c29fc19"
               },
               "role": "change",
               "side": "head",
@@ -359,8 +359,8 @@
               "n": 2,
               "path": "service.test.js",
               "rev": {
-                "base": "56b83cfa05db3e66036dc184823b557079286067",
-                "head": "7472bf5bf68289422f62d0bb2673f45aeda1441a"
+                "base": "a35e950bc086076a28eb9d4f25cbe040bd0c3f80",
+                "head": "b4112ddfdce334ab30875233cd52b8f84c29fc19"
               },
               "role": "evidence",
               "side": "head",
@@ -379,8 +379,8 @@
               "n": 3,
               "path": "navigation.js",
               "rev": {
-                "base": "56b83cfa05db3e66036dc184823b557079286067",
-                "head": "7472bf5bf68289422f62d0bb2673f45aeda1441a"
+                "base": "a35e950bc086076a28eb9d4f25cbe040bd0c3f80",
+                "head": "b4112ddfdce334ab30875233cd52b8f84c29fc19"
               },
               "role": "caller",
               "side": "head",
@@ -399,8 +399,8 @@
               "n": 4,
               "path": "service.js",
               "rev": {
-                "base": "56b83cfa05db3e66036dc184823b557079286067",
-                "head": "7472bf5bf68289422f62d0bb2673f45aeda1441a"
+                "base": "a35e950bc086076a28eb9d4f25cbe040bd0c3f80",
+                "head": "b4112ddfdce334ab30875233cd52b8f84c29fc19"
               },
               "role": "callee",
               "side": "head",
@@ -582,7 +582,7 @@
         },
         "narrationHtml": "<strong>The failure path is observable.</strong>\n\n<button class=\"chip color-2\" data-anchor=\"2\" title=\"service.test.js:3–12 · Prove rejected loads are safe\" aria-label=\"Open anchor 2: service.test.js:3–12 · Prove rejected loads are safe\">2</button> checks both the validation finding and the retained review.\n\nReturn to <button class=\"chip color-1\" data-anchor=\"1\" title=\"service.js:1–11 · Keep the active review\" aria-label=\"Open anchor 1: service.js:1–11 · Keep the active review\">1</button> to trace the guard.",
         "narration": "**The failure path is observable.**\n\n② service.test.js:3 checks both the validation finding and the retained review.\n\nReturn to ① service.js:1 to trace the guard.",
-        "receiptNarration": "**The failure path is observable.**\n\n② service.test.js:3–12 @7472bf5 checks both the validation finding and the retained review.\n\nReturn to ① service.js:1–11 @7472bf5 to trace the guard."
+        "receiptNarration": "**The failure path is observable.**\n\n② service.test.js:3–12 @b4112dd checks both the validation finding and the retained review.\n\nReturn to ① service.js:1–11 @b4112dd to trace the guard."
       }
     },
     {
@@ -590,8 +590,8 @@
       "value": {
         "revision": 4,
         "loaded": true,
-        "tourId": "map_9fc0a32c-7ae4-4008-8137-736fc0ef9978",
-        "planId": "pln_1f5dc62c-887a-4889-a9f4-9a653d6a2081",
+        "tourId": "map_ebbeb97b-2ffe-4aeb-b780-c1082b01c05c",
+        "planId": "pln_fd70bd79-385f-4806-b1f4-1011e42ee3a4",
         "title": "A review that stays on track",
         "mode": "following",
         "stopIndex": 1,
@@ -613,8 +613,8 @@
               "n": 1,
               "path": "navigation.js",
               "rev": {
-                "base": "56b83cfa05db3e66036dc184823b557079286067",
-                "head": "7472bf5bf68289422f62d0bb2673f45aeda1441a"
+                "base": "a35e950bc086076a28eb9d4f25cbe040bd0c3f80",
+                "head": "b4112ddfdce334ab30875233cd52b8f84c29fc19"
               },
               "role": "change",
               "side": "head",
@@ -633,8 +633,8 @@
               "n": 2,
               "path": "retired.js",
               "rev": {
-                "base": "56b83cfa05db3e66036dc184823b557079286067",
-                "head": "7472bf5bf68289422f62d0bb2673f45aeda1441a"
+                "base": "a35e950bc086076a28eb9d4f25cbe040bd0c3f80",
+                "head": "b4112ddfdce334ab30875233cd52b8f84c29fc19"
               },
               "role": "context",
               "side": "base",
@@ -752,7 +752,7 @@
         },
         "narrationHtml": "<strong>Inspect the removed path.</strong>\n\n<button class=\"chip color-2\" data-anchor=\"2\" title=\"retired.js:1–4 · The removed opening path\" aria-label=\"Open anchor 2: retired.js:1–4 · The removed opening path\">2</button> comes from the base revision, even though the file no longer exists at the head.",
         "narration": "**Inspect the removed path.**\n\n② retired.js:1 comes from the base revision, even though the file no longer exists at the head.",
-        "receiptNarration": "**Inspect the removed path.**\n\n② retired.js:1–4 @56b83cf comes from the base revision, even though the file no longer exists at the head."
+        "receiptNarration": "**Inspect the removed path.**\n\n② retired.js:1–4 @a35e950 comes from the base revision, even though the file no longer exists at the head."
       }
     },
     {
@@ -760,8 +760,8 @@
       "value": {
         "revision": 7,
         "loaded": true,
-        "tourId": "map_9fc0a32c-7ae4-4008-8137-736fc0ef9978",
-        "planId": "pln_1f5dc62c-887a-4889-a9f4-9a653d6a2081",
+        "tourId": "map_ebbeb97b-2ffe-4aeb-b780-c1082b01c05c",
+        "planId": "pln_fd70bd79-385f-4806-b1f4-1011e42ee3a4",
         "title": "A review that stays on track",
         "mode": "exploring",
         "stopIndex": 0,
@@ -799,8 +799,8 @@
               "n": 1,
               "path": "service.js",
               "rev": {
-                "base": "56b83cfa05db3e66036dc184823b557079286067",
-                "head": "7472bf5bf68289422f62d0bb2673f45aeda1441a"
+                "base": "a35e950bc086076a28eb9d4f25cbe040bd0c3f80",
+                "head": "b4112ddfdce334ab30875233cd52b8f84c29fc19"
               },
               "role": "change",
               "side": "head",
@@ -821,8 +821,8 @@
               "n": 2,
               "path": "service.test.js",
               "rev": {
-                "base": "56b83cfa05db3e66036dc184823b557079286067",
-                "head": "7472bf5bf68289422f62d0bb2673f45aeda1441a"
+                "base": "a35e950bc086076a28eb9d4f25cbe040bd0c3f80",
+                "head": "b4112ddfdce334ab30875233cd52b8f84c29fc19"
               },
               "role": "evidence",
               "side": "head",
@@ -841,8 +841,8 @@
               "n": 3,
               "path": "navigation.js",
               "rev": {
-                "base": "56b83cfa05db3e66036dc184823b557079286067",
-                "head": "7472bf5bf68289422f62d0bb2673f45aeda1441a"
+                "base": "a35e950bc086076a28eb9d4f25cbe040bd0c3f80",
+                "head": "b4112ddfdce334ab30875233cd52b8f84c29fc19"
               },
               "role": "caller",
               "side": "head",
@@ -861,8 +861,8 @@
               "n": 4,
               "path": "service.js",
               "rev": {
-                "base": "56b83cfa05db3e66036dc184823b557079286067",
-                "head": "7472bf5bf68289422f62d0bb2673f45aeda1441a"
+                "base": "a35e950bc086076a28eb9d4f25cbe040bd0c3f80",
+                "head": "b4112ddfdce334ab30875233cd52b8f84c29fc19"
               },
               "role": "callee",
               "side": "head",
@@ -1037,7 +1037,7 @@
         },
         "narrationHtml": "<strong>The failure path is observable.</strong>\n\n<button class=\"chip color-2\" data-anchor=\"2\" title=\"service.test.js:3–12 · Prove rejected loads are safe\" aria-label=\"Open anchor 2: service.test.js:3–12 · Prove rejected loads are safe\">2</button> checks both the validation finding and the retained review.\n\nReturn to <button class=\"chip color-1\" data-anchor=\"1\" title=\"service.js:1–11 · Keep the active review\" aria-label=\"Open anchor 1: service.js:1–11 · Keep the active review\">1</button> to trace the guard.",
         "narration": "**The failure path is observable.**\n\n② service.test.js:3 checks both the validation finding and the retained review.\n\nReturn to ① service.js:1 to trace the guard.",
-        "receiptNarration": "**The failure path is observable.**\n\n② service.test.js:3–12 @7472bf5 checks both the validation finding and the retained review.\n\nReturn to ① service.js:1–11 @7472bf5 to trace the guard."
+        "receiptNarration": "**The failure path is observable.**\n\n② service.test.js:3–12 @b4112dd checks both the validation finding and the retained review.\n\nReturn to ① service.js:1–11 @b4112dd to trace the guard."
       }
     },
     {
@@ -1045,8 +1045,8 @@
       "value": {
         "revision": 8,
         "loaded": true,
-        "tourId": "map_9fc0a32c-7ae4-4008-8137-736fc0ef9978",
-        "planId": "pln_1f5dc62c-887a-4889-a9f4-9a653d6a2081",
+        "tourId": "map_ebbeb97b-2ffe-4aeb-b780-c1082b01c05c",
+        "planId": "pln_fd70bd79-385f-4806-b1f4-1011e42ee3a4",
         "title": "A review that stays on track",
         "mode": "paused",
         "stopIndex": 0,
@@ -1084,8 +1084,8 @@
               "n": 1,
               "path": "service.js",
               "rev": {
-                "base": "56b83cfa05db3e66036dc184823b557079286067",
-                "head": "7472bf5bf68289422f62d0bb2673f45aeda1441a"
+                "base": "a35e950bc086076a28eb9d4f25cbe040bd0c3f80",
+                "head": "b4112ddfdce334ab30875233cd52b8f84c29fc19"
               },
               "role": "change",
               "side": "head",
@@ -1106,8 +1106,8 @@
               "n": 2,
               "path": "service.test.js",
               "rev": {
-                "base": "56b83cfa05db3e66036dc184823b557079286067",
-                "head": "7472bf5bf68289422f62d0bb2673f45aeda1441a"
+                "base": "a35e950bc086076a28eb9d4f25cbe040bd0c3f80",
+                "head": "b4112ddfdce334ab30875233cd52b8f84c29fc19"
               },
               "role": "evidence",
               "side": "head",
@@ -1126,8 +1126,8 @@
               "n": 3,
               "path": "navigation.js",
               "rev": {
-                "base": "56b83cfa05db3e66036dc184823b557079286067",
-                "head": "7472bf5bf68289422f62d0bb2673f45aeda1441a"
+                "base": "a35e950bc086076a28eb9d4f25cbe040bd0c3f80",
+                "head": "b4112ddfdce334ab30875233cd52b8f84c29fc19"
               },
               "role": "caller",
               "side": "head",
@@ -1146,8 +1146,8 @@
               "n": 4,
               "path": "service.js",
               "rev": {
-                "base": "56b83cfa05db3e66036dc184823b557079286067",
-                "head": "7472bf5bf68289422f62d0bb2673f45aeda1441a"
+                "base": "a35e950bc086076a28eb9d4f25cbe040bd0c3f80",
+                "head": "b4112ddfdce334ab30875233cd52b8f84c29fc19"
               },
               "role": "callee",
               "side": "head",
@@ -1322,7 +1322,7 @@
         },
         "narrationHtml": "<strong>The failure path is observable.</strong>\n\n<button class=\"chip color-2\" data-anchor=\"2\" title=\"service.test.js:3–12 · Prove rejected loads are safe\" aria-label=\"Open anchor 2: service.test.js:3–12 · Prove rejected loads are safe\">2</button> checks both the validation finding and the retained review.\n\nReturn to <button class=\"chip color-1\" data-anchor=\"1\" title=\"service.js:1–11 · Keep the active review\" aria-label=\"Open anchor 1: service.js:1–11 · Keep the active review\">1</button> to trace the guard.",
         "narration": "**The failure path is observable.**\n\n② service.test.js:3 checks both the validation finding and the retained review.\n\nReturn to ① service.js:1 to trace the guard.",
-        "receiptNarration": "**The failure path is observable.**\n\n② service.test.js:3–12 @7472bf5 checks both the validation finding and the retained review.\n\nReturn to ① service.js:1–11 @7472bf5 to trace the guard."
+        "receiptNarration": "**The failure path is observable.**\n\n② service.test.js:3–12 @b4112dd checks both the validation finding and the retained review.\n\nReturn to ① service.js:1–11 @b4112dd to trace the guard."
       }
     },
     {
@@ -1354,8 +1354,8 @@
         "unchangedSnapshot": {
           "revision": 9,
           "loaded": true,
-          "tourId": "map_9fc0a32c-7ae4-4008-8137-736fc0ef9978",
-          "planId": "pln_1f5dc62c-887a-4889-a9f4-9a653d6a2081",
+          "tourId": "map_ebbeb97b-2ffe-4aeb-b780-c1082b01c05c",
+          "planId": "pln_fd70bd79-385f-4806-b1f4-1011e42ee3a4",
           "title": "A review that stays on track",
           "mode": "following",
           "stopIndex": 0,
@@ -1393,8 +1393,8 @@
                 "n": 1,
                 "path": "service.js",
                 "rev": {
-                  "base": "56b83cfa05db3e66036dc184823b557079286067",
-                  "head": "7472bf5bf68289422f62d0bb2673f45aeda1441a"
+                  "base": "a35e950bc086076a28eb9d4f25cbe040bd0c3f80",
+                  "head": "b4112ddfdce334ab30875233cd52b8f84c29fc19"
                 },
                 "role": "change",
                 "side": "head",
@@ -1415,8 +1415,8 @@
                 "n": 2,
                 "path": "service.test.js",
                 "rev": {
-                  "base": "56b83cfa05db3e66036dc184823b557079286067",
-                  "head": "7472bf5bf68289422f62d0bb2673f45aeda1441a"
+                  "base": "a35e950bc086076a28eb9d4f25cbe040bd0c3f80",
+                  "head": "b4112ddfdce334ab30875233cd52b8f84c29fc19"
                 },
                 "role": "evidence",
                 "side": "head",
@@ -1435,8 +1435,8 @@
                 "n": 3,
                 "path": "navigation.js",
                 "rev": {
-                  "base": "56b83cfa05db3e66036dc184823b557079286067",
-                  "head": "7472bf5bf68289422f62d0bb2673f45aeda1441a"
+                  "base": "a35e950bc086076a28eb9d4f25cbe040bd0c3f80",
+                  "head": "b4112ddfdce334ab30875233cd52b8f84c29fc19"
                 },
                 "role": "caller",
                 "side": "head",
@@ -1455,8 +1455,8 @@
                 "n": 4,
                 "path": "service.js",
                 "rev": {
-                  "base": "56b83cfa05db3e66036dc184823b557079286067",
-                  "head": "7472bf5bf68289422f62d0bb2673f45aeda1441a"
+                  "base": "a35e950bc086076a28eb9d4f25cbe040bd0c3f80",
+                  "head": "b4112ddfdce334ab30875233cd52b8f84c29fc19"
                 },
                 "role": "callee",
                 "side": "head",
@@ -1631,20 +1631,20 @@
           },
           "narrationHtml": "<strong>The failure path is observable.</strong>\n\n<button class=\"chip color-2\" data-anchor=\"2\" title=\"service.test.js:3–12 · Prove rejected loads are safe\" aria-label=\"Open anchor 2: service.test.js:3–12 · Prove rejected loads are safe\">2</button> checks both the validation finding and the retained review.\n\nReturn to <button class=\"chip color-1\" data-anchor=\"1\" title=\"service.js:1–11 · Keep the active review\" aria-label=\"Open anchor 1: service.js:1–11 · Keep the active review\">1</button> to trace the guard.",
           "narration": "**The failure path is observable.**\n\n② service.test.js:3 checks both the validation finding and the retained review.\n\nReturn to ① service.js:1 to trace the guard.",
-          "receiptNarration": "**The failure path is observable.**\n\n② service.test.js:3–12 @7472bf5 checks both the validation finding and the retained review.\n\nReturn to ① service.js:1–11 @7472bf5 to trace the guard."
+          "receiptNarration": "**The failure path is observable.**\n\n② service.test.js:3–12 @b4112dd checks both the validation finding and the retained review.\n\nReturn to ① service.js:1–11 @b4112dd to trace the guard."
         },
         "unchangedTabs": [
           {
             "label": "navigation.js",
-            "uri": "file:///private/tmp/kanko-tour-ULe3xk/workspace/navigation.js"
+            "uri": "file:///private/tmp/kanko-tour-hozrqX/workspace/navigation.js"
           },
           {
-            "label": "service.js (56b83cf ↔ 7472bf5)",
-            "uri": "file:///private/tmp/kanko-tour-ULe3xk/workspace/service.js"
+            "label": "service.js (a35e950 ↔ b4112dd)",
+            "uri": "file:///private/tmp/kanko-tour-hozrqX/workspace/service.js"
           },
           {
             "label": "service.test.js",
-            "uri": "file:///private/tmp/kanko-tour-ULe3xk/workspace/service.test.js"
+            "uri": "file:///private/tmp/kanko-tour-hozrqX/workspace/service.test.js"
           }
         ]
       }
@@ -1654,8 +1654,8 @@
       "value": {
         "revision": 11,
         "loaded": true,
-        "tourId": "map_9fc0a32c-7ae4-4008-8137-736fc0ef9978",
-        "planId": "pln_1f5dc62c-887a-4889-a9f4-9a653d6a2081",
+        "tourId": "map_ebbeb97b-2ffe-4aeb-b780-c1082b01c05c",
+        "planId": "pln_fd70bd79-385f-4806-b1f4-1011e42ee3a4",
         "title": "A review that stays on track",
         "mode": "following",
         "stopIndex": 0,
@@ -1693,8 +1693,8 @@
               "n": 1,
               "path": "service.js",
               "rev": {
-                "base": "56b83cfa05db3e66036dc184823b557079286067",
-                "head": "7472bf5bf68289422f62d0bb2673f45aeda1441a"
+                "base": "a35e950bc086076a28eb9d4f25cbe040bd0c3f80",
+                "head": "b4112ddfdce334ab30875233cd52b8f84c29fc19"
               },
               "role": "change",
               "side": "head",
@@ -1715,8 +1715,8 @@
               "n": 2,
               "path": "service.test.js",
               "rev": {
-                "base": "56b83cfa05db3e66036dc184823b557079286067",
-                "head": "7472bf5bf68289422f62d0bb2673f45aeda1441a"
+                "base": "a35e950bc086076a28eb9d4f25cbe040bd0c3f80",
+                "head": "b4112ddfdce334ab30875233cd52b8f84c29fc19"
               },
               "role": "evidence",
               "side": "head",
@@ -1735,8 +1735,8 @@
               "n": 3,
               "path": "navigation.js",
               "rev": {
-                "base": "56b83cfa05db3e66036dc184823b557079286067",
-                "head": "7472bf5bf68289422f62d0bb2673f45aeda1441a"
+                "base": "a35e950bc086076a28eb9d4f25cbe040bd0c3f80",
+                "head": "b4112ddfdce334ab30875233cd52b8f84c29fc19"
               },
               "role": "caller",
               "side": "head",
@@ -1755,8 +1755,8 @@
               "n": 4,
               "path": "service.js",
               "rev": {
-                "base": "56b83cfa05db3e66036dc184823b557079286067",
-                "head": "7472bf5bf68289422f62d0bb2673f45aeda1441a"
+                "base": "a35e950bc086076a28eb9d4f25cbe040bd0c3f80",
+                "head": "b4112ddfdce334ab30875233cd52b8f84c29fc19"
               },
               "role": "callee",
               "side": "head",
@@ -1932,14 +1932,14 @@
         },
         "narrationHtml": "<strong>All three sources.</strong> <button class=\"chip color-1\" data-anchor=\"1\" title=\"service.js:1–11 · Keep the active review\" aria-label=\"Open anchor 1: service.js:1–11 · Keep the active review\">1</button> rejects invalid input, <button class=\"chip color-2\" data-anchor=\"2\" title=\"service.test.js:3–12 · Prove rejected loads are safe\" aria-label=\"Open anchor 2: service.test.js:3–12 · Prove rejected loads are safe\">2</button> checks the result, and <button class=\"chip color-3\" data-anchor=\"3\" title=\"navigation.js:1–11 · Advance the review\" aria-label=\"Open anchor 3: navigation.js:1–11 · Advance the review\">3</button> advances the review.",
         "narration": "**All three sources.** ① service.js:1 rejects invalid input, ② service.test.js:3 checks the result, and ③ navigation.js:1 advances the review.",
-        "receiptNarration": "**All three sources.** ① service.js:1–11 @7472bf5 rejects invalid input, ② service.test.js:3–12 @7472bf5 checks the result, and ③ navigation.js:1–11 @7472bf5 advances the review."
+        "receiptNarration": "**All three sources.** ① service.js:1–11 @b4112dd rejects invalid input, ② service.test.js:3–12 @b4112dd checks the result, and ③ navigation.js:1–11 @b4112dd advances the review."
       }
     },
     {
       "name": "peek-command-json-boundary",
       "value": {
         "arguments": [
-          "map_9fc0a32c-7ae4-4008-8137-736fc0ef9978",
+          "map_ebbeb97b-2ffe-4aeb-b780-c1082b01c05c",
           0,
           1,
           6,
@@ -1953,8 +1953,8 @@
       "value": {
         "revision": 17,
         "loaded": true,
-        "tourId": "map_9fc0a32c-7ae4-4008-8137-736fc0ef9978",
-        "planId": "pln_1f5dc62c-887a-4889-a9f4-9a653d6a2081",
+        "tourId": "map_ebbeb97b-2ffe-4aeb-b780-c1082b01c05c",
+        "planId": "pln_fd70bd79-385f-4806-b1f4-1011e42ee3a4",
         "title": "A review that stays on track",
         "mode": "following",
         "stopIndex": 0,
@@ -1992,8 +1992,8 @@
               "n": 1,
               "path": "service.js",
               "rev": {
-                "base": "56b83cfa05db3e66036dc184823b557079286067",
-                "head": "7472bf5bf68289422f62d0bb2673f45aeda1441a"
+                "base": "a35e950bc086076a28eb9d4f25cbe040bd0c3f80",
+                "head": "b4112ddfdce334ab30875233cd52b8f84c29fc19"
               },
               "role": "change",
               "side": "head",
@@ -2014,8 +2014,8 @@
               "n": 2,
               "path": "service.test.js",
               "rev": {
-                "base": "56b83cfa05db3e66036dc184823b557079286067",
-                "head": "7472bf5bf68289422f62d0bb2673f45aeda1441a"
+                "base": "a35e950bc086076a28eb9d4f25cbe040bd0c3f80",
+                "head": "b4112ddfdce334ab30875233cd52b8f84c29fc19"
               },
               "role": "evidence",
               "side": "head",
@@ -2034,8 +2034,8 @@
               "n": 3,
               "path": "navigation.js",
               "rev": {
-                "base": "56b83cfa05db3e66036dc184823b557079286067",
-                "head": "7472bf5bf68289422f62d0bb2673f45aeda1441a"
+                "base": "a35e950bc086076a28eb9d4f25cbe040bd0c3f80",
+                "head": "b4112ddfdce334ab30875233cd52b8f84c29fc19"
               },
               "role": "caller",
               "side": "head",
@@ -2054,8 +2054,8 @@
               "n": 4,
               "path": "service.js",
               "rev": {
-                "base": "56b83cfa05db3e66036dc184823b557079286067",
-                "head": "7472bf5bf68289422f62d0bb2673f45aeda1441a"
+                "base": "a35e950bc086076a28eb9d4f25cbe040bd0c3f80",
+                "head": "b4112ddfdce334ab30875233cd52b8f84c29fc19"
               },
               "role": "callee",
               "side": "head",
@@ -2237,7 +2237,7 @@
         },
         "narrationHtml": "<strong>Two ranges, one source.</strong> <button class=\"chip color-4\" data-anchor=\"4\" title=\"service.js:13–19 · Normalize the valid candidate\" aria-label=\"Open anchor 4: service.js:13–19 · Normalize the valid candidate\">4</button> normalizes the candidate that <button class=\"chip color-1\" data-anchor=\"1\" title=\"service.js:1–11 · Keep the active review\" aria-label=\"Open anchor 1: service.js:1–11 · Keep the active review\">1</button> checked.",
         "narration": "**Two ranges, one source.** ④ service.js:13 normalizes the candidate that ① service.js:1 checked.",
-        "receiptNarration": "**Two ranges, one source.** ④ service.js:13–19 @7472bf5 normalizes the candidate that ① service.js:1–11 @7472bf5 checked."
+        "receiptNarration": "**Two ranges, one source.** ④ service.js:13–19 @b4112dd normalizes the candidate that ① service.js:1–11 @b4112dd checked."
       }
     },
     {
@@ -2469,7 +2469,7 @@
       "name": "pinned-tab-protected",
       "value": {
         "labels": [
-          "service.js (56b83cf ↔ 7472bf5)",
+          "service.js (a35e950 ↔ b4112dd)",
           "navigation.js"
         ]
       }
@@ -2493,8 +2493,8 @@
       "value": {
         "revision": 35,
         "loaded": true,
-        "tourId": "map_9fc0a32c-7ae4-4008-8137-736fc0ef9978",
-        "planId": "pln_1f5dc62c-887a-4889-a9f4-9a653d6a2081",
+        "tourId": "map_ebbeb97b-2ffe-4aeb-b780-c1082b01c05c",
+        "planId": "pln_fd70bd79-385f-4806-b1f4-1011e42ee3a4",
         "title": "A review that stays on track",
         "mode": "following",
         "stopIndex": 0,
@@ -2532,8 +2532,8 @@
               "n": 1,
               "path": "service.js",
               "rev": {
-                "base": "56b83cfa05db3e66036dc184823b557079286067",
-                "head": "7472bf5bf68289422f62d0bb2673f45aeda1441a"
+                "base": "a35e950bc086076a28eb9d4f25cbe040bd0c3f80",
+                "head": "b4112ddfdce334ab30875233cd52b8f84c29fc19"
               },
               "role": "change",
               "side": "head",
@@ -2554,8 +2554,8 @@
               "n": 2,
               "path": "service.test.js",
               "rev": {
-                "base": "56b83cfa05db3e66036dc184823b557079286067",
-                "head": "7472bf5bf68289422f62d0bb2673f45aeda1441a"
+                "base": "a35e950bc086076a28eb9d4f25cbe040bd0c3f80",
+                "head": "b4112ddfdce334ab30875233cd52b8f84c29fc19"
               },
               "role": "evidence",
               "side": "head",
@@ -2574,8 +2574,8 @@
               "n": 3,
               "path": "navigation.js",
               "rev": {
-                "base": "56b83cfa05db3e66036dc184823b557079286067",
-                "head": "7472bf5bf68289422f62d0bb2673f45aeda1441a"
+                "base": "a35e950bc086076a28eb9d4f25cbe040bd0c3f80",
+                "head": "b4112ddfdce334ab30875233cd52b8f84c29fc19"
               },
               "role": "caller",
               "side": "head",
@@ -2594,8 +2594,8 @@
               "n": 4,
               "path": "service.js",
               "rev": {
-                "base": "56b83cfa05db3e66036dc184823b557079286067",
-                "head": "7472bf5bf68289422f62d0bb2673f45aeda1441a"
+                "base": "a35e950bc086076a28eb9d4f25cbe040bd0c3f80",
+                "head": "b4112ddfdce334ab30875233cd52b8f84c29fc19"
               },
               "role": "callee",
               "side": "head",
@@ -2777,7 +2777,7 @@
         },
         "narrationHtml": "<strong>Keep the current review intact.</strong>\n\n<button class=\"chip color-1\" data-anchor=\"1\" title=\"service.js:1–11 · Keep the active review\" aria-label=\"Open anchor 1: service.js:1–11 · Keep the active review\">1</button> checks the incoming tour before it can replace what the reviewer sees.\n\nThe regression in <button class=\"chip color-2\" data-anchor=\"2\" title=\"service.test.js:3–12 · Prove rejected loads are safe\" aria-label=\"Open anchor 2: service.test.js:3–12 · Prove rejected loads are safe\">2</button> proves a failed load leaves the active stop unchanged.",
         "narration": "**Keep the current review intact.**\n\n① service.js:1 checks the incoming tour before it can replace what the reviewer sees.\n\nThe regression in ② service.test.js:3 proves a failed load leaves the active stop unchanged.",
-        "receiptNarration": "**Keep the current review intact.**\n\n① service.js:1–11 @7472bf5 checks the incoming tour before it can replace what the reviewer sees.\n\nThe regression in ② service.test.js:3–12 @7472bf5 proves a failed load leaves the active stop unchanged."
+        "receiptNarration": "**Keep the current review intact.**\n\n① service.js:1–11 @b4112dd checks the incoming tour before it can replace what the reviewer sees.\n\nThe regression in ② service.test.js:3–12 @b4112dd proves a failed load leaves the active stop unchanged."
       }
     },
     {
@@ -2786,8 +2786,8 @@
         "snapshot": {
           "revision": 37,
           "loaded": true,
-          "tourId": "map_9fc0a32c-7ae4-4008-8137-736fc0ef9978",
-          "planId": "pln_1f5dc62c-887a-4889-a9f4-9a653d6a2081",
+          "tourId": "map_ebbeb97b-2ffe-4aeb-b780-c1082b01c05c",
+          "planId": "pln_fd70bd79-385f-4806-b1f4-1011e42ee3a4",
           "title": "Reviewer-controlled layouts",
           "mode": "following",
           "stopIndex": 0,
@@ -2825,8 +2825,8 @@
                 "n": 1,
                 "path": "service.js",
                 "rev": {
-                  "base": "56b83cfa05db3e66036dc184823b557079286067",
-                  "head": "7472bf5bf68289422f62d0bb2673f45aeda1441a"
+                  "base": "a35e950bc086076a28eb9d4f25cbe040bd0c3f80",
+                  "head": "b4112ddfdce334ab30875233cd52b8f84c29fc19"
                 },
                 "role": "change",
                 "side": "head",
@@ -2845,8 +2845,8 @@
                 "n": 2,
                 "path": "service.test.js",
                 "rev": {
-                  "base": "56b83cfa05db3e66036dc184823b557079286067",
-                  "head": "7472bf5bf68289422f62d0bb2673f45aeda1441a"
+                  "base": "a35e950bc086076a28eb9d4f25cbe040bd0c3f80",
+                  "head": "b4112ddfdce334ab30875233cd52b8f84c29fc19"
                 },
                 "role": "evidence",
                 "side": "head",
@@ -2865,8 +2865,8 @@
                 "n": 3,
                 "path": "navigation.js",
                 "rev": {
-                  "base": "56b83cfa05db3e66036dc184823b557079286067",
-                  "head": "7472bf5bf68289422f62d0bb2673f45aeda1441a"
+                  "base": "a35e950bc086076a28eb9d4f25cbe040bd0c3f80",
+                  "head": "b4112ddfdce334ab30875233cd52b8f84c29fc19"
                 },
                 "role": "caller",
                 "side": "head",
@@ -2885,8 +2885,8 @@
                 "n": 4,
                 "path": "layout-a.js",
                 "rev": {
-                  "base": "56b83cfa05db3e66036dc184823b557079286067",
-                  "head": "7472bf5bf68289422f62d0bb2673f45aeda1441a"
+                  "base": "a35e950bc086076a28eb9d4f25cbe040bd0c3f80",
+                  "head": "b4112ddfdce334ab30875233cd52b8f84c29fc19"
                 },
                 "role": "context",
                 "side": "head",
@@ -2905,8 +2905,8 @@
                 "n": 5,
                 "path": "layout-b.js",
                 "rev": {
-                  "base": "56b83cfa05db3e66036dc184823b557079286067",
-                  "head": "7472bf5bf68289422f62d0bb2673f45aeda1441a"
+                  "base": "a35e950bc086076a28eb9d4f25cbe040bd0c3f80",
+                  "head": "b4112ddfdce334ab30875233cd52b8f84c29fc19"
                 },
                 "role": "evidence",
                 "side": "head",
@@ -3126,7 +3126,7 @@
           },
           "narrationHtml": "Compare <button class=\"chip color-1\" data-anchor=\"1\" title=\"service.js:1–11 · Keep the guard visible\" aria-label=\"Open anchor 1: service.js:1–11 · Keep the guard visible\">1</button>, <button class=\"chip color-2\" data-anchor=\"2\" title=\"service.test.js:3–12 · Pin the regression evidence\" aria-label=\"Open anchor 2: service.test.js:3–12 · Pin the regression evidence\">2</button>, <button class=\"chip color-3\" data-anchor=\"3\" title=\"navigation.js:1–11 · Open the caller\" aria-label=\"Open anchor 3: navigation.js:1–11 · Open the caller\">3</button> and <button class=\"chip color-4\" data-anchor=\"4\" title=\"layout-a.js:1–30 · Inspect a long source\" aria-label=\"Open anchor 4: layout-a.js:1–30 · Inspect a long source\">4</button> within the chosen group limit.",
           "narration": "Compare ① service.js:1, ② service.test.js:3, ③ navigation.js:1 and ④ layout-a.js:1 within the chosen group limit.",
-          "receiptNarration": "Compare ① service.js:1–11 @7472bf5, ② service.test.js:3–12 @7472bf5, ③ navigation.js:1–11 @7472bf5 and ④ layout-a.js:1–30 @7472bf5 within the chosen group limit."
+          "receiptNarration": "Compare ① service.js:1–11 @b4112dd, ② service.test.js:3–12 @b4112dd, ③ navigation.js:1–11 @b4112dd and ④ layout-a.js:1–30 @b4112dd within the chosen group limit."
         },
         "geometry": {
           "orientation": 1,
@@ -3147,8 +3147,8 @@
         "snapshot": {
           "revision": 40,
           "loaded": true,
-          "tourId": "map_9fc0a32c-7ae4-4008-8137-736fc0ef9978",
-          "planId": "pln_1f5dc62c-887a-4889-a9f4-9a653d6a2081",
+          "tourId": "map_ebbeb97b-2ffe-4aeb-b780-c1082b01c05c",
+          "planId": "pln_fd70bd79-385f-4806-b1f4-1011e42ee3a4",
           "title": "Reviewer-controlled layouts",
           "mode": "following",
           "stopIndex": 0,
@@ -3186,8 +3186,8 @@
                 "n": 1,
                 "path": "service.js",
                 "rev": {
-                  "base": "56b83cfa05db3e66036dc184823b557079286067",
-                  "head": "7472bf5bf68289422f62d0bb2673f45aeda1441a"
+                  "base": "a35e950bc086076a28eb9d4f25cbe040bd0c3f80",
+                  "head": "b4112ddfdce334ab30875233cd52b8f84c29fc19"
                 },
                 "role": "change",
                 "side": "head",
@@ -3206,8 +3206,8 @@
                 "n": 2,
                 "path": "service.test.js",
                 "rev": {
-                  "base": "56b83cfa05db3e66036dc184823b557079286067",
-                  "head": "7472bf5bf68289422f62d0bb2673f45aeda1441a"
+                  "base": "a35e950bc086076a28eb9d4f25cbe040bd0c3f80",
+                  "head": "b4112ddfdce334ab30875233cd52b8f84c29fc19"
                 },
                 "role": "evidence",
                 "side": "head",
@@ -3226,8 +3226,8 @@
                 "n": 3,
                 "path": "navigation.js",
                 "rev": {
-                  "base": "56b83cfa05db3e66036dc184823b557079286067",
-                  "head": "7472bf5bf68289422f62d0bb2673f45aeda1441a"
+                  "base": "a35e950bc086076a28eb9d4f25cbe040bd0c3f80",
+                  "head": "b4112ddfdce334ab30875233cd52b8f84c29fc19"
                 },
                 "role": "caller",
                 "side": "head",
@@ -3246,8 +3246,8 @@
                 "n": 4,
                 "path": "layout-a.js",
                 "rev": {
-                  "base": "56b83cfa05db3e66036dc184823b557079286067",
-                  "head": "7472bf5bf68289422f62d0bb2673f45aeda1441a"
+                  "base": "a35e950bc086076a28eb9d4f25cbe040bd0c3f80",
+                  "head": "b4112ddfdce334ab30875233cd52b8f84c29fc19"
                 },
                 "role": "context",
                 "side": "head",
@@ -3266,8 +3266,8 @@
                 "n": 5,
                 "path": "layout-b.js",
                 "rev": {
-                  "base": "56b83cfa05db3e66036dc184823b557079286067",
-                  "head": "7472bf5bf68289422f62d0bb2673f45aeda1441a"
+                  "base": "a35e950bc086076a28eb9d4f25cbe040bd0c3f80",
+                  "head": "b4112ddfdce334ab30875233cd52b8f84c29fc19"
                 },
                 "role": "evidence",
                 "side": "head",
@@ -3492,7 +3492,7 @@
           },
           "narrationHtml": "Compare <button class=\"chip color-1\" data-anchor=\"1\" title=\"service.js:1–11 · Keep the guard visible\" aria-label=\"Open anchor 1: service.js:1–11 · Keep the guard visible\">1</button>, <button class=\"chip color-2\" data-anchor=\"2\" title=\"service.test.js:3–12 · Pin the regression evidence\" aria-label=\"Open anchor 2: service.test.js:3–12 · Pin the regression evidence\">2</button>, <button class=\"chip color-3\" data-anchor=\"3\" title=\"navigation.js:1–11 · Open the caller\" aria-label=\"Open anchor 3: navigation.js:1–11 · Open the caller\">3</button> and <button class=\"chip color-4\" data-anchor=\"4\" title=\"layout-a.js:1–30 · Inspect a long source\" aria-label=\"Open anchor 4: layout-a.js:1–30 · Inspect a long source\">4</button> within the chosen group limit.",
           "narration": "Compare ① service.js:1, ② service.test.js:3, ③ navigation.js:1 and ④ layout-a.js:1 within the chosen group limit.",
-          "receiptNarration": "Compare ① service.js:1–11 @7472bf5, ② service.test.js:3–12 @7472bf5, ③ navigation.js:1–11 @7472bf5 and ④ layout-a.js:1–30 @7472bf5 within the chosen group limit."
+          "receiptNarration": "Compare ① service.js:1–11 @b4112dd, ② service.test.js:3–12 @b4112dd, ③ navigation.js:1–11 @b4112dd and ④ layout-a.js:1–30 @b4112dd within the chosen group limit."
         },
         "geometry": {
           "orientation": 1,
@@ -3521,8 +3521,8 @@
         "snapshot": {
           "revision": 43,
           "loaded": true,
-          "tourId": "map_9fc0a32c-7ae4-4008-8137-736fc0ef9978",
-          "planId": "pln_1f5dc62c-887a-4889-a9f4-9a653d6a2081",
+          "tourId": "map_ebbeb97b-2ffe-4aeb-b780-c1082b01c05c",
+          "planId": "pln_fd70bd79-385f-4806-b1f4-1011e42ee3a4",
           "title": "Reviewer-controlled layouts",
           "mode": "following",
           "stopIndex": 0,
@@ -3560,8 +3560,8 @@
                 "n": 1,
                 "path": "service.js",
                 "rev": {
-                  "base": "56b83cfa05db3e66036dc184823b557079286067",
-                  "head": "7472bf5bf68289422f62d0bb2673f45aeda1441a"
+                  "base": "a35e950bc086076a28eb9d4f25cbe040bd0c3f80",
+                  "head": "b4112ddfdce334ab30875233cd52b8f84c29fc19"
                 },
                 "role": "change",
                 "side": "head",
@@ -3580,8 +3580,8 @@
                 "n": 2,
                 "path": "service.test.js",
                 "rev": {
-                  "base": "56b83cfa05db3e66036dc184823b557079286067",
-                  "head": "7472bf5bf68289422f62d0bb2673f45aeda1441a"
+                  "base": "a35e950bc086076a28eb9d4f25cbe040bd0c3f80",
+                  "head": "b4112ddfdce334ab30875233cd52b8f84c29fc19"
                 },
                 "role": "evidence",
                 "side": "head",
@@ -3600,8 +3600,8 @@
                 "n": 3,
                 "path": "navigation.js",
                 "rev": {
-                  "base": "56b83cfa05db3e66036dc184823b557079286067",
-                  "head": "7472bf5bf68289422f62d0bb2673f45aeda1441a"
+                  "base": "a35e950bc086076a28eb9d4f25cbe040bd0c3f80",
+                  "head": "b4112ddfdce334ab30875233cd52b8f84c29fc19"
                 },
                 "role": "caller",
                 "side": "head",
@@ -3620,8 +3620,8 @@
                 "n": 4,
                 "path": "layout-a.js",
                 "rev": {
-                  "base": "56b83cfa05db3e66036dc184823b557079286067",
-                  "head": "7472bf5bf68289422f62d0bb2673f45aeda1441a"
+                  "base": "a35e950bc086076a28eb9d4f25cbe040bd0c3f80",
+                  "head": "b4112ddfdce334ab30875233cd52b8f84c29fc19"
                 },
                 "role": "context",
                 "side": "head",
@@ -3640,8 +3640,8 @@
                 "n": 5,
                 "path": "layout-b.js",
                 "rev": {
-                  "base": "56b83cfa05db3e66036dc184823b557079286067",
-                  "head": "7472bf5bf68289422f62d0bb2673f45aeda1441a"
+                  "base": "a35e950bc086076a28eb9d4f25cbe040bd0c3f80",
+                  "head": "b4112ddfdce334ab30875233cd52b8f84c29fc19"
                 },
                 "role": "evidence",
                 "side": "head",
@@ -3862,7 +3862,7 @@
           },
           "narrationHtml": "Compare <button class=\"chip color-1\" data-anchor=\"1\" title=\"service.js:1–11 · Keep the guard visible\" aria-label=\"Open anchor 1: service.js:1–11 · Keep the guard visible\">1</button>, <button class=\"chip color-2\" data-anchor=\"2\" title=\"service.test.js:3–12 · Pin the regression evidence\" aria-label=\"Open anchor 2: service.test.js:3–12 · Pin the regression evidence\">2</button>, <button class=\"chip color-3\" data-anchor=\"3\" title=\"navigation.js:1–11 · Open the caller\" aria-label=\"Open anchor 3: navigation.js:1–11 · Open the caller\">3</button> and <button class=\"chip color-4\" data-anchor=\"4\" title=\"layout-a.js:1–30 · Inspect a long source\" aria-label=\"Open anchor 4: layout-a.js:1–30 · Inspect a long source\">4</button> within the chosen group limit.",
           "narration": "Compare ① service.js:1, ② service.test.js:3, ③ navigation.js:1 and ④ layout-a.js:1 within the chosen group limit.",
-          "receiptNarration": "Compare ① service.js:1–11 @7472bf5, ② service.test.js:3–12 @7472bf5, ③ navigation.js:1–11 @7472bf5 and ④ layout-a.js:1–30 @7472bf5 within the chosen group limit."
+          "receiptNarration": "Compare ① service.js:1–11 @b4112dd, ② service.test.js:3–12 @b4112dd, ③ navigation.js:1–11 @b4112dd and ④ layout-a.js:1–30 @b4112dd within the chosen group limit."
         },
         "geometry": {
           "orientation": 1,
@@ -3898,8 +3898,8 @@
       "value": {
         "revision": 49,
         "loaded": true,
-        "tourId": "map_9fc0a32c-7ae4-4008-8137-736fc0ef9978",
-        "planId": "pln_1f5dc62c-887a-4889-a9f4-9a653d6a2081",
+        "tourId": "map_ebbeb97b-2ffe-4aeb-b780-c1082b01c05c",
+        "planId": "pln_fd70bd79-385f-4806-b1f4-1011e42ee3a4",
         "title": "Reviewer-controlled layouts",
         "mode": "following",
         "stopIndex": 0,
@@ -3937,8 +3937,8 @@
               "n": 1,
               "path": "service.js",
               "rev": {
-                "base": "56b83cfa05db3e66036dc184823b557079286067",
-                "head": "7472bf5bf68289422f62d0bb2673f45aeda1441a"
+                "base": "a35e950bc086076a28eb9d4f25cbe040bd0c3f80",
+                "head": "b4112ddfdce334ab30875233cd52b8f84c29fc19"
               },
               "role": "change",
               "side": "head",
@@ -3957,8 +3957,8 @@
               "n": 2,
               "path": "service.test.js",
               "rev": {
-                "base": "56b83cfa05db3e66036dc184823b557079286067",
-                "head": "7472bf5bf68289422f62d0bb2673f45aeda1441a"
+                "base": "a35e950bc086076a28eb9d4f25cbe040bd0c3f80",
+                "head": "b4112ddfdce334ab30875233cd52b8f84c29fc19"
               },
               "role": "evidence",
               "side": "head",
@@ -3977,8 +3977,8 @@
               "n": 3,
               "path": "navigation.js",
               "rev": {
-                "base": "56b83cfa05db3e66036dc184823b557079286067",
-                "head": "7472bf5bf68289422f62d0bb2673f45aeda1441a"
+                "base": "a35e950bc086076a28eb9d4f25cbe040bd0c3f80",
+                "head": "b4112ddfdce334ab30875233cd52b8f84c29fc19"
               },
               "role": "caller",
               "side": "head",
@@ -3997,8 +3997,8 @@
               "n": 4,
               "path": "layout-a.js",
               "rev": {
-                "base": "56b83cfa05db3e66036dc184823b557079286067",
-                "head": "7472bf5bf68289422f62d0bb2673f45aeda1441a"
+                "base": "a35e950bc086076a28eb9d4f25cbe040bd0c3f80",
+                "head": "b4112ddfdce334ab30875233cd52b8f84c29fc19"
               },
               "role": "context",
               "side": "head",
@@ -4017,8 +4017,8 @@
               "n": 5,
               "path": "layout-b.js",
               "rev": {
-                "base": "56b83cfa05db3e66036dc184823b557079286067",
-                "head": "7472bf5bf68289422f62d0bb2673f45aeda1441a"
+                "base": "a35e950bc086076a28eb9d4f25cbe040bd0c3f80",
+                "head": "b4112ddfdce334ab30875233cd52b8f84c29fc19"
               },
               "role": "evidence",
               "side": "head",
@@ -4210,7 +4210,7 @@
         },
         "narrationHtml": "<button class=\"chip color-3\" data-anchor=\"3\" title=\"navigation.js:1–11 · Open the caller\" aria-label=\"Open anchor 3: navigation.js:1–11 · Open the caller\">3</button> needs a slot. Pinned anchors stay in place when this beat advances.",
         "narration": "③ navigation.js:1 needs a slot. Pinned anchors stay in place when this beat advances.",
-        "receiptNarration": "③ navigation.js:1–11 @7472bf5 needs a slot. Pinned anchors stay in place when this beat advances."
+        "receiptNarration": "③ navigation.js:1–11 @b4112dd needs a slot. Pinned anchors stay in place when this beat advances."
       }
     },
     {
@@ -4218,8 +4218,8 @@
       "value": {
         "revision": 51,
         "loaded": true,
-        "tourId": "map_9fc0a32c-7ae4-4008-8137-736fc0ef9978",
-        "planId": "pln_1f5dc62c-887a-4889-a9f4-9a653d6a2081",
+        "tourId": "map_ebbeb97b-2ffe-4aeb-b780-c1082b01c05c",
+        "planId": "pln_fd70bd79-385f-4806-b1f4-1011e42ee3a4",
         "title": "Reviewer-controlled layouts",
         "mode": "following",
         "stopIndex": 0,
@@ -4257,8 +4257,8 @@
               "n": 1,
               "path": "service.js",
               "rev": {
-                "base": "56b83cfa05db3e66036dc184823b557079286067",
-                "head": "7472bf5bf68289422f62d0bb2673f45aeda1441a"
+                "base": "a35e950bc086076a28eb9d4f25cbe040bd0c3f80",
+                "head": "b4112ddfdce334ab30875233cd52b8f84c29fc19"
               },
               "role": "change",
               "side": "head",
@@ -4277,8 +4277,8 @@
               "n": 2,
               "path": "service.test.js",
               "rev": {
-                "base": "56b83cfa05db3e66036dc184823b557079286067",
-                "head": "7472bf5bf68289422f62d0bb2673f45aeda1441a"
+                "base": "a35e950bc086076a28eb9d4f25cbe040bd0c3f80",
+                "head": "b4112ddfdce334ab30875233cd52b8f84c29fc19"
               },
               "role": "evidence",
               "side": "head",
@@ -4297,8 +4297,8 @@
               "n": 3,
               "path": "navigation.js",
               "rev": {
-                "base": "56b83cfa05db3e66036dc184823b557079286067",
-                "head": "7472bf5bf68289422f62d0bb2673f45aeda1441a"
+                "base": "a35e950bc086076a28eb9d4f25cbe040bd0c3f80",
+                "head": "b4112ddfdce334ab30875233cd52b8f84c29fc19"
               },
               "role": "caller",
               "side": "head",
@@ -4317,8 +4317,8 @@
               "n": 4,
               "path": "layout-a.js",
               "rev": {
-                "base": "56b83cfa05db3e66036dc184823b557079286067",
-                "head": "7472bf5bf68289422f62d0bb2673f45aeda1441a"
+                "base": "a35e950bc086076a28eb9d4f25cbe040bd0c3f80",
+                "head": "b4112ddfdce334ab30875233cd52b8f84c29fc19"
               },
               "role": "context",
               "side": "head",
@@ -4337,8 +4337,8 @@
               "n": 5,
               "path": "layout-b.js",
               "rev": {
-                "base": "56b83cfa05db3e66036dc184823b557079286067",
-                "head": "7472bf5bf68289422f62d0bb2673f45aeda1441a"
+                "base": "a35e950bc086076a28eb9d4f25cbe040bd0c3f80",
+                "head": "b4112ddfdce334ab30875233cd52b8f84c29fc19"
               },
               "role": "evidence",
               "side": "head",
@@ -4540,7 +4540,7 @@
         },
         "narrationHtml": "<button class=\"chip color-3\" data-anchor=\"3\" title=\"navigation.js:1–11 · Open the caller\" aria-label=\"Open anchor 3: navigation.js:1–11 · Open the caller\">3</button> needs a slot. Pinned anchors stay in place when this beat advances.",
         "narration": "③ navigation.js:1 needs a slot. Pinned anchors stay in place when this beat advances.",
-        "receiptNarration": "③ navigation.js:1–11 @7472bf5 needs a slot. Pinned anchors stay in place when this beat advances."
+        "receiptNarration": "③ navigation.js:1–11 @b4112dd needs a slot. Pinned anchors stay in place when this beat advances."
       }
     },
     {
@@ -4549,8 +4549,8 @@
         "snapshot": {
           "revision": 56,
           "loaded": true,
-          "tourId": "map_9fc0a32c-7ae4-4008-8137-736fc0ef9978",
-          "planId": "pln_1f5dc62c-887a-4889-a9f4-9a653d6a2081",
+          "tourId": "map_ebbeb97b-2ffe-4aeb-b780-c1082b01c05c",
+          "planId": "pln_fd70bd79-385f-4806-b1f4-1011e42ee3a4",
           "title": "Reviewer-controlled layouts",
           "mode": "exploring",
           "stopIndex": 0,
@@ -4588,8 +4588,8 @@
                 "n": 1,
                 "path": "service.js",
                 "rev": {
-                  "base": "56b83cfa05db3e66036dc184823b557079286067",
-                  "head": "7472bf5bf68289422f62d0bb2673f45aeda1441a"
+                  "base": "a35e950bc086076a28eb9d4f25cbe040bd0c3f80",
+                  "head": "b4112ddfdce334ab30875233cd52b8f84c29fc19"
                 },
                 "role": "change",
                 "side": "head",
@@ -4608,8 +4608,8 @@
                 "n": 2,
                 "path": "service.test.js",
                 "rev": {
-                  "base": "56b83cfa05db3e66036dc184823b557079286067",
-                  "head": "7472bf5bf68289422f62d0bb2673f45aeda1441a"
+                  "base": "a35e950bc086076a28eb9d4f25cbe040bd0c3f80",
+                  "head": "b4112ddfdce334ab30875233cd52b8f84c29fc19"
                 },
                 "role": "evidence",
                 "side": "head",
@@ -4628,8 +4628,8 @@
                 "n": 3,
                 "path": "navigation.js",
                 "rev": {
-                  "base": "56b83cfa05db3e66036dc184823b557079286067",
-                  "head": "7472bf5bf68289422f62d0bb2673f45aeda1441a"
+                  "base": "a35e950bc086076a28eb9d4f25cbe040bd0c3f80",
+                  "head": "b4112ddfdce334ab30875233cd52b8f84c29fc19"
                 },
                 "role": "caller",
                 "side": "head",
@@ -4648,8 +4648,8 @@
                 "n": 4,
                 "path": "layout-a.js",
                 "rev": {
-                  "base": "56b83cfa05db3e66036dc184823b557079286067",
-                  "head": "7472bf5bf68289422f62d0bb2673f45aeda1441a"
+                  "base": "a35e950bc086076a28eb9d4f25cbe040bd0c3f80",
+                  "head": "b4112ddfdce334ab30875233cd52b8f84c29fc19"
                 },
                 "role": "context",
                 "side": "head",
@@ -4668,8 +4668,8 @@
                 "n": 5,
                 "path": "layout-b.js",
                 "rev": {
-                  "base": "56b83cfa05db3e66036dc184823b557079286067",
-                  "head": "7472bf5bf68289422f62d0bb2673f45aeda1441a"
+                  "base": "a35e950bc086076a28eb9d4f25cbe040bd0c3f80",
+                  "head": "b4112ddfdce334ab30875233cd52b8f84c29fc19"
                 },
                 "role": "evidence",
                 "side": "head",
@@ -4911,7 +4911,7 @@
           },
           "narrationHtml": "<button class=\"chip color-4\" data-anchor=\"4\" title=\"layout-a.js:1–30 · Inspect a long source\" aria-label=\"Open anchor 4: layout-a.js:1–30 · Inspect a long source\">4</button> and <button class=\"chip color-5\" data-anchor=\"5\" title=\"layout-b.js:1–30 · Compare the next source\" aria-label=\"Open anchor 5: layout-b.js:1–30 · Compare the next source\">5</button> demonstrate Sequence mode when split editors become too small.",
           "narration": "④ layout-a.js:1 and ⑤ layout-b.js:1 demonstrate Sequence mode when split editors become too small.",
-          "receiptNarration": "④ layout-a.js:1–30 @7472bf5 and ⑤ layout-b.js:1–30 @7472bf5 demonstrate Sequence mode when split editors become too small."
+          "receiptNarration": "④ layout-a.js:1–30 @b4112dd and ⑤ layout-b.js:1–30 @b4112dd demonstrate Sequence mode when split editors become too small."
         },
         "geometry": {
           "orientation": 1,
@@ -4931,8 +4931,8 @@
       "value": {
         "revision": 60,
         "loaded": true,
-        "tourId": "map_9fc0a32c-7ae4-4008-8137-736fc0ef9978",
-        "planId": "pln_1f5dc62c-887a-4889-a9f4-9a653d6a2081",
+        "tourId": "map_ebbeb97b-2ffe-4aeb-b780-c1082b01c05c",
+        "planId": "pln_fd70bd79-385f-4806-b1f4-1011e42ee3a4",
         "title": "Reviewer-controlled layouts",
         "mode": "following",
         "stopIndex": 0,
@@ -4970,8 +4970,8 @@
               "n": 1,
               "path": "service.js",
               "rev": {
-                "base": "56b83cfa05db3e66036dc184823b557079286067",
-                "head": "7472bf5bf68289422f62d0bb2673f45aeda1441a"
+                "base": "a35e950bc086076a28eb9d4f25cbe040bd0c3f80",
+                "head": "b4112ddfdce334ab30875233cd52b8f84c29fc19"
               },
               "role": "change",
               "side": "head",
@@ -4990,8 +4990,8 @@
               "n": 2,
               "path": "service.test.js",
               "rev": {
-                "base": "56b83cfa05db3e66036dc184823b557079286067",
-                "head": "7472bf5bf68289422f62d0bb2673f45aeda1441a"
+                "base": "a35e950bc086076a28eb9d4f25cbe040bd0c3f80",
+                "head": "b4112ddfdce334ab30875233cd52b8f84c29fc19"
               },
               "role": "evidence",
               "side": "head",
@@ -5010,8 +5010,8 @@
               "n": 3,
               "path": "navigation.js",
               "rev": {
-                "base": "56b83cfa05db3e66036dc184823b557079286067",
-                "head": "7472bf5bf68289422f62d0bb2673f45aeda1441a"
+                "base": "a35e950bc086076a28eb9d4f25cbe040bd0c3f80",
+                "head": "b4112ddfdce334ab30875233cd52b8f84c29fc19"
               },
               "role": "caller",
               "side": "head",
@@ -5030,8 +5030,8 @@
               "n": 4,
               "path": "layout-a.js",
               "rev": {
-                "base": "56b83cfa05db3e66036dc184823b557079286067",
-                "head": "7472bf5bf68289422f62d0bb2673f45aeda1441a"
+                "base": "a35e950bc086076a28eb9d4f25cbe040bd0c3f80",
+                "head": "b4112ddfdce334ab30875233cd52b8f84c29fc19"
               },
               "role": "context",
               "side": "head",
@@ -5050,8 +5050,8 @@
               "n": 5,
               "path": "layout-b.js",
               "rev": {
-                "base": "56b83cfa05db3e66036dc184823b557079286067",
-                "head": "7472bf5bf68289422f62d0bb2673f45aeda1441a"
+                "base": "a35e950bc086076a28eb9d4f25cbe040bd0c3f80",
+                "head": "b4112ddfdce334ab30875233cd52b8f84c29fc19"
               },
               "role": "evidence",
               "side": "head",
@@ -5275,7 +5275,7 @@
         },
         "narrationHtml": "<button class=\"chip color-1\" data-anchor=\"1\" title=\"service.js:1–11 · Keep the guard visible\" aria-label=\"Open anchor 1: service.js:1–11 · Keep the guard visible\">1</button> preserves the guard. <button class=\"chip color-2\" data-anchor=\"2\" title=\"service.test.js:3–12 · Pin the regression evidence\" aria-label=\"Open anchor 2: service.test.js:3–12 · Pin the regression evidence\">2</button> supplies the evidence. Pin these anchors to keep them visible.",
         "narration": "① service.js:1 preserves the guard. ② service.test.js:3 supplies the evidence. Pin these anchors to keep them visible.",
-        "receiptNarration": "① service.js:1–11 @7472bf5 preserves the guard. ② service.test.js:3–12 @7472bf5 supplies the evidence. Pin these anchors to keep them visible."
+        "receiptNarration": "① service.js:1–11 @b4112dd preserves the guard. ② service.test.js:3–12 @b4112dd supplies the evidence. Pin these anchors to keep them visible."
       }
     },
     {
@@ -5283,8 +5283,8 @@
       "value": {
         "revision": 64,
         "loaded": true,
-        "tourId": "map_9fc0a32c-7ae4-4008-8137-736fc0ef9978",
-        "planId": "pln_1f5dc62c-887a-4889-a9f4-9a653d6a2081",
+        "tourId": "map_ebbeb97b-2ffe-4aeb-b780-c1082b01c05c",
+        "planId": "pln_fd70bd79-385f-4806-b1f4-1011e42ee3a4",
         "title": "Reviewer-controlled layouts",
         "mode": "following",
         "stopIndex": 0,
@@ -5322,8 +5322,8 @@
               "n": 1,
               "path": "service.js",
               "rev": {
-                "base": "56b83cfa05db3e66036dc184823b557079286067",
-                "head": "7472bf5bf68289422f62d0bb2673f45aeda1441a"
+                "base": "a35e950bc086076a28eb9d4f25cbe040bd0c3f80",
+                "head": "b4112ddfdce334ab30875233cd52b8f84c29fc19"
               },
               "role": "change",
               "side": "head",
@@ -5342,8 +5342,8 @@
               "n": 2,
               "path": "service.test.js",
               "rev": {
-                "base": "56b83cfa05db3e66036dc184823b557079286067",
-                "head": "7472bf5bf68289422f62d0bb2673f45aeda1441a"
+                "base": "a35e950bc086076a28eb9d4f25cbe040bd0c3f80",
+                "head": "b4112ddfdce334ab30875233cd52b8f84c29fc19"
               },
               "role": "evidence",
               "side": "head",
@@ -5362,8 +5362,8 @@
               "n": 3,
               "path": "navigation.js",
               "rev": {
-                "base": "56b83cfa05db3e66036dc184823b557079286067",
-                "head": "7472bf5bf68289422f62d0bb2673f45aeda1441a"
+                "base": "a35e950bc086076a28eb9d4f25cbe040bd0c3f80",
+                "head": "b4112ddfdce334ab30875233cd52b8f84c29fc19"
               },
               "role": "caller",
               "side": "head",
@@ -5382,8 +5382,8 @@
               "n": 4,
               "path": "layout-a.js",
               "rev": {
-                "base": "56b83cfa05db3e66036dc184823b557079286067",
-                "head": "7472bf5bf68289422f62d0bb2673f45aeda1441a"
+                "base": "a35e950bc086076a28eb9d4f25cbe040bd0c3f80",
+                "head": "b4112ddfdce334ab30875233cd52b8f84c29fc19"
               },
               "role": "context",
               "side": "head",
@@ -5402,8 +5402,8 @@
               "n": 5,
               "path": "layout-b.js",
               "rev": {
-                "base": "56b83cfa05db3e66036dc184823b557079286067",
-                "head": "7472bf5bf68289422f62d0bb2673f45aeda1441a"
+                "base": "a35e950bc086076a28eb9d4f25cbe040bd0c3f80",
+                "head": "b4112ddfdce334ab30875233cd52b8f84c29fc19"
               },
               "role": "evidence",
               "side": "head",
@@ -5627,7 +5627,7 @@
         },
         "narrationHtml": "<button class=\"chip color-1\" data-anchor=\"1\" title=\"service.js:1–11 · Keep the guard visible\" aria-label=\"Open anchor 1: service.js:1–11 · Keep the guard visible\">1</button> preserves the guard. <button class=\"chip color-2\" data-anchor=\"2\" title=\"service.test.js:3–12 · Pin the regression evidence\" aria-label=\"Open anchor 2: service.test.js:3–12 · Pin the regression evidence\">2</button> supplies the evidence. Pin these anchors to keep them visible.",
         "narration": "① service.js:1 preserves the guard. ② service.test.js:3 supplies the evidence. Pin these anchors to keep them visible.",
-        "receiptNarration": "① service.js:1–11 @7472bf5 preserves the guard. ② service.test.js:3–12 @7472bf5 supplies the evidence. Pin these anchors to keep them visible."
+        "receiptNarration": "① service.js:1–11 @b4112dd preserves the guard. ② service.test.js:3–12 @b4112dd supplies the evidence. Pin these anchors to keep them visible."
       }
     },
     {
@@ -5635,8 +5635,8 @@
       "value": {
         "revision": 68,
         "loaded": true,
-        "tourId": "map_9fc0a32c-7ae4-4008-8137-736fc0ef9978",
-        "planId": "pln_1f5dc62c-887a-4889-a9f4-9a653d6a2081",
+        "tourId": "map_ebbeb97b-2ffe-4aeb-b780-c1082b01c05c",
+        "planId": "pln_fd70bd79-385f-4806-b1f4-1011e42ee3a4",
         "title": "Reviewer-controlled layouts",
         "mode": "following",
         "stopIndex": 0,
@@ -5674,8 +5674,8 @@
               "n": 1,
               "path": "service.js",
               "rev": {
-                "base": "56b83cfa05db3e66036dc184823b557079286067",
-                "head": "7472bf5bf68289422f62d0bb2673f45aeda1441a"
+                "base": "a35e950bc086076a28eb9d4f25cbe040bd0c3f80",
+                "head": "b4112ddfdce334ab30875233cd52b8f84c29fc19"
               },
               "role": "change",
               "side": "head",
@@ -5694,8 +5694,8 @@
               "n": 2,
               "path": "service.test.js",
               "rev": {
-                "base": "56b83cfa05db3e66036dc184823b557079286067",
-                "head": "7472bf5bf68289422f62d0bb2673f45aeda1441a"
+                "base": "a35e950bc086076a28eb9d4f25cbe040bd0c3f80",
+                "head": "b4112ddfdce334ab30875233cd52b8f84c29fc19"
               },
               "role": "evidence",
               "side": "head",
@@ -5714,8 +5714,8 @@
               "n": 3,
               "path": "navigation.js",
               "rev": {
-                "base": "56b83cfa05db3e66036dc184823b557079286067",
-                "head": "7472bf5bf68289422f62d0bb2673f45aeda1441a"
+                "base": "a35e950bc086076a28eb9d4f25cbe040bd0c3f80",
+                "head": "b4112ddfdce334ab30875233cd52b8f84c29fc19"
               },
               "role": "caller",
               "side": "head",
@@ -5734,8 +5734,8 @@
               "n": 4,
               "path": "layout-a.js",
               "rev": {
-                "base": "56b83cfa05db3e66036dc184823b557079286067",
-                "head": "7472bf5bf68289422f62d0bb2673f45aeda1441a"
+                "base": "a35e950bc086076a28eb9d4f25cbe040bd0c3f80",
+                "head": "b4112ddfdce334ab30875233cd52b8f84c29fc19"
               },
               "role": "context",
               "side": "head",
@@ -5754,8 +5754,8 @@
               "n": 5,
               "path": "layout-b.js",
               "rev": {
-                "base": "56b83cfa05db3e66036dc184823b557079286067",
-                "head": "7472bf5bf68289422f62d0bb2673f45aeda1441a"
+                "base": "a35e950bc086076a28eb9d4f25cbe040bd0c3f80",
+                "head": "b4112ddfdce334ab30875233cd52b8f84c29fc19"
               },
               "role": "evidence",
               "side": "head",
@@ -5998,7 +5998,7 @@
         },
         "narrationHtml": "<button class=\"chip color-4\" data-anchor=\"4\" title=\"layout-a.js:1–30 · Inspect a long source\" aria-label=\"Open anchor 4: layout-a.js:1–30 · Inspect a long source\">4</button> and <button class=\"chip color-5\" data-anchor=\"5\" title=\"layout-b.js:1–30 · Compare the next source\" aria-label=\"Open anchor 5: layout-b.js:1–30 · Compare the next source\">5</button> demonstrate Sequence mode when split editors become too small.",
         "narration": "④ layout-a.js:1 and ⑤ layout-b.js:1 demonstrate Sequence mode when split editors become too small.",
-        "receiptNarration": "④ layout-a.js:1–30 @7472bf5 and ⑤ layout-b.js:1–30 @7472bf5 demonstrate Sequence mode when split editors become too small."
+        "receiptNarration": "④ layout-a.js:1–30 @b4112dd and ⑤ layout-b.js:1–30 @b4112dd demonstrate Sequence mode when split editors become too small."
       }
     },
     {
@@ -6006,8 +6006,8 @@
       "value": {
         "revision": 71,
         "loaded": true,
-        "tourId": "map_9fc0a32c-7ae4-4008-8137-736fc0ef9978",
-        "planId": "pln_1f5dc62c-887a-4889-a9f4-9a653d6a2081",
+        "tourId": "map_ebbeb97b-2ffe-4aeb-b780-c1082b01c05c",
+        "planId": "pln_fd70bd79-385f-4806-b1f4-1011e42ee3a4",
         "title": "Reviewer-controlled layouts",
         "mode": "following",
         "stopIndex": 0,
@@ -6045,8 +6045,8 @@
               "n": 1,
               "path": "service.js",
               "rev": {
-                "base": "56b83cfa05db3e66036dc184823b557079286067",
-                "head": "7472bf5bf68289422f62d0bb2673f45aeda1441a"
+                "base": "a35e950bc086076a28eb9d4f25cbe040bd0c3f80",
+                "head": "b4112ddfdce334ab30875233cd52b8f84c29fc19"
               },
               "role": "change",
               "side": "head",
@@ -6065,8 +6065,8 @@
               "n": 2,
               "path": "service.test.js",
               "rev": {
-                "base": "56b83cfa05db3e66036dc184823b557079286067",
-                "head": "7472bf5bf68289422f62d0bb2673f45aeda1441a"
+                "base": "a35e950bc086076a28eb9d4f25cbe040bd0c3f80",
+                "head": "b4112ddfdce334ab30875233cd52b8f84c29fc19"
               },
               "role": "evidence",
               "side": "head",
@@ -6085,8 +6085,8 @@
               "n": 3,
               "path": "navigation.js",
               "rev": {
-                "base": "56b83cfa05db3e66036dc184823b557079286067",
-                "head": "7472bf5bf68289422f62d0bb2673f45aeda1441a"
+                "base": "a35e950bc086076a28eb9d4f25cbe040bd0c3f80",
+                "head": "b4112ddfdce334ab30875233cd52b8f84c29fc19"
               },
               "role": "caller",
               "side": "head",
@@ -6105,8 +6105,8 @@
               "n": 4,
               "path": "layout-a.js",
               "rev": {
-                "base": "56b83cfa05db3e66036dc184823b557079286067",
-                "head": "7472bf5bf68289422f62d0bb2673f45aeda1441a"
+                "base": "a35e950bc086076a28eb9d4f25cbe040bd0c3f80",
+                "head": "b4112ddfdce334ab30875233cd52b8f84c29fc19"
               },
               "role": "context",
               "side": "head",
@@ -6125,8 +6125,8 @@
               "n": 5,
               "path": "layout-b.js",
               "rev": {
-                "base": "56b83cfa05db3e66036dc184823b557079286067",
-                "head": "7472bf5bf68289422f62d0bb2673f45aeda1441a"
+                "base": "a35e950bc086076a28eb9d4f25cbe040bd0c3f80",
+                "head": "b4112ddfdce334ab30875233cd52b8f84c29fc19"
               },
               "role": "evidence",
               "side": "head",
@@ -6339,16 +6339,656 @@
         },
         "narrationHtml": "<button class=\"chip color-1\" data-anchor=\"1\" title=\"service.js:1–11 · Keep the guard visible\" aria-label=\"Open anchor 1: service.js:1–11 · Keep the guard visible\">1</button> preserves the guard. <button class=\"chip color-2\" data-anchor=\"2\" title=\"service.test.js:3–12 · Pin the regression evidence\" aria-label=\"Open anchor 2: service.test.js:3–12 · Pin the regression evidence\">2</button> supplies the evidence. Pin these anchors to keep them visible.",
         "narration": "① service.js:1 preserves the guard. ② service.test.js:3 supplies the evidence. Pin these anchors to keep them visible.",
-        "receiptNarration": "① service.js:1–11 @7472bf5 preserves the guard. ② service.test.js:3–12 @7472bf5 supplies the evidence. Pin these anchors to keep them visible."
+        "receiptNarration": "① service.js:1–11 @b4112dd preserves the guard. ② service.test.js:3–12 @b4112dd supplies the evidence. Pin these anchors to keep them visible."
+      }
+    },
+    {
+      "name": "custom-companion-retained",
+      "value": {
+        "revision": 74,
+        "loaded": true,
+        "tourId": "map_ebbeb97b-2ffe-4aeb-b780-c1082b01c05c",
+        "planId": "pln_fd70bd79-385f-4806-b1f4-1011e42ee3a4",
+        "title": "A review that stays on track",
+        "mode": "following",
+        "stopIndex": 0,
+        "beatIndex": 1,
+        "stopCount": 3,
+        "beatCount": 4,
+        "stop": {
+          "anchors": [
+            {
+              "change": "modified",
+              "claimRefs": [],
+              "contentHash": "sha256:3deb012916d895ba2c177c04994b7f1fe4bf039b512f652500492148ec55edba",
+              "context": {
+                "endLine": 11,
+                "startLine": 1
+              },
+              "focus": [
+                {
+                  "range": {
+                    "endLine": 7,
+                    "startLine": 5
+                  },
+                  "side": "head"
+                },
+                {
+                  "kind": "removed",
+                  "range": {
+                    "endLine": 6,
+                    "startLine": 6
+                  },
+                  "side": "base"
+                }
+              ],
+              "label": "Keep the active review",
+              "n": 1,
+              "path": "service.js",
+              "rev": {
+                "base": "a35e950bc086076a28eb9d4f25cbe040bd0c3f80",
+                "head": "b4112ddfdce334ab30875233cd52b8f84c29fc19"
+              },
+              "role": "change",
+              "side": "head",
+              "view": "diff"
+            },
+            {
+              "change": "added",
+              "claimRefs": [
+                "claim_guard"
+              ],
+              "contentHash": "sha256:6330f722f18a2e8b58fb3d393b210928fd5009f40a4f44540871532a8887e92b",
+              "context": {
+                "endLine": 12,
+                "startLine": 3
+              },
+              "focus": [],
+              "label": "Prove rejected loads are safe",
+              "n": 2,
+              "path": "service.test.js",
+              "rev": {
+                "base": "a35e950bc086076a28eb9d4f25cbe040bd0c3f80",
+                "head": "b4112ddfdce334ab30875233cd52b8f84c29fc19"
+              },
+              "role": "evidence",
+              "side": "head",
+              "view": "head"
+            },
+            {
+              "change": "added",
+              "claimRefs": [],
+              "contentHash": "sha256:14db37ee679bc906872c761bd2b582ecb77ed3be2fa7c2bff36df42919b168f2",
+              "context": {
+                "endLine": 11,
+                "startLine": 1
+              },
+              "focus": [],
+              "label": "Advance the review",
+              "n": 3,
+              "path": "navigation.js",
+              "rev": {
+                "base": "a35e950bc086076a28eb9d4f25cbe040bd0c3f80",
+                "head": "b4112ddfdce334ab30875233cd52b8f84c29fc19"
+              },
+              "role": "caller",
+              "side": "head",
+              "view": "head"
+            },
+            {
+              "change": "modified",
+              "claimRefs": [],
+              "contentHash": "sha256:8dd33e3e44eb1622b74e6706f98becf136e7221b6c78f0b73e49259c7275614c",
+              "context": {
+                "endLine": 19,
+                "startLine": 13
+              },
+              "focus": [],
+              "label": "Normalize the valid candidate",
+              "n": 4,
+              "path": "service.js",
+              "rev": {
+                "base": "a35e950bc086076a28eb9d4f25cbe040bd0c3f80",
+                "head": "b4112ddfdce334ab30875233cd52b8f84c29fc19"
+              },
+              "role": "callee",
+              "side": "head",
+              "view": "diff"
+            }
+          ],
+          "beats": [
+            {
+              "active": [
+                1,
+                2
+              ],
+              "id": "guard",
+              "narration": "**Keep the current review intact.**\n\n{{a:1}} checks the incoming tour before it can replace what the reviewer sees.\n\nThe regression in {{a:2}} proves a failed load leaves the active stop unchanged."
+            },
+            {
+              "active": [
+                2,
+                1
+              ],
+              "id": "proof",
+              "narration": "**The failure path is observable.**\n\n{{a:2}} checks both the validation finding and the retained review.\n\nReturn to {{a:1}} to trace the guard."
+            },
+            {
+              "active": [
+                1,
+                2,
+                3
+              ],
+              "id": "capacity",
+              "narration": "**All three sources.** {{a:1}} rejects invalid input, {{a:2}} checks the result, and {{a:3}} advances the review."
+            },
+            {
+              "active": [
+                4,
+                1
+              ],
+              "id": "same-source",
+              "narration": "**Two ranges, one source.** {{a:4}} normalizes the candidate that {{a:1}} checked."
+            }
+          ],
+          "coveredEntityIds": [
+            "claim_guard"
+          ],
+          "id": "validation",
+          "index": 1,
+          "reviewState": "not-visited",
+          "reviewedAtChangeRevisionId": null,
+          "risk": "medium",
+          "title": "Validate before opening editors",
+          "type": "implementation"
+        },
+        "beat": {
+          "active": [
+            2,
+            1
+          ],
+          "id": "proof",
+          "narration": "**The failure path is observable.**\n\n{{a:2}} checks both the validation finding and the retained review.\n\nReturn to {{a:1}} to trace the guard."
+        },
+        "selectedAnchor": 2,
+        "findings": [
+          {
+            "severity": "warning",
+            "code": "active_budget",
+            "location": "stops[2].beats[2].active",
+            "message": "More than three active anchors will require overflow handling."
+          }
+        ],
+        "presentation": {
+          "layout": {
+            "shape": "stackSplitBottom",
+            "cap": 3,
+            "customized": true,
+            "sequence": false,
+            "sequenceOverride": false,
+            "unplaced": [],
+            "slots": [
+              {
+                "slot": "top",
+                "column": 1,
+                "anchor": 1,
+                "pinned": false
+              },
+              {
+                "slot": "bottomLeft",
+                "column": 2,
+                "anchor": 2,
+                "pinned": false
+              },
+              {
+                "slot": "bottomRight",
+                "column": 3,
+                "pinned": false
+              }
+            ],
+            "options": {
+              "1": [
+                {
+                  "kind": "auto"
+                },
+                {
+                  "kind": "peek"
+                }
+              ],
+              "2": [
+                {
+                  "kind": "auto"
+                },
+                {
+                  "kind": "peek"
+                }
+              ],
+              "3": [
+                {
+                  "kind": "auto"
+                },
+                {
+                  "kind": "peek"
+                },
+                {
+                  "kind": "replace",
+                  "of": 1
+                },
+                {
+                  "kind": "replace",
+                  "of": 2
+                }
+              ],
+              "4": [
+                {
+                  "kind": "auto"
+                },
+                {
+                  "kind": "peek"
+                }
+              ]
+            },
+            "preferences": {}
+          },
+          "anchors": [
+            {
+              "n": 1,
+              "path": "service.js",
+              "status": "visible",
+              "column": 1,
+              "source": "file",
+              "companionColumn": 3,
+              "removedCode": "companion"
+            },
+            {
+              "n": 2,
+              "path": "service.test.js",
+              "status": "visible",
+              "column": 2,
+              "source": "file",
+              "companionColumn": null,
+              "removedCode": null
+            },
+            {
+              "n": 3,
+              "path": "navigation.js",
+              "status": "not-open",
+              "column": null,
+              "source": "file",
+              "companionColumn": null,
+              "removedCode": null
+            },
+            {
+              "n": 4,
+              "path": "service.js",
+              "status": "open",
+              "column": 1,
+              "source": "file",
+              "companionColumn": null,
+              "removedCode": null
+            }
+          ]
+        },
+        "narrationHtml": "<strong>The failure path is observable.</strong>\n\n<button class=\"chip color-2\" data-anchor=\"2\" title=\"service.test.js:3–12 · Prove rejected loads are safe\" aria-label=\"Open anchor 2: service.test.js:3–12 · Prove rejected loads are safe\">2</button> checks both the validation finding and the retained review.\n\nReturn to <button class=\"chip color-1\" data-anchor=\"1\" title=\"service.js:1–11 · Keep the active review\" aria-label=\"Open anchor 1: service.js:1–11 · Keep the active review\">1</button> to trace the guard.",
+        "narration": "**The failure path is observable.**\n\n② service.test.js:3 checks both the validation finding and the retained review.\n\nReturn to ① service.js:1 to trace the guard.",
+        "receiptNarration": "**The failure path is observable.**\n\n② service.test.js:3–12 @b4112dd checks both the validation finding and the retained review.\n\nReturn to ① service.js:1–11 @b4112dd to trace the guard."
+      }
+    },
+    {
+      "name": "pin-blocks-growth",
+      "value": {
+        "revision": 78,
+        "loaded": true,
+        "tourId": "map_ebbeb97b-2ffe-4aeb-b780-c1082b01c05c",
+        "planId": "pln_fd70bd79-385f-4806-b1f4-1011e42ee3a4",
+        "title": "Reviewer-controlled layouts",
+        "mode": "following",
+        "stopIndex": 0,
+        "beatIndex": 2,
+        "stopCount": 1,
+        "beatCount": 4,
+        "stop": {
+          "anchors": [
+            {
+              "change": "modified",
+              "claimRefs": [],
+              "contentHash": "sha256:3deb012916d895ba2c177c04994b7f1fe4bf039b512f652500492148ec55edba",
+              "context": {
+                "endLine": 11,
+                "startLine": 1
+              },
+              "focus": [
+                {
+                  "range": {
+                    "endLine": 7,
+                    "startLine": 5
+                  },
+                  "side": "head"
+                },
+                {
+                  "kind": "removed",
+                  "range": {
+                    "endLine": 6,
+                    "startLine": 6
+                  },
+                  "side": "base"
+                }
+              ],
+              "label": "Keep the guard visible",
+              "n": 1,
+              "path": "service.js",
+              "rev": {
+                "base": "a35e950bc086076a28eb9d4f25cbe040bd0c3f80",
+                "head": "b4112ddfdce334ab30875233cd52b8f84c29fc19"
+              },
+              "role": "change",
+              "side": "head",
+              "view": "head"
+            },
+            {
+              "change": "added",
+              "claimRefs": [],
+              "contentHash": "sha256:6330f722f18a2e8b58fb3d393b210928fd5009f40a4f44540871532a8887e92b",
+              "context": {
+                "endLine": 12,
+                "startLine": 3
+              },
+              "focus": [],
+              "label": "Pin the regression evidence",
+              "n": 2,
+              "path": "service.test.js",
+              "rev": {
+                "base": "a35e950bc086076a28eb9d4f25cbe040bd0c3f80",
+                "head": "b4112ddfdce334ab30875233cd52b8f84c29fc19"
+              },
+              "role": "evidence",
+              "side": "head",
+              "view": "head"
+            },
+            {
+              "change": "added",
+              "claimRefs": [],
+              "contentHash": "sha256:14db37ee679bc906872c761bd2b582ecb77ed3be2fa7c2bff36df42919b168f2",
+              "context": {
+                "endLine": 11,
+                "startLine": 1
+              },
+              "focus": [],
+              "label": "Open the caller",
+              "n": 3,
+              "path": "navigation.js",
+              "rev": {
+                "base": "a35e950bc086076a28eb9d4f25cbe040bd0c3f80",
+                "head": "b4112ddfdce334ab30875233cd52b8f84c29fc19"
+              },
+              "role": "caller",
+              "side": "head",
+              "view": "head"
+            },
+            {
+              "change": "added",
+              "claimRefs": [],
+              "contentHash": "sha256:9b10e69b18b7afc53dd102040ccf355a2d664d24b6582b3bec0c11cb6e9aa363",
+              "context": {
+                "endLine": 30,
+                "startLine": 1
+              },
+              "focus": [],
+              "label": "Inspect a long source",
+              "n": 4,
+              "path": "layout-a.js",
+              "rev": {
+                "base": "a35e950bc086076a28eb9d4f25cbe040bd0c3f80",
+                "head": "b4112ddfdce334ab30875233cd52b8f84c29fc19"
+              },
+              "role": "context",
+              "side": "head",
+              "view": "head"
+            },
+            {
+              "change": "added",
+              "claimRefs": [],
+              "contentHash": "sha256:c0a8c6067cae2010aab4ca7616f64150b4b32603c4c5eb8cd8c761fd9bf67d2f",
+              "context": {
+                "endLine": 30,
+                "startLine": 1
+              },
+              "focus": [],
+              "label": "Compare the next source",
+              "n": 5,
+              "path": "layout-b.js",
+              "rev": {
+                "base": "a35e950bc086076a28eb9d4f25cbe040bd0c3f80",
+                "head": "b4112ddfdce334ab30875233cd52b8f84c29fc19"
+              },
+              "role": "evidence",
+              "side": "head",
+              "view": "head"
+            }
+          ],
+          "beats": [
+            {
+              "active": [
+                1,
+                2
+              ],
+              "id": "pair",
+              "narration": "{{a:1}} preserves the guard. {{a:2}} supplies the evidence. Pin these anchors to keep them visible."
+            },
+            {
+              "active": [
+                3
+              ],
+              "id": "missing",
+              "narration": "{{a:3}} needs a slot. Pinned anchors stay in place when this beat advances."
+            },
+            {
+              "active": [
+                1,
+                2,
+                3,
+                4
+              ],
+              "id": "four",
+              "narration": "Compare {{a:1}}, {{a:2}}, {{a:3}} and {{a:4}} within the chosen group limit."
+            },
+            {
+              "active": [
+                4,
+                5
+              ],
+              "id": "long",
+              "narration": "{{a:4}} and {{a:5}} demonstrate Sequence mode when split editors become too small."
+            }
+          ],
+          "coveredEntityIds": [],
+          "id": "layout",
+          "index": 3,
+          "reviewState": "not-visited",
+          "reviewedAtChangeRevisionId": null,
+          "risk": "medium",
+          "title": "Keep the reviewer in control",
+          "type": "context"
+        },
+        "beat": {
+          "active": [
+            1,
+            2,
+            3,
+            4
+          ],
+          "id": "four",
+          "narration": "Compare {{a:1}}, {{a:2}}, {{a:3}} and {{a:4}} within the chosen group limit."
+        },
+        "selectedAnchor": 1,
+        "findings": [
+          {
+            "severity": "warning",
+            "code": "active_budget",
+            "location": "stops[0].beats[2].active",
+            "message": "More than three active anchors will require overflow handling."
+          },
+          {
+            "severity": "warning",
+            "code": "observed_without_evidence",
+            "location": "stops",
+            "message": "Observed claim claim_guard needs an evidence-role anchor with this claim in claimRefs.",
+            "claimId": "claim_guard"
+          }
+        ],
+        "presentation": {
+          "layout": {
+            "shape": "stack",
+            "cap": 4,
+            "customized": false,
+            "sequence": false,
+            "sequenceOverride": false,
+            "unplaced": [
+              3,
+              4
+            ],
+            "slots": [
+              {
+                "slot": "top",
+                "column": 1,
+                "anchor": 1,
+                "pinned": true
+              },
+              {
+                "slot": "bottom",
+                "column": 2,
+                "anchor": 2,
+                "pinned": false
+              }
+            ],
+            "options": {
+              "1": [
+                {
+                  "kind": "auto"
+                },
+                {
+                  "kind": "peek"
+                }
+              ],
+              "2": [
+                {
+                  "kind": "auto"
+                },
+                {
+                  "kind": "peek"
+                }
+              ],
+              "3": [
+                {
+                  "kind": "auto"
+                },
+                {
+                  "kind": "peek"
+                },
+                {
+                  "kind": "replace",
+                  "of": 2
+                },
+                {
+                  "kind": "beside",
+                  "of": 2
+                }
+              ],
+              "4": [
+                {
+                  "kind": "auto"
+                },
+                {
+                  "kind": "peek"
+                },
+                {
+                  "kind": "replace",
+                  "of": 2
+                },
+                {
+                  "kind": "beside",
+                  "of": 2
+                }
+              ],
+              "5": [
+                {
+                  "kind": "auto"
+                },
+                {
+                  "kind": "peek"
+                },
+                {
+                  "kind": "replace",
+                  "of": 2
+                },
+                {
+                  "kind": "beside",
+                  "of": 2
+                }
+              ]
+            },
+            "preferences": {}
+          },
+          "anchors": [
+            {
+              "n": 1,
+              "path": "service.js",
+              "status": "visible",
+              "column": 1,
+              "source": "file",
+              "companionColumn": null,
+              "removedCode": null
+            },
+            {
+              "n": 2,
+              "path": "service.test.js",
+              "status": "visible",
+              "column": 2,
+              "source": "file",
+              "companionColumn": null,
+              "removedCode": null
+            },
+            {
+              "n": 3,
+              "path": "navigation.js",
+              "status": "not-open",
+              "column": null,
+              "source": "file",
+              "companionColumn": null,
+              "removedCode": null
+            },
+            {
+              "n": 4,
+              "path": "layout-a.js",
+              "status": "not-open",
+              "column": null,
+              "source": "file",
+              "companionColumn": null,
+              "removedCode": null
+            },
+            {
+              "n": 5,
+              "path": "layout-b.js",
+              "status": "not-open",
+              "column": null,
+              "source": "file",
+              "companionColumn": null,
+              "removedCode": null
+            }
+          ]
+        },
+        "narrationHtml": "Compare <button class=\"chip color-1\" data-anchor=\"1\" title=\"service.js:1–11 · Keep the guard visible\" aria-label=\"Open anchor 1: service.js:1–11 · Keep the guard visible\">1</button>, <button class=\"chip color-2\" data-anchor=\"2\" title=\"service.test.js:3–12 · Pin the regression evidence\" aria-label=\"Open anchor 2: service.test.js:3–12 · Pin the regression evidence\">2</button>, <button class=\"chip color-3\" data-anchor=\"3\" title=\"navigation.js:1–11 · Open the caller\" aria-label=\"Open anchor 3: navigation.js:1–11 · Open the caller\">3</button> and <button class=\"chip color-4\" data-anchor=\"4\" title=\"layout-a.js:1–30 · Inspect a long source\" aria-label=\"Open anchor 4: layout-a.js:1–30 · Inspect a long source\">4</button> within the chosen group limit.",
+        "narration": "Compare ① service.js:1, ② service.test.js:3, ③ navigation.js:1 and ④ layout-a.js:1 within the chosen group limit.",
+        "receiptNarration": "Compare ① service.js:1–11 @b4112dd, ② service.test.js:3–12 @b4112dd, ③ navigation.js:1–11 @b4112dd and ④ layout-a.js:1–30 @b4112dd within the chosen group limit."
       }
     },
     {
       "name": "sequence",
       "value": {
-        "revision": 73,
+        "revision": 80,
         "loaded": true,
-        "tourId": "map_9fc0a32c-7ae4-4008-8137-736fc0ef9978",
-        "planId": "pln_1f5dc62c-887a-4889-a9f4-9a653d6a2081",
+        "tourId": "map_ebbeb97b-2ffe-4aeb-b780-c1082b01c05c",
+        "planId": "pln_fd70bd79-385f-4806-b1f4-1011e42ee3a4",
         "title": "Reviewer-controlled layouts",
         "mode": "following",
         "stopIndex": 0,
@@ -6386,8 +7026,8 @@
               "n": 1,
               "path": "service.js",
               "rev": {
-                "base": "56b83cfa05db3e66036dc184823b557079286067",
-                "head": "7472bf5bf68289422f62d0bb2673f45aeda1441a"
+                "base": "a35e950bc086076a28eb9d4f25cbe040bd0c3f80",
+                "head": "b4112ddfdce334ab30875233cd52b8f84c29fc19"
               },
               "role": "change",
               "side": "head",
@@ -6406,8 +7046,8 @@
               "n": 2,
               "path": "service.test.js",
               "rev": {
-                "base": "56b83cfa05db3e66036dc184823b557079286067",
-                "head": "7472bf5bf68289422f62d0bb2673f45aeda1441a"
+                "base": "a35e950bc086076a28eb9d4f25cbe040bd0c3f80",
+                "head": "b4112ddfdce334ab30875233cd52b8f84c29fc19"
               },
               "role": "evidence",
               "side": "head",
@@ -6426,8 +7066,8 @@
               "n": 3,
               "path": "navigation.js",
               "rev": {
-                "base": "56b83cfa05db3e66036dc184823b557079286067",
-                "head": "7472bf5bf68289422f62d0bb2673f45aeda1441a"
+                "base": "a35e950bc086076a28eb9d4f25cbe040bd0c3f80",
+                "head": "b4112ddfdce334ab30875233cd52b8f84c29fc19"
               },
               "role": "caller",
               "side": "head",
@@ -6446,8 +7086,8 @@
               "n": 4,
               "path": "layout-a.js",
               "rev": {
-                "base": "56b83cfa05db3e66036dc184823b557079286067",
-                "head": "7472bf5bf68289422f62d0bb2673f45aeda1441a"
+                "base": "a35e950bc086076a28eb9d4f25cbe040bd0c3f80",
+                "head": "b4112ddfdce334ab30875233cd52b8f84c29fc19"
               },
               "role": "context",
               "side": "head",
@@ -6466,8 +7106,8 @@
               "n": 5,
               "path": "layout-b.js",
               "rev": {
-                "base": "56b83cfa05db3e66036dc184823b557079286067",
-                "head": "7472bf5bf68289422f62d0bb2673f45aeda1441a"
+                "base": "a35e950bc086076a28eb9d4f25cbe040bd0c3f80",
+                "head": "b4112ddfdce334ab30875233cd52b8f84c29fc19"
               },
               "role": "evidence",
               "side": "head",
@@ -6702,16 +7342,16 @@
         },
         "narrationHtml": "<button class=\"chip color-4\" data-anchor=\"4\" title=\"layout-a.js:1–30 · Inspect a long source\" aria-label=\"Open anchor 4: layout-a.js:1–30 · Inspect a long source\">4</button> and <button class=\"chip color-5\" data-anchor=\"5\" title=\"layout-b.js:1–30 · Compare the next source\" aria-label=\"Open anchor 5: layout-b.js:1–30 · Compare the next source\">5</button> demonstrate Sequence mode when split editors become too small.",
         "narration": "④ layout-a.js:1 and ⑤ layout-b.js:1 demonstrate Sequence mode when split editors become too small.",
-        "receiptNarration": "④ layout-a.js:1–30 @7472bf5 and ⑤ layout-b.js:1–30 @7472bf5 demonstrate Sequence mode when split editors become too small."
+        "receiptNarration": "④ layout-a.js:1–30 @b4112dd and ⑤ layout-b.js:1–30 @b4112dd demonstrate Sequence mode when split editors become too small."
       }
     },
     {
       "name": "sequence-override",
       "value": {
-        "revision": 74,
+        "revision": 81,
         "loaded": true,
-        "tourId": "map_9fc0a32c-7ae4-4008-8137-736fc0ef9978",
-        "planId": "pln_1f5dc62c-887a-4889-a9f4-9a653d6a2081",
+        "tourId": "map_ebbeb97b-2ffe-4aeb-b780-c1082b01c05c",
+        "planId": "pln_fd70bd79-385f-4806-b1f4-1011e42ee3a4",
         "title": "Reviewer-controlled layouts",
         "mode": "following",
         "stopIndex": 0,
@@ -6749,8 +7389,8 @@
               "n": 1,
               "path": "service.js",
               "rev": {
-                "base": "56b83cfa05db3e66036dc184823b557079286067",
-                "head": "7472bf5bf68289422f62d0bb2673f45aeda1441a"
+                "base": "a35e950bc086076a28eb9d4f25cbe040bd0c3f80",
+                "head": "b4112ddfdce334ab30875233cd52b8f84c29fc19"
               },
               "role": "change",
               "side": "head",
@@ -6769,8 +7409,8 @@
               "n": 2,
               "path": "service.test.js",
               "rev": {
-                "base": "56b83cfa05db3e66036dc184823b557079286067",
-                "head": "7472bf5bf68289422f62d0bb2673f45aeda1441a"
+                "base": "a35e950bc086076a28eb9d4f25cbe040bd0c3f80",
+                "head": "b4112ddfdce334ab30875233cd52b8f84c29fc19"
               },
               "role": "evidence",
               "side": "head",
@@ -6789,8 +7429,8 @@
               "n": 3,
               "path": "navigation.js",
               "rev": {
-                "base": "56b83cfa05db3e66036dc184823b557079286067",
-                "head": "7472bf5bf68289422f62d0bb2673f45aeda1441a"
+                "base": "a35e950bc086076a28eb9d4f25cbe040bd0c3f80",
+                "head": "b4112ddfdce334ab30875233cd52b8f84c29fc19"
               },
               "role": "caller",
               "side": "head",
@@ -6809,8 +7449,8 @@
               "n": 4,
               "path": "layout-a.js",
               "rev": {
-                "base": "56b83cfa05db3e66036dc184823b557079286067",
-                "head": "7472bf5bf68289422f62d0bb2673f45aeda1441a"
+                "base": "a35e950bc086076a28eb9d4f25cbe040bd0c3f80",
+                "head": "b4112ddfdce334ab30875233cd52b8f84c29fc19"
               },
               "role": "context",
               "side": "head",
@@ -6829,8 +7469,8 @@
               "n": 5,
               "path": "layout-b.js",
               "rev": {
-                "base": "56b83cfa05db3e66036dc184823b557079286067",
-                "head": "7472bf5bf68289422f62d0bb2673f45aeda1441a"
+                "base": "a35e950bc086076a28eb9d4f25cbe040bd0c3f80",
+                "head": "b4112ddfdce334ab30875233cd52b8f84c29fc19"
               },
               "role": "evidence",
               "side": "head",
@@ -7069,7 +7709,7 @@
         },
         "narrationHtml": "<button class=\"chip color-4\" data-anchor=\"4\" title=\"layout-a.js:1–30 · Inspect a long source\" aria-label=\"Open anchor 4: layout-a.js:1–30 · Inspect a long source\">4</button> and <button class=\"chip color-5\" data-anchor=\"5\" title=\"layout-b.js:1–30 · Compare the next source\" aria-label=\"Open anchor 5: layout-b.js:1–30 · Compare the next source\">5</button> demonstrate Sequence mode when split editors become too small.",
         "narration": "④ layout-a.js:1 and ⑤ layout-b.js:1 demonstrate Sequence mode when split editors become too small.",
-        "receiptNarration": "④ layout-a.js:1–30 @7472bf5 and ⑤ layout-b.js:1–30 @7472bf5 demonstrate Sequence mode when split editors become too small."
+        "receiptNarration": "④ layout-a.js:1–30 @b4112dd and ⑤ layout-b.js:1–30 @b4112dd demonstrate Sequence mode when split editors become too small."
       }
     }
   ]
