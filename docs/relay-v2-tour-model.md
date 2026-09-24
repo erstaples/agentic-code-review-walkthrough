@@ -2,8 +2,8 @@
 
 Phase 2 adds source-backed validation to `CreateTourPlan` and `dossier_check`.
 The schema is [tour-plan.schema.json](../schemas/tour-plan.schema.json); the
-shared implementation is [contract/tour.js](../contract/tour.js). Editor loading
-and navigation are phase 3. Creating a plan does not contact the editor.
+shared implementation is [contract/tour.js](../contract/tour.js). [Editor loading and navigation](relay-v2-tour-loading.md) are available in phase 3.
+Creating a plan does not contact the editor.
 
 ## Authoring a plan
 

@@ -1,0 +1,25 @@
+body { padding: 0; color: var(--vscode-foreground); background: var(--vscode-sideBar-background); font-family: var(--vscode-font-family); }
+main { padding: 22px 18px; max-width: 680px; margin: auto; }
+[hidden] { display: none !important; }
+.eyebrow { font-size: 10px; letter-spacing: .14em; color: var(--vscode-descriptionForeground); margin-bottom: 12px; }
+h1 { font-size: 15px; font-weight: 500; margin: 0 0 26px; line-height: 1.5; }
+h2 { font-size: 23px; font-weight: 600; line-height: 1.25; margin: 15px 0 10px; }
+.progress { display: flex; align-items: center; justify-content: space-between; gap: 10px; font-size: 10px; letter-spacing: .04em; }
+.risk { border: 1px solid var(--vscode-panel-border); border-radius: 12px; padding: 3px 8px; white-space: nowrap; }
+.revisions { color: var(--vscode-descriptionForeground); font: 11px var(--vscode-editor-font-family); }
+.modes { display: flex; gap: 3px; margin-top: 25px; border-bottom: 1px solid var(--vscode-panel-border); padding-bottom: 7px; flex-wrap: wrap; }
+button { cursor: pointer; font: inherit; color: var(--vscode-foreground); background: var(--vscode-button-secondaryBackground); border: 1px solid transparent; border-radius: 4px; padding: 7px 9px; }
+button:hover { background: var(--vscode-button-secondaryHoverBackground); }
+button:focus-visible { outline: 2px solid var(--vscode-focusBorder); outline-offset: 2px; }
+button[aria-pressed="true"] { color: var(--vscode-button-foreground); background: var(--vscode-button-background); }
+button:disabled { opacity: .45; cursor: default; }
+.muted { color: var(--vscode-descriptionForeground); font-size: 11px; line-height: 1.6; }
+.narration { white-space: pre-wrap; overflow-wrap: anywhere; line-height: 1.95; font-size: 13px; padding: 13px 0 24px; min-height: 100px; }
+code { color: var(--vscode-textPreformat-foreground); background: var(--vscode-textPreformat-background); border-radius: 3px; padding: 2px 4px; }
+.chip { border-radius: 50%; padding: 0; width: 25px; height: 25px; margin: 0 3px; font: 600 11px var(--vscode-font-family); color: var(--vscode-editor-background); background: var(--chip-color); vertical-align: baseline; }
+.chip:hover { background: var(--chip-color); outline: 2px solid var(--chip-color); outline-offset: 2px; }
+.chip.active { box-shadow: 0 0 0 2px var(--vscode-sideBar-background), 0 0 0 3px var(--chip-color); }
+.color-1 { --chip-color: var(--vscode-relay-anchor1); }.color-2 { --chip-color: var(--vscode-relay-anchor2); }.color-3 { --chip-color: var(--vscode-relay-anchor3); }.color-4 { --chip-color: var(--vscode-relay-anchor4); }.color-5 { --chip-color: var(--vscode-relay-anchor5); }.color-6 { --chip-color: var(--vscode-relay-anchor6); }
+.navigation { display: flex; justify-content: space-between; gap: 8px; margin: 10px 0; }.navigation button { flex: 1; font-size: 11px; }
+.stops button, .end { background: transparent; color: var(--vscode-descriptionForeground); }.end { margin-top: 17px; font-size: 11px; }
+#error { color: var(--vscode-errorForeground); font-size: 12px; }

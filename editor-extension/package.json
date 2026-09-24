@@ -11,7 +11,7 @@
     "directory": "editor-extension"
   },
   "engines": {
-    "vscode": "^1.90.0"
+    "vscode": "^1.139.0"
   },
   "categories": [
     "Other"
@@ -71,20 +71,71 @@
           "highContrast": "#FFFFFF",
           "highContrastLight": "#000000"
         }
+      },
+      {
+        "id": "relay.anchor1",
+        "description": "Tour anchor 1 chip color",
+        "defaults": {
+          "dark": "#A99BF5",
+          "light": "#6554B5",
+          "highContrast": "#A99BF5",
+          "highContrastLight": "#6554B5"
+        }
+      },
+      {
+        "id": "relay.anchor2",
+        "description": "Tour anchor 2 chip color",
+        "defaults": {
+          "dark": "#68CCBC",
+          "light": "#14786A",
+          "highContrast": "#68CCBC",
+          "highContrastLight": "#14786A"
+        }
+      },
+      {
+        "id": "relay.anchor3",
+        "description": "Tour anchor 3 chip color",
+        "defaults": {
+          "dark": "#EBC26B",
+          "light": "#936B10",
+          "highContrast": "#EBC26B",
+          "highContrastLight": "#936B10"
+        }
+      },
+      {
+        "id": "relay.anchor4",
+        "description": "Tour anchor 4 chip color",
+        "defaults": {
+          "dark": "#F19382",
+          "light": "#A13F2D",
+          "highContrast": "#F19382",
+          "highContrastLight": "#A13F2D"
+        }
+      },
+      {
+        "id": "relay.anchor5",
+        "description": "Tour anchor 5 chip color",
+        "defaults": {
+          "dark": "#84B8F5",
+          "light": "#366FAF",
+          "highContrast": "#84B8F5",
+          "highContrastLight": "#366FAF"
+        }
+      },
+      {
+        "id": "relay.anchor6",
+        "description": "Tour anchor 6 chip color",
+        "defaults": {
+          "dark": "#E6A1CF",
+          "light": "#95497C",
+          "highContrast": "#E6A1CF",
+          "highContrastLight": "#95497C"
+        }
       }
     ],
     "configuration": {
       "title": "kanko Presentation",
       "properties": {
-        "relay.presentation.removedCode": {
-          "type": "string",
-          "enum": [
-            "companion",
-            "seam"
-          ],
-          "default": "companion",
-          "description": "How removed-code focus is shown in inline diffs."
-        },
         "relay.presentation.dimOpacity": {
           "type": "number",
           "minimum": 0.2,
@@ -97,42 +148,45 @@
           "default": true,
           "description": "Show inline beat labels."
         },
-        "relay.presentation.closeCompanion": {
-          "type": "string",
-          "enum": [
-            "onBeatChange",
-            "onTourEnd",
-            "never"
-          ],
-          "default": "onBeatChange",
-          "description": "When to close unpinned, unmoved tour companion tabs."
+        "relay.tour.anchorLimit": {
+          "type": "integer",
+          "default": 24,
+          "minimum": 1,
+          "maximum": 99,
+          "description": "Maximum anchors allowed per tour stop."
         }
       }
     },
     "commands": [
       {
-        "command": "relay.presentation.follow",
-        "title": "kanko: Follow Presenter"
-      },
-      {
-        "command": "relay.presentation.pause",
-        "title": "kanko: Pause Presentation"
-      },
-      {
         "command": "tourChanges.copyCitation",
         "title": "kanko: Copy Citation"
-      },
-      {
-        "command": "tourChanges.toggleDiff",
-        "title": "kanko: Toggle Diff View"
       }
     ],
     "menus": {
       "editor/context": [
         {
           "command": "tourChanges.copyCitation",
-          "when": "editorHasSelection && (resourceScheme == file || resourceScheme == git || resourceScheme == relay-rev)",
+          "when": "editorHasSelection && (resourceScheme == file || resourceScheme == relay-rev)",
           "group": "tourChanges"
+        }
+      ]
+    },
+    "viewsContainers": {
+      "secondarySidebar": [
+        {
+          "id": "relay",
+          "title": "kanko",
+          "icon": "assets/kanko-sidebar.svg"
+        }
+      ]
+    },
+    "views": {
+      "relay": [
+        {
+          "id": "relay.tour",
+          "name": "Tour",
+          "type": "webview"
         }
       ]
     }
@@ -158,7 +212,9 @@
     "README.md",
     "CHANGELOG.md",
     "LICENSE",
-    "assets/kanko-icon-256.png"
+    "assets/kanko-icon-256.png",
+    "media/*",
+    "assets/kanko-sidebar.svg"
   ],
   "icon": "assets/kanko-icon-256.png",
   "galleryBanner": {

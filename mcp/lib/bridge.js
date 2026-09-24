@@ -1,6 +1,6 @@
 "use strict";
 
-const PROTOCOL_VERSION = 1;
+const { PROTOCOL_VERSION } = require("../../contract/protocol.js");
 
 async function request(lock, method, route, body) {
   const url = `http://127.0.0.1:${lock.port}${route}` + (method === "GET" ? `?protocolVersion=${PROTOCOL_VERSION}` : "");
@@ -17,8 +17,8 @@ async function request(lock, method, route, body) {
 
   const payload = await res.json().catch(() => ({ ok: false, error: { code: "bad_request", message: `non-JSON response (HTTP ${res.status})` } }));
   if (!payload.ok) {
-    const { code, message } = payload.error || {};
-    throw Object.assign(new Error(message || `bridge returned HTTP ${res.status}`), { code: code || "bad_request" });
+    const { code, message, details } = payload.error || {};
+    throw Object.assign(new Error(message || `bridge returned HTTP ${res.status}`), { code: code || "bad_request", ...(details === undefined ? {} : { details }) });
   }
   return payload;
 }

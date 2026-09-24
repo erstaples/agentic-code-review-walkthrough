@@ -1,670 +1,93 @@
 "use strict";
-
-const assert = require("node:assert");
-const cp = require("node:child_process");
-const fs = require("node:fs");
-const os = require("node:os");
-const path = require("node:path");
-const vscode = require("vscode");
-// Load the same modules as the extension host when testing an extracted VSIX.
-const extensionPath = process.env.EXTENSION_PATH || path.resolve(__dirname, "../..");
-const editorLib = require(path.join(extensionPath, "lib/editor.js"));
-const { createIntentStore } = require(path.join(extensionPath, "lib/decorations.js"));
-
-const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
-
-// index.js supplies test/before/after so it can observe outcomes; the suite runs
-// inside the extension host, where node:test's own runner cannot finish a run.
-module.exports = function register({ test, before, after }) {
-  let lock;
-  let base;
-
+const assert = require('node:assert/strict');
+const fs = require('node:fs');
+const os = require('node:os');
+const path = require('node:path');
+const vscode = require('vscode');
+const { DossierService } = require('../../../mcp/lib/dossier/service.js');
+const { createCallTool } = require('../../../mcp/lib/tools.js');
+const sleep = ms => new Promise(r => setTimeout(r, ms));
+module.exports = function register({ test, before }) {
+  const fixture = JSON.parse(fs.readFileSync(process.env.RELAY_TOUR_FIXTURE));
+  const output = process.env.RELAY_TOUR_OUTPUT;
+  const service = new DossierService({ root: fixture.stateRoot });
+  let lock, call;
+  const results = [];
+  const record = (name, value) => { results.push({ name, value }); fs.writeFileSync(path.join(output, 'automated.json'), JSON.stringify({ vscode: vscode.version, results }, null, 2)); };
+  const api = (name, args = {}) => call(name, { workspace: fixture.workspace, ...args });
+  const load = () => api('relay_load_tour', { dossierId: fixture.dossierId });
+  const http = async (route, body) => (await fetch(`http://127.0.0.1:${lock.port}${route}`, { method: 'POST', headers: { authorization: `Bearer ${lock.authToken}`, 'content-type': 'application/json' }, body: JSON.stringify({ ...body, protocolVersion: 2 }) })).json();
+  const tabs = () => vscode.window.tabGroups.all.flatMap(g => g.tabs.map(t => ({ label: t.label, uri: (t.input?.uri || t.input?.modified)?.toString() })));
   before(async () => {
-    await vscode.extensions.getExtension("erstaples.kanko").activate();
-    const dir = path.join(os.homedir(), ".claude", "tour");
-    for (let i = 0; i < 40 && !lock; i++) {
-      const names = fs.existsSync(dir) ? fs.readdirSync(dir).filter((n) => n.endsWith(".lock")) : [];
-      const mine = names
-        .map((n) => JSON.parse(fs.readFileSync(path.join(dir, n), "utf8")))
-        .find((l) => l.pid === process.pid);
-      if (mine) lock = mine;
-      else await sleep(250);
+    await vscode.extensions.getExtension('erstaples.kanko').activate();
+    const dir = path.join(os.homedir(), '.claude/tour');
+    lock = fs.readdirSync(dir).filter(n => n.endsWith('.lock')).map(n => JSON.parse(fs.readFileSync(path.join(dir, n)))).find(l => l.pid === process.pid);
+    assert.ok(lock); call = createCallTool({ dossierService: service, resolveLock: () => lock });
+  });
+  test('public MCP loads the authored tour and renders a source-backed first beat', async () => {
+    const result = await load();
+    assert.equal(result.ok, true); assert.equal(result.snapshot.stop.id, 'validation'); assert.equal(result.snapshot.beat.id, 'guard');
+    assert.match(result.snapshot.narrationHtml, /data-anchor="2"/); assert.match(result.snapshot.narration, /② service.test.js:3/);
+    assert.match(result.snapshot.receiptNarration, /@\w{7}/);
+    assert.ok(tabs().some(t => t.label.includes('service.js'))); record('load', result.snapshot);
+  });
+  test('public navigation advances beats and stops and can return to an explicit cursor', async () => {
+    let r = await api('relay_navigate', { action: 'nextBeat' }); assert.equal(r.snapshot.beat.id, 'proof');
+    assert.ok(vscode.window.visibleTextEditors.some(e => e.document.uri.path.endsWith('service.test.js'))); record('next-beat', r.snapshot);
+    r = await api('relay_navigate', { action: 'nextStop' }); assert.equal(r.snapshot.stop.id, 'navigation');
+    r = await api('relay_navigate', { action: 'goto', stopId: 'navigation', beatId: 'removed' });
+    const deleted = vscode.window.visibleTextEditors.find(e => e.document.uri.path.endsWith('retired.js'));
+    assert.ok(deleted); assert.match(deleted.document.getText(), /openBeforeValidation/); record('deleted-base', r.snapshot);
+    r = await api('relay_navigate', { action: 'previousStop' }); assert.equal(r.snapshot.beat.id, 'guard');
+  });
+  test('exploring keeps editors still, paused removes presentation, and following resumes the current beat', async () => {
+    await api('relay_set_state', { mode: 'exploring' }); const before = tabs();
+    let r = await api('relay_navigate', { action: 'nextBeat' }); assert.equal(r.snapshot.mode, 'exploring'); assert.deepEqual(tabs(), before); record('exploring', r.snapshot);
+    r = await api('relay_set_state', { mode: 'paused' }); assert.equal(r.snapshot.mode, 'paused'); record('paused', r.snapshot);
+    r = await api('relay_set_state', { mode: 'following' }); assert.equal(r.snapshot.beat.id, 'proof'); assert.ok(vscode.window.visibleTextEditors.some(e => e.document.uri.path.endsWith('service.test.js')));
+  });
+  test('the extension rejects invalid load findings before changing the current tour or tabs', async () => {
+    const before = (await api('tour_status')).snapshot, beforeTabs = tabs();
+    const bad = service.loadTour({ workspace: fixture.workspace, dossierId: fixture.dossierId }); bad.plan.stops[0].beats[0].active = [99];
+    const result = await http('/tour/load', bad); assert.equal(result.ok, false); assert.equal(result.error.code, 'invalid_tour_plan');
+    assert.ok(result.error.details.findings.some(f => f.code === 'invalid_active'));
+    assert.deepEqual((await api('tour_status')).snapshot, before); assert.deepEqual(tabs(), beforeTabs); record('rejected-load', { result, unchangedSnapshot: before, unchangedTabs: beforeTabs });
+  });
+  test('stale navigation and retired stop/focus endpoints cannot mutate the tour', async () => {
+    const before = (await api('tour_status')).snapshot;
+    await assert.rejects(api('relay_navigate', { action: 'nextBeat', expectedRevision: 0 }), e => e.code === 'stale_presentation');
+    for (const route of ['/stop', '/focus']) assert.equal((await http(route, { workspace: fixture.workspace })).ok, false);
+    assert.deepEqual((await api('tour_status')).snapshot, before);
+  });
+  test('copy citation identifies the selected immutable source revision', async () => {
+    const editor = vscode.window.visibleTextEditors.find(e => e.document.uri.path.endsWith('service.test.js'));
+    await vscode.window.showTextDocument(editor.document, { preview: true });
+    editor.selection = new vscode.Selection(2, 0, 4, 0);
+    const copied = await vscode.commands.executeCommand('tourChanges.copyCitation');
+    assert.match(copied, /service.test.js:3-4 \[head@/); assert.equal(await vscode.env.clipboard.readText(), copied);
+  });
+  test('clear ends presentation without recording review acceptance, then reload begins at the first beat', async () => {
+    let r = await api('tour_clear'); assert.equal(r.snapshot.loaded, false);
+    const state = service.locate(fixture.workspace, fixture.dossierId).state;
+    assert.equal(Object.keys(state.reviewSessions).length, 0); assert.equal(state.phase, 'prepared');
+    r = await load(); assert.equal(r.snapshot.beat.id, 'guard'); record('reloaded', r.snapshot);
+  });
+  if (process.env.RELAY_TOUR_MANUAL) test('manual screenshot acceptance session', async () => {
+    fs.writeFileSync(path.join(output, 'ready.json'), JSON.stringify({ workspace: fixture.workspace, stateRoot: fixture.stateRoot, dossierId: fixture.dossierId }));
+    const file = path.join(output, 'control.json'); const deadline = Date.now() + 20 * 60 * 1000;
+    while (Date.now() < deadline) {
+      if (fs.existsSync(file)) {
+        const command = JSON.parse(fs.readFileSync(file)); fs.unlinkSync(file);
+        if (command.action === 'finish') return;
+        let result;
+        if (command.action === 'load') result = await load();
+        else if (command.action === 'invalid') { const bad = service.loadTour({ workspace: fixture.workspace, dossierId: fixture.dossierId }); bad.plan.stops[0].beats[0].active = [99]; result = await http('/tour/load', bad); }
+        else if (command.action === 'snapshot') result = await api('tour_status');
+        else throw new Error('Unknown fixture control action');
+        fs.writeFileSync(path.join(output, `manual-${command.id}.json`), JSON.stringify({ result, tabs: tabs() }, null, 2));
+      }
+      await sleep(200);
     }
-    assert.ok(lock, "extension did not write a lockfile for this process");
-    base = `http://127.0.0.1:${lock.port}`;
-  });
-
-  after(() => {
-    const p = path.join(os.homedir(), ".claude", "tour", `${lock.port}.lock`);
-    assert.strictEqual(fs.existsSync(p), true, "lock should still exist while active");
-  });
-
-  const call = (method, route, body) =>
-    fetch(base + route + (method === "GET" ? "?protocolVersion=1" : ""), {
-      method,
-      headers: { "content-type": "application/json", authorization: `Bearer ${lock.authToken}` },
-      body: method === "GET" ? undefined : JSON.stringify({ protocolVersion: 1, ...body }),
-    }).then((r) => r.json());
-
-  const fixture = () => vscode.workspace.workspaceFolders[0].uri.fsPath;
-
-  // Diff-mode tests need known A/D/M/R commits, not whatever this project's own
-  // history happens to contain when the suite runs (unrelated commits on this
-  // branch touch nothing under editor-extension/, which starves that coupling).
-  //
-  // padCount pads the diff with extra modified files. A 4-file diff of tiny
-  // files renders every pane synchronously in this environment, which starves
-  // the reactive-materialization test; 30 padding files reliably leaves most
-  // panes deferred (observed ~27/34 immediately after /stop).
-  function buildDiffFixtureRepo(padCount = 0) {
-    const dir = fs.mkdtempSync(path.join(os.tmpdir(), "tour-diff-fixture-"));
-    const git = (...args) => cp.execFileSync("git", args, { cwd: dir, encoding: "utf8" }).trim();
-    git("init", "-q", "-b", "main");
-    git("config", "user.email", "t@example.com");
-    git("config", "user.name", "T");
-
-    fs.writeFileSync(path.join(dir, "modified.txt"), "one\nold\n");
-    fs.writeFileSync(path.join(dir, "deleted.txt"), "bye\n");
-    fs.writeFileSync(path.join(dir, "old-name.txt"), "renamed content\n");
-    for (let i = 0; i < padCount; i++) fs.writeFileSync(path.join(dir, `pad${i}.txt`), "x".repeat(200) + "\n".repeat(50));
-    git("add", "-A");
-    git("commit", "-qm", "base");
-    const base = git("rev-parse", "HEAD");
-
-    fs.writeFileSync(path.join(dir, "modified.txt"), "one\ntwo\n");
-    fs.rmSync(path.join(dir, "deleted.txt"));
-    fs.renameSync(path.join(dir, "old-name.txt"), path.join(dir, "new-name.txt"));
-    fs.writeFileSync(path.join(dir, "added.txt"), "brand new\n");
-    for (let i = 0; i < padCount; i++) fs.writeFileSync(path.join(dir, `pad${i}.txt`), "y".repeat(200) + "\n".repeat(50));
-    git("add", "-A");
-    git("commit", "-qm", "head");
-    const head = git("rev-parse", "HEAD");
-
-    return { dir, base, head, padCount };
-  }
-
-  // updateWorkspaceFolders resolving doesn't mean the git extension has
-  // attached a Repository for the new folder; every git: URI read against it
-  // 404s until that scan completes. Passively waiting on the extension's own
-  // onDidOpenRepository (auto-detection) was tried first and empirically
-  // times out on a real fraction of runs, not just slow -- openRepository()'s
-  // returned promise is the authoritative "it's open" signal instead.
-  async function waitForGitRepository(fsPath, timeoutMs = 10000) {
-    const gitExtension = vscode.extensions.getExtension("vscode.git");
-    assert.ok(gitExtension, "the vscode.git extension is not available in this test host");
-    const exports = await gitExtension.activate();
-    const api = exports.getAPI(1);
-
-    const matches = (repo) => repo.rootUri.fsPath === fsPath;
-    if (api.repositories.some(matches)) return;
-
-    const timeout = new Promise((_, reject) =>
-      setTimeout(() => reject(new Error(`timed out after ${timeoutMs}ms waiting for the git extension to open a repository at ${fsPath}`)), timeoutMs)
-    );
-    const repo = await Promise.race([api.openRepository(vscode.Uri.file(fsPath)), timeout]);
-    assert.ok(repo, `the git extension could not open a repository at ${fsPath}`);
-  }
-
-  test("GET /status reports the workspace this window owns", async () => {
-    const res = await call("GET", "/status");
-    assert.strictEqual(res.ok, true);
-    assert.strictEqual(res.protocolVersion, 1);
-    assert.strictEqual(res.ideName, "Visual Studio Code");
-    assert.deepStrictEqual(res.workspaceFolders, [fixture()]);
-  });
-
-  test("POST /stop in file mode opens the listed files", async () => {
-    const res = await call("POST", "/stop", {
-      stopId: "s1", index: 1, total: 1, label: "Smoke", type: "implementation", mode: "file",
-      files: [{ path: "package.json", ranges: [{ side: "working", startLine: 1, endLine: 3 }] }],
-    });
-    assert.strictEqual(res.ok, true);
-    assert.deepStrictEqual(res.opened, ["package.json"]);
-    assert.deepStrictEqual(res.deferred, []);
-    const open = vscode.window.visibleTextEditors.map((e) => e.document.uri.fsPath);
-    assert.ok(open.some((p) => p.endsWith("package.json")), `package.json not open, saw ${open.join(", ")}`);
-  });
-
-  test("a base or head range in file mode is rejected with bad_request", async () => {
-    const res = await call("POST", "/stop", {
-      stopId: "s1b", index: 1, total: 1, label: "Bad side", type: "implementation", mode: "file",
-      files: [{ path: "package.json", ranges: [{ side: "base", startLine: 1, endLine: 1 }] }],
-    });
-    assert.strictEqual(res.ok, false);
-    assert.strictEqual(res.error.code, "bad_request");
-    assert.match(res.error.message, /package\.json/);
-    assert.match(res.error.message, /base/);
-  });
-
-  test("POST /focus succeeds and leaves the reviewer's selection alone", async () => {
-    const target = () => vscode.window.visibleTextEditors.find((e) => e.document.uri.fsPath.endsWith("package.json"));
-    const snapshot = (s) => [s.start.line, s.start.character, s.end.line, s.end.character];
-    target().selection = new vscode.Selection(0, 0, 0, 1);
-    // Let the extension host finish propagating the selection before taking the
-    // baseline observed after /focus.
-    await sleep(200);
-    const before = snapshot(target().selection);
-    const res = await call("POST", "/focus", { path: "package.json", side: "working", startLine: 2, endLine: 2, note: "here" });
-    assert.strictEqual(res.ok, true);
-    assert.strictEqual(res.revealed, true, "focus fell back to opening a new editor");
-    await sleep(200);
-    assert.deepStrictEqual(snapshot(target().selection), before);
-  });
-
-  test("Copy Citation writes an agent-neutral working-tree range to the clipboard", async () => {
-    const target = vscode.window.visibleTextEditors.find((e) => e.document.uri.fsPath.endsWith("package.json"));
-    const active = await vscode.window.showTextDocument(target.document, { preview: false, preserveFocus: false });
-    active.selection = new vscode.Selection(0, 0, 2, 0);
-
-    const result = await vscode.commands.executeCommand("tourChanges.copyCitation");
-    assert.strictEqual(result, "package.json:1-2");
-    assert.strictEqual(await vscode.env.clipboard.readText(), "package.json:1-2");
-  });
-
-  test("a range past the end of the file is range_out_of_bounds", async () => {
-    const res = await call("POST", "/focus", { path: "package.json", side: "working", startLine: 99999, endLine: 99999 });
-    assert.strictEqual(res.ok, false);
-    assert.strictEqual(res.error.code, "range_out_of_bounds");
-  });
-
-  test("an unknown path is file_not_found", async () => {
-    const res = await call("POST", "/focus", { path: "does/not/exist.go", side: "working", startLine: 1, endLine: 1 });
-    assert.strictEqual(res.ok, false);
-    assert.strictEqual(res.error.code, "file_not_found");
-  });
-
-  test("a path escaping the workspace is file_not_found", async () => {
-    const res = await call("POST", "/focus", {
-      path: "../".repeat(12) + "etc/passwd", side: "working", startLine: 1, endLine: 1,
-    });
-    assert.strictEqual(res.ok, false);
-    assert.strictEqual(res.error.code, "file_not_found");
-  });
-
-  // A stop range recorded before the reviewer shortened the file must not escape
-  // applyAll and fail the next unrelated request.
-  test("a stop range left stale by an edit does not fail later requests", async () => {
-    const rel = "tour-stale-range.tmp";
-    const abs = path.join(fixture(), rel);
-    fs.writeFileSync(abs, "a\nb\nc\nd\ne\n");
-    try {
-      const stop = await call("POST", "/stop", {
-        stopId: "s2", index: 1, total: 1, label: "Stale", type: "implementation", mode: "file",
-        files: [{ path: rel, ranges: [{ side: "working", startLine: 1, endLine: 5 }] }],
-      });
-      assert.strictEqual(stop.ok, true);
-
-      const doc = await vscode.workspace.openTextDocument(vscode.Uri.file(abs));
-      const edit = new vscode.WorkspaceEdit();
-      edit.replace(doc.uri, new vscode.Range(0, 0, doc.lineCount, 0), "a\n");
-      assert.strictEqual(await vscode.workspace.applyEdit(edit), true);
-      await doc.save();
-
-      const res = await call("POST", "/focus", { path: rel, side: "working", startLine: 1, endLine: 1 });
-      assert.strictEqual(res.ok, true, JSON.stringify(res));
-    } finally {
-      fs.rmSync(abs, { force: true });
-    }
-  });
-
-  // decorate() cannot be observed through the HTTP surface, so this drives
-  // lib/editor.js directly against a real document and a spy editor.
-  test("the focus label uses the shortest of the first three focus lines", async () => {
-    const rel = "tour-focus-note.tmp";
-    const abs = path.join(fixture(), rel);
-    fs.writeFileSync(abs, "one\ntwo\nthree\nfour\nfive\n");
-    try {
-      const doc = await vscode.workspace.openTextDocument(vscode.Uri.file(abs));
-      const store = createIntentStore();
-      store.setFocus({ path: rel, side: "working", startLine: 2, endLine: 4, note: "landed here" });
-
-      const calls = [];
-      const stub = { document: doc, setDecorations: (type, options) => calls.push(options) };
-      assert.strictEqual(editorLib.applyTo(stub, store, () => null), true);
-
-      const labels = calls.flat().filter((option) => option.renderOptions?.after?.contentText);
-      assert.strictEqual(labels.length, 1);
-      const [noted] = labels;
-      assert.strictEqual(noted.range.start.line, 1, "note range should start on wire line 2 (0-based line 1)");
-      assert.strictEqual(noted.range.end.line, 1, "note range should not extend past the first line");
-      assert.strictEqual(noted.renderOptions.after.contentText, "\u2002landed here\u2002");
-    } finally {
-      fs.rmSync(abs, { force: true });
-    }
-  });
-
-  // decorate()'s git: path exercises describe()'s canonicalPath resolution and
-  // sideResolver(ref), neither of which the file-mode test above touches.
-  // Asserts both halves of the reactive contract: the correct STOP range
-  // reaches setDecorations, and only the materialized side leaves pending.
-  test("applyTo decorates a git-scheme pane and clears only its (path, side) pending entry", async () => {
-    const rel = "tour-git-pending.tmp";
-    const abs = path.join(fixture(), rel);
-    fs.writeFileSync(abs, "one\ntwo\nthree\n");
-    try {
-      const doc = await vscode.workspace.openTextDocument(vscode.Uri.file(abs));
-      const gitUri = vscode.Uri.file(abs).with({ scheme: "git", query: JSON.stringify({ path: abs, ref: "headsha" }) });
-      const store = createIntentStore();
-      store.setStop({
-        stopId: "spy1",
-        files: [{ path: rel, ranges: [{ side: "head", startLine: 1, endLine: 2 }, { side: "base", startLine: 1, endLine: 1 }] }],
-      });
-      const byKey = (list) => list.map((p) => `${p.side}:${p.path}`).sort();
-      assert.deepStrictEqual(byKey(store.pending()), [`base:${rel}`, `head:${rel}`]);
-
-      const calls = [];
-      const stub = {
-        document: { uri: gitUri, lineCount: doc.lineCount, lineAt: (n) => doc.lineAt(n) },
-        setDecorations: (type, ranges) => calls.push(ranges),
-      };
-      const sideResolver = (ref) => (ref === "headsha" ? "head" : null);
-
-      assert.strictEqual(editorLib.applyTo(stub, store, sideResolver), true);
-      const rails = calls.find((rs) => rs.length > 0);
-      assert.strictEqual(rails.length, 2, "the head range has a rail on each context line");
-      assert.strictEqual(rails[0].start.line, 0);
-      assert.strictEqual(rails[1].start.line, 1);
-
-      assert.deepStrictEqual(
-        byKey(store.pending()), [`base:${rel}`],
-        "the head side must leave pending once decorated; the base side, with no matching editor, stays"
-      );
-    } finally {
-      fs.rmSync(abs, { force: true });
-    }
-  });
-
-  test("POST /clear succeeds without closing tabs", async () => {
-    const openTabs = () => vscode.window.tabGroups.all.flatMap((g) => g.tabs).length;
-    const before = openTabs();
-    assert.strictEqual((await call("POST", "/clear", {})).ok, true);
-    assert.strictEqual(openTabs(), before);
-  });
-
-  let diff;
-
-  test("swaps in a dedicated fixture repo covering added, modified, deleted, and renamed files", async () => {
-    diff = buildDiffFixtureRepo(30);
-    diff.originalFolderUri = vscode.workspace.workspaceFolders[0].uri;
-    const swapped = vscode.workspace.updateWorkspaceFolders(0, 1, { uri: vscode.Uri.file(diff.dir) });
-    assert.ok(swapped, "failed to swap the fixture repo in as the workspace root");
-    await sleep(500);
-    assert.strictEqual(vscode.workspace.workspaceFolders[0].uri.fsPath, diff.dir);
-    await waitForGitRepository(diff.dir);
-  });
-
-  test("committed stops open pinned files by default and toggle to diffs without another stop", async () => {
-    await call("POST", "/clear", {});
-    const padFiles = Array.from({ length: diff.padCount }, (_, i) => ({ path: `pad${i}.txt`, ranges: [{ side: "head", startLine: 1, endLine: 1 }] }));
-    const res = await call("POST", "/stop", {
-      stopId: "d1", index: 1, total: 1, label: "Diff smoke", type: "implementation", mode: "diff",
-      base: { sha: diff.base, name: "base" }, head: { sha: diff.head, name: "head" },
-      files: [
-        { path: "modified.txt", ranges: [{ side: "base", startLine: 1, endLine: 1 }, { side: "head", startLine: 1, endLine: 1 }] },
-        { path: "added.txt", ranges: [{ side: "head", startLine: 1, endLine: 1 }] },
-        { path: "deleted.txt", ranges: [{ side: "base", startLine: 1, endLine: 1 }] },
-        { path: "new-name.txt", ranges: [{ side: "base", startLine: 1, endLine: 1 }, { side: "head", startLine: 1, endLine: 1 }] },
-        ...padFiles,
-      ],
-    });
-    assert.strictEqual(res.ok, true, JSON.stringify(res));
-    const expectedOpened = ["added.txt", "deleted.txt", "modified.txt", "new-name.txt", ...padFiles.map((f) => f.path)];
-    assert.deepStrictEqual(res.opened.sort(), expectedOpened.sort());
-    diff.lastRes = res;
-    await sleep(1500);
-
-    const before = vscode.window.tabGroups.all
-      .flatMap((g) => g.tabs)
-      .filter((t) => t.input instanceof vscode.TabInputTextMultiDiff);
-    assert.strictEqual(before.length, 0, "diff view should start off");
-    const pinned = vscode.workspace.textDocuments.map((document) => editorLib.describe({ document })).filter(Boolean);
-    assert.ok(pinned.some((d) => d.path === "added.txt" && d.ref === diff.head), "added file should open directly at the pinned head");
-
-    await vscode.commands.executeCommand("tourChanges.toggleDiff");
-    await sleep(1500);
-
-    const multi = vscode.window.tabGroups.all
-      .flatMap((g) => g.tabs)
-      .find((t) => t.input instanceof vscode.TabInputTextMultiDiff);
-    assert.ok(multi, "no multi-diff tab opened");
-    assert.strictEqual(multi.input.textDiffs.length, expectedOpened.length - 1, "added file has no useful base side");
-    assert.ok(!multi.input.textDiffs.some((t) => editorLib.describe({ document: { uri: t.modified } })?.path === "added.txt"));
-    diff.multi = multi;
-  });
-
-  // window.setDecorations has no public getter, so decoration state itself
-  // cannot be observed from the extension host. `revealed` alone proves only
-  // that the editor is visible (reveal() does its own independent scan) --
-  // it says nothing about decoration, and stays green even with
-  // onDidChangeVisibleTextEditors deleted, since reveal()'s scan doesn't need it.
-  //
-  // Materializing either side applies its rail even while diff view is shown.
-  test("diff panes reconcile deferred ranges when their editors materialize", async () => {
-    const deferred = diff.lastRes.deferred;
-    assert.ok(Array.isArray(deferred), "deferred must be an array");
-    assert.ok(deferred.length > 0, "expected at least one (path, side) pair to be deferred immediately after opening the padded diff");
-    assert.ok(
-      deferred.every((d) => typeof d.path === "string" && (d.side === "base" || d.side === "head")),
-      `deferred entries must be {path, side} pairs, got ${JSON.stringify(deferred)}`
-    );
-
-    const target = deferred[0];
-    const entry = diff.multi.input.textDiffs.find((t) => {
-      const uri = target.side === "base" ? t.original : t.modified;
-      return uri && editorLib.describe({ document: { uri } })?.path === target.path;
-    });
-    assert.ok(entry, `expected a textDiffs entry for ${target.side}:${target.path}`);
-    const uri = target.side === "base" ? entry.original : entry.modified;
-    assert.ok(uri, `${target.side} side of ${target.path} has no URI to open`);
-
-    await vscode.window.showTextDocument(uri, { preview: false, preserveFocus: true });
-    await sleep(300);
-
-    const status = await call("GET", "/status");
-    assert.strictEqual(status.ok, true, JSON.stringify(status));
-    assert.ok(
-      !status.deferred.some((d) => d.path === target.path && d.side === target.side),
-      `${target.side}:${target.path} should be painted when materialized`
-    );
-
-    const res = await call("POST", "/focus", { path: target.path, side: target.side, startLine: 1, endLine: 1 });
-    assert.strictEqual(res.ok, true, JSON.stringify(res));
-    assert.strictEqual(res.revealed, true, `expected the now-open ${target.side} side of ${target.path} to be revealable`);
-    assert.ok(!res.deferred.some((d) => d.path === target.path && d.side === target.side), "focus paints a diff pane");
-
-    await vscode.commands.executeCommand("tourChanges.toggleDiff");
-    await vscode.window.showTextDocument(uri, { preview: false, preserveFocus: true });
-    await sleep(300);
-    const restored = await call("GET", "/status");
-    assert.ok(!restored.deferred.some((d) => d.path === target.path && d.side === target.side), "hiding the diff should restore the stored highlight");
-  });
-
-  // A rejected /stop must not mutate the store: validate, then commit. Proven
-  // by pinning a stop to a single file we never materialize (so its (path,
-  // side) pair stays deterministically pending), attempting a rejected /stop,
-  // then reading pending back through /focus — a corrupted store replaces the
-  // whole pending set with the rejected request's own (invalid) file.
-  test("a rejected diff-mode /stop leaves the previous stop's pending state intact", async () => {
-    await call("POST", "/clear", {});
-    const padFiles = Array.from({ length: diff.padCount }, (_, i) => ({ path: `pad${i}.txt`, ranges: [{ side: "base", startLine: 1, endLine: 1 }] }));
-    const original = await call("POST", "/stop", {
-      stopId: "dB1", index: 1, total: 1, label: "Original", type: "implementation", mode: "diff",
-      base: { sha: diff.base, name: "base" }, head: { sha: diff.head, name: "head" },
-      files: padFiles,
-    });
-    assert.strictEqual(original.ok, true, JSON.stringify(original));
-    assert.ok(original.deferred.length > 0, "expected some padding files to stay deferred immediately");
-    // Inspect status: focusing a base range now opens its diff/companion.
-    const guard = original.deferred[0];
-
-    const rejected = await call("POST", "/stop", {
-      stopId: "dB2", index: 1, total: 1, label: "Rejected", type: "implementation", mode: "diff",
-      base: { sha: diff.base, name: "base" }, head: { sha: diff.head, name: "head" },
-      files: [{ path: "added.txt", ranges: [{ side: "base", startLine: 1, endLine: 1 }] }],
-    });
-    assert.strictEqual(rejected.ok, false);
-    assert.strictEqual(rejected.error.code, "bad_request");
-
-    const probe = await call("GET", "/status");
-    assert.strictEqual(probe.ok, true, JSON.stringify(probe));
-    assert.ok(
-      probe.deferred.some((d) => d.path === guard.path && d.side === guard.side),
-      `the rejected /stop must not have replaced the original stop's pending state; guard ${JSON.stringify(guard)} missing from ${JSON.stringify(probe.deferred)}`
-    );
-  });
-
-  test("a base range on an added file is rejected with bad_request naming the file and side", async () => {
-    await call("POST", "/clear", {});
-    const res = await call("POST", "/stop", {
-      stopId: "d2", index: 1, total: 1, label: "Bad side", type: "implementation", mode: "diff",
-      base: { sha: diff.base, name: "base" }, head: { sha: diff.head, name: "head" },
-      files: [{ path: "added.txt", ranges: [{ side: "base", startLine: 1, endLine: 1 }] }],
-    });
-    assert.strictEqual(res.ok, false);
-    assert.strictEqual(res.error.code, "bad_request");
-    assert.match(res.error.message, /added\.txt/);
-    assert.match(res.error.message, /base/);
-  });
-
-  test("a head range on a deleted file is rejected with bad_request naming the file and side", async () => {
-    await call("POST", "/clear", {});
-    const res = await call("POST", "/stop", {
-      stopId: "d3", index: 1, total: 1, label: "Bad side", type: "implementation", mode: "diff",
-      base: { sha: diff.base, name: "base" }, head: { sha: diff.head, name: "head" },
-      files: [{ path: "deleted.txt", ranges: [{ side: "head", startLine: 1, endLine: 1 }] }],
-    });
-    assert.strictEqual(res.ok, false);
-    assert.strictEqual(res.error.code, "bad_request");
-    assert.match(res.error.message, /deleted\.txt/);
-    assert.match(res.error.message, /head/);
-  });
-
-  test("a diff-mode range past the end of the pinned blob is rejected with range_out_of_bounds", async () => {
-    await call("POST", "/clear", {});
-    const res = await call("POST", "/stop", {
-      stopId: "d3b", index: 1, total: 1, label: "Out of bounds", type: "implementation", mode: "diff",
-      base: { sha: diff.base, name: "base" }, head: { sha: diff.head, name: "head" },
-      files: [{ path: "deleted.txt", ranges: [{ side: "base", startLine: 1, endLine: 99999 }] }],
-    });
-    assert.strictEqual(res.ok, false);
-    assert.strictEqual(res.error.code, "range_out_of_bounds");
-    assert.match(res.error.message, /deleted\.txt/);
-  });
-
-  test("a diff-mode range with no side is rejected with bad_request, not stored as the literal string \"undefined\"", async () => {
-    await call("POST", "/clear", {});
-    const res = await call("POST", "/stop", {
-      stopId: "d3c", index: 1, total: 1, label: "Missing side", type: "implementation", mode: "diff",
-      base: { sha: diff.base, name: "base" }, head: { sha: diff.head, name: "head" },
-      files: [{ path: "modified.txt", ranges: [{ startLine: 1, endLine: 1 }] }],
-    });
-    assert.strictEqual(res.ok, false);
-    assert.strictEqual(res.error.code, "bad_request");
-  });
-
-  test("a path absent from the diff is rejected with bad_request", async () => {
-    await call("POST", "/clear", {});
-    const res = await call("POST", "/stop", {
-      stopId: "d4", index: 1, total: 1, label: "Absent path", type: "implementation", mode: "diff",
-      base: { sha: diff.base, name: "base" }, head: { sha: diff.head, name: "head" },
-      files: [{ path: "never-existed.txt", ranges: [{ side: "head", startLine: 1, endLine: 1 }] }],
-    });
-    assert.strictEqual(res.ok, false);
-    assert.strictEqual(res.error.code, "bad_request");
-    assert.match(res.error.message, /never-existed\.txt/);
-  });
-
-  test("a WORKTREE head in diff mode is rejected with bad_request", async () => {
-    await call("POST", "/clear", {});
-    const res = await call("POST", "/stop", {
-      stopId: "d7", index: 1, total: 1, label: "Worktree head", type: "implementation", mode: "diff",
-      base: { sha: diff.base, name: "base" }, head: { sha: "WORKTREE", name: "working tree" },
-      files: [],
-    });
-    assert.strictEqual(res.ok, false);
-    assert.strictEqual(res.error.code, "bad_request");
-    assert.match(res.error.message, /committed head/);
-  });
-
-  test("a second stop with a different base is diff_identity_mismatch", async () => {
-    await call("POST", "/clear", {});
-    await call("POST", "/stop", {
-      stopId: "d5a", index: 1, total: 2, label: "First", type: "implementation", mode: "diff",
-      base: { sha: diff.base, name: "base" }, head: { sha: diff.head, name: "head" },
-      files: [{ path: "modified.txt", ranges: [{ side: "head", startLine: 1, endLine: 1 }] }],
-    });
-    const res = await call("POST", "/stop", {
-      stopId: "d5b", index: 2, total: 2, label: "Wrong identity", type: "implementation", mode: "diff",
-      base: { sha: "0".repeat(40), name: "bogus" }, head: { sha: diff.head, name: "head" },
-      files: [],
-    });
-    assert.strictEqual(res.ok, false);
-    assert.strictEqual(res.error.code, "diff_identity_mismatch");
-  });
-
-  test("POST /focus can reach a deleted file's base side, which /stop already blesses", async () => {
-    await call("POST", "/clear", {});
-    const stop = await call("POST", "/stop", {
-      stopId: "d5c", index: 1, total: 1, label: "Deleted file", type: "implementation", mode: "diff",
-      base: { sha: diff.base, name: "base" }, head: { sha: diff.head, name: "head" },
-      files: [{ path: "deleted.txt", ranges: [{ side: "base", startLine: 1, endLine: 1 }] }],
-    });
-    assert.strictEqual(stop.ok, true, JSON.stringify(stop));
-
-    // deleted.txt does not exist on disk at head, which is what a normal
-    // working tree checked out to head would show.
-    const res = await call("POST", "/focus", { path: "deleted.txt", side: "base", startLine: 1, endLine: 1 });
-    assert.strictEqual(res.ok, true, JSON.stringify(res));
-  });
-
-  test("POST /focus on a base/head side outside an active diff tour is rejected with bad_request", async () => {
-    await call("POST", "/clear", {});
-    const res = await call("POST", "/focus", { path: "deleted.txt", side: "base", startLine: 1, endLine: 1 });
-    assert.strictEqual(res.ok, false);
-    assert.strictEqual(res.error.code, "bad_request");
-  });
-
-  test("a renamed file's base and head ranges both resolve under the canonical (target) path", async () => {
-    await call("POST", "/clear", {});
-    const res = await call("POST", "/stop", {
-      stopId: "d6", index: 1, total: 1, label: "Rename", type: "implementation", mode: "diff",
-      base: { sha: diff.base, name: "base" }, head: { sha: diff.head, name: "head" },
-      files: [{ path: "new-name.txt", ranges: [{ side: "base", startLine: 1, endLine: 1 }, { side: "head", startLine: 1, endLine: 1 }] }],
-    });
-    assert.strictEqual(res.ok, true, JSON.stringify(res));
-    assert.deepStrictEqual(res.opened, ["new-name.txt"]);
-    await vscode.commands.executeCommand("tourChanges.toggleDiff");
-    await sleep(1500);
-
-    const described = vscode.window.visibleTextEditors
-      .filter((e) => e.document.uri.scheme === "git")
-      .map((e) => editorLib.describe(e))
-      .filter(Boolean);
-    assert.ok(described.some((d) => d.path === "new-name.txt"), `expected an editor describing to new-name.txt, saw ${JSON.stringify(described)}`);
-    assert.ok(!described.some((d) => d.path === "old-name.txt"), "the base pane must resolve to the canonical (target) name, not the historical source name");
-  });
-
-  test("Copy Citation identifies the pinned side and revision in a walkthrough diff", async () => {
-    const pane = vscode.window.visibleTextEditors.find((e) => {
-      const d = editorLib.describe(e);
-      return d?.path === "new-name.txt" && d.ref === diff.base;
-    });
-    assert.ok(pane, "expected the renamed file's base pane to be visible");
-    const active = await vscode.window.showTextDocument(pane.document, { preview: false, preserveFocus: false });
-    active.selection = new vscode.Selection(0, 0, 0, 7);
-
-    const result = await vscode.commands.executeCommand("tourChanges.copyCitation");
-    const expected = `new-name.txt:1 [base@${diff.base.slice(0, 7)}]`;
-    assert.strictEqual(result, expected);
-    assert.strictEqual(await vscode.env.clipboard.readText(), expected);
-  });
-
-  test("requesting a renamed file by its old (source) name is rejected", async () => {
-    await call("POST", "/clear", {});
-    const res = await call("POST", "/stop", {
-      stopId: "d8", index: 1, total: 1, label: "Old name", type: "implementation", mode: "diff",
-      base: { sha: diff.base, name: "base" }, head: { sha: diff.head, name: "head" },
-      files: [{ path: "old-name.txt", ranges: [{ side: "base", startLine: 1, endLine: 1 }] }],
-    });
-    assert.strictEqual(res.ok, false);
-    assert.strictEqual(res.error.code, "bad_request");
-  });
-
-  test("working-tree stop toggles a changed file into a diff and keeps a new file in file view", async () => {
-    await call("POST", "/clear", {});
-    fs.appendFileSync(path.join(diff.dir, "modified.txt"), "working line\n");
-    fs.writeFileSync(path.join(diff.dir, "untracked.txt"), "new file\n");
-    const res = await call("POST", "/stop", {
-      stopId: "working-diff", index: 1, total: 1, label: "Working changes", type: "implementation", mode: "file",
-      base: { sha: diff.head, name: "HEAD" }, head: { sha: "WORKTREE", name: "working tree" },
-      files: [
-        { path: "modified.txt", ranges: [{ side: "working", startLine: 3, endLine: 3 }] },
-        { path: "untracked.txt", ranges: [{ side: "working", startLine: 1, endLine: 1 }] },
-      ],
-    });
-    assert.strictEqual(res.ok, true, JSON.stringify(res));
-    const originalClear = editorLib.clearAll;
-    const originalApply = editorLib.applyAll;
-    let applies = 0;
-    editorLib.applyAll = (...args) => { applies++; return originalApply(...args); };
-    try {
-      await vscode.commands.executeCommand("tourChanges.toggleDiff");
-      await sleep(1000);
-      const multi = vscode.window.tabGroups.all.flatMap((g) => g.tabs)
-        .find((t) => t.input instanceof vscode.TabInputTextMultiDiff && t.input.textDiffs.length === 1
-          && editorLib.describe({ document: { uri: t.input.textDiffs[0].modified } })?.path === "modified.txt");
-      assert.ok(multi, "modified working file should have a diff, while the new file does not");
-      assert.strictEqual(multi.input.textDiffs[0].modified.scheme, "file");
-      assert.ok(vscode.workspace.textDocuments.some((d) => d.uri.scheme === "file" && d.uri.fsPath === path.join(diff.dir, "untracked.txt")));
-      assert.ok(applies > 0, "diff panes retain non-background presentation");
-      const beforeFocus = applies;
-
-      const focus = await call("POST", "/focus", { path: "modified.txt", side: "working", startLine: 3, endLine: 3 });
-      assert.strictEqual(focus.ok, true, JSON.stringify(focus));
-      assert.ok(applies > beforeFocus, "focus requests paint the diff");
-
-      await vscode.commands.executeCommand("tourChanges.toggleDiff");
-      assert.ok(applies > 0, "hiding the diff should restore tour highlights");
-    } finally {
-      editorLib.clearAll = originalClear;
-      editorLib.applyAll = originalApply;
-      await call("POST", "/clear", {});
-    }
-  });
-
-  test("inline deleted-code focus opens a read-only companion, while seam mode only offers a peek", async () => {
-    const diffConfig = vscode.workspace.getConfiguration("diffEditor");
-    const config = vscode.workspace.getConfiguration("relay.presentation");
-    const oldLayout = diffConfig.inspect("renderSideBySide").globalValue;
-    const oldMode = config.inspect("removedCode").globalValue;
-    const companions = () => vscode.window.tabGroups.all.flatMap((g) => g.tabs).filter((t) => {
-      const uri = t.input?.uri;
-      return uri?.scheme === "relay-rev" && JSON.parse(uri.query).relay === "companion";
-    });
-    try {
-      await call("POST", "/clear", {});
-      await diffConfig.update("renderSideBySide", false, vscode.ConfigurationTarget.Global);
-      await config.update("removedCode", "companion", vscode.ConfigurationTarget.Global);
-      await sleep(300);
-      assert.strictEqual(vscode.workspace.getConfiguration("diffEditor").get("renderSideBySide"), false);
-      const stop = await call("POST", "/stop", {
-        stopId: "inline-removed", index: 1, total: 1, label: "Removed", type: "implementation", mode: "diff",
-        base: { sha: diff.base, name: "base" }, head: { sha: diff.head, name: "head" },
-        files: [{ path: "modified.txt", ranges: [{ side: "base", startLine: 2, endLine: 2 }] }],
-      });
-      assert.strictEqual(stop.ok, true, JSON.stringify(stop));
-      const focus = await call("POST", "/focus", { path: "modified.txt", side: "base", startLine: 2, endLine: 2, note: "Deleted branch" });
-      assert.strictEqual(focus.ok, true, JSON.stringify(focus));
-      await sleep(100);
-      assert.ok(companions().length > 0, `inline mode should open a marked companion: ${JSON.stringify({ layout: vscode.workspace.getConfiguration("diffEditor").get("renderSideBySide"), visible: vscode.window.visibleTextEditors.map((e) => ({ ref: JSON.parse(e.document.uri.query).ref, ranges: e.visibleRanges, column: e.viewColumn })) })}`);
-      const doc = await vscode.workspace.openTextDocument(companions()[0].input.uri);
-      assert.strictEqual(doc.getText(), "one\nold\n");
-      assert.strictEqual(doc.uri.scheme, "relay-rev");
-      await call("POST", "/clear", {});
-      assert.strictEqual(companions().length, 0, "tour end closes owned preview companions");
-      await config.update("removedCode", "seam", vscode.ConfigurationTarget.Global);
-      await call("POST", "/stop", {
-        stopId: "seam-removed", index: 1, total: 1, label: "Removed", type: "implementation", mode: "diff",
-        base: { sha: diff.base, name: "base" }, head: { sha: diff.head, name: "head" },
-        files: [{ path: "modified.txt", ranges: [{ side: "base", startLine: 2, endLine: 2 }] }],
-      });
-      assert.strictEqual((await call("POST", "/focus", { path: "modified.txt", side: "base", startLine: 2, endLine: 2 })).ok, true);
-      assert.strictEqual(companions().length, 0);
-    } finally {
-      await call("POST", "/clear", {});
-      await diffConfig.update("renderSideBySide", oldLayout, vscode.ConfigurationTarget.Global);
-      await config.update("removedCode", oldMode, vscode.ConfigurationTarget.Global);
-    }
-  });
-
-  // updateWorkspaceFolders' own single-folder-to-workspace-mode transition makes
-  // a second, symmetric call unreliable in this harness (observed returning
-  // false even with a valid target), so restoration is best-effort; removing
-  // the fixture directory is the outcome this suite can actually verify.
-  test("cleans up the fixture repository", async () => {
-    vscode.workspace.updateWorkspaceFolders(0, 1, { uri: diff.originalFolderUri });
-    await sleep(500);
-    fs.rmSync(diff.dir, { recursive: true, force: true });
-    assert.strictEqual(fs.existsSync(diff.dir), false, "fixture repo directory should be removed");
+    throw new Error('Screenshot session timed out');
   });
 };

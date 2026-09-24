@@ -5,15 +5,15 @@ const path = require("node:path");
 const contract = require("../contract/protocol.js");
 const fixtures = require("../contract/fixtures.json");
 
-test("the protocol version is 1", () => {
-  assert.strictEqual(contract.PROTOCOL_VERSION, 1);
+test("the protocol version is 2", () => {
+  assert.strictEqual(contract.PROTOCOL_VERSION, 2);
 });
 
 test("every documented error code is declared exactly once", () => {
   const expected = [
     "unauthorized", "protocol_mismatch", "bad_request", "file_not_found",
     "range_out_of_bounds", "git_failed", "no_active_editor", "content_drift",
-    "diff_identity_mismatch",
+    "diff_identity_mismatch", "invalid_tour_plan", "no_tour", "stale_presentation", "navigation_boundary",
   ].sort();
   assert.deepStrictEqual([...contract.ERROR_CODES].sort(), expected);
 });
@@ -26,9 +26,9 @@ test("sides, modes, and stop types are closed sets", () => {
 
 test("every route maps a tool name to a method and path", () => {
   for (const [tool, route] of Object.entries(contract.ROUTES)) {
-    assert.match(tool, /^tour_[a-z_]+$/);
+    assert.match(tool, /^(tour|relay)_[a-z_]+$/);
     assert.ok(["GET", "POST"].includes(route.method), `${tool} has a bad method`);
-    assert.match(route.path, /^\/[a-z]+$/);
+    assert.match(route.path, /^\/[a-z/]+$/);
   }
 });
 
@@ -83,4 +83,10 @@ test("the extension's generated contract copy has not drifted", () => {
     { v: theirs.PROTOCOL_VERSION, e: theirs.ERROR_CODES, s: theirs.SIDES, m: theirs.MODES, t: theirs.STOP_TYPES },
     { v: contract.PROTOCOL_VERSION, e: contract.ERROR_CODES, s: contract.SIDES, m: contract.MODES, t: contract.STOP_TYPES }
   );
+});
+
+for (const name of ["tour", "tour-sources", "narration"]) test(`shared ${name} implementation matches the packaged copy`, () => {
+  const source = fs.readFileSync(path.join(__dirname, "..", "contract", `${name}.js`), "utf8").replace('require("./tour.js")', 'require("./tour-contract.js")');
+  const copy = fs.readFileSync(path.join(__dirname, "..", "editor-extension", "lib", `${name === "tour" ? "tour-contract" : name}.js`), "utf8");
+  assert.equal(copy, source, "run node contract/sync.js");
 });

@@ -1,53 +1,27 @@
-const fs = require("node:fs");
-const path = require("node:path");
-const { runTests, downloadAndUnzipVSCode } = require("@vscode/test-electron");
-
-function clearStaleLock() {
-  const lockPath = path.resolve(__dirname, "../../.vscode-test/user-data/code.lock");
-  if (!fs.existsSync(lockPath)) return;
-  const pid = Number(fs.readFileSync(lockPath, "utf8").trim());
-  let alive = false;
-  try {
-    process.kill(pid, 0);
-    alive = true;
-  } catch {
-    alive = false;
-  }
-  if (!alive) fs.unlinkSync(lockPath);
-}
-
-// Stale Workspaces/Backups state from a previous run makes the extension host
-// relaunch repeatedly, producing duplicated output and spurious failures.
-function clearStaleUserDataDirs() {
-  const userDataDir = path.resolve(__dirname, "../../.vscode-test/user-data");
-  for (const name of ["Workspaces", "Backups"]) {
-    fs.rmSync(path.join(userDataDir, name), { recursive: true, force: true });
-  }
-}
-
-clearStaleLock();
-clearStaleUserDataDirs();
-
+"use strict";
+const fs = require('node:fs');
+const path = require('node:path');
+const { runTests, downloadAndUnzipVSCode } = require('@vscode/test-electron');
+const { createFixture } = require('../tour-fixture/create.js');
 async function main() {
-  let executable = await downloadAndUnzipVSCode();
-  // Recent macOS builds renamed Electron to Code; older test-electron
-  // versions still return the former path. Keep the checked-in dependency.
-  if (process.platform === "darwin" && !fs.existsSync(executable)) {
-    const code = path.join(path.dirname(executable), "Code");
-    if (fs.existsSync(code)) executable = code;
-  }
-  const launchArgs = [path.resolve(__dirname, "../.."), "--disable-extensions", "--disable-gpu"];
-  // A long checkout path exceeds macOS's Unix socket path limit.
-  if (process.platform === "darwin") launchArgs.push(`--user-data-dir=${fs.mkdtempSync("/tmp/tour-code-")}`);
-  await runTests({
-    vscodeExecutablePath: executable,
-    extensionDevelopmentPath: process.env.EXTENSION_PATH || path.resolve(__dirname, "../.."),
-    extensionTestsPath: path.resolve(__dirname, "./index.js"),
-    launchArgs,
+  const f = createFixture();
+  const output = path.resolve(process.env.RELAY_TOUR_OUTPUT || path.join(f.root, 'results'));
+  fs.mkdirSync(output, { recursive: true });
+  const user = path.join(f.root, 'user'); fs.mkdirSync(path.join(user, 'User'), { recursive: true });
+  fs.writeFileSync(path.join(user, 'User/settings.json'), JSON.stringify({
+    'security.workspace.trust.enabled': false, 'workbench.startupEditor': 'none', 'window.restoreWindows': 'none',
+    'telemetry.telemetryLevel': 'off', 'workbench.colorTheme': 'Default Dark Modern', 'editor.fontSize': 15,
+    'diffEditor.renderSideBySide': false, 'diffEditor.useInlineViewWhenSpaceIsLimited': false,
+    'workbench.editor.closeEmptyGroups': false, 'editor.minimap.enabled': false,
+    'workbench.secondarySideBar.defaultVisibility': 'visible', 'window.title': 'Relay acceptance · ${rootName}',
+  }));
+  let executable = process.env.VSCODE_EXECUTABLE_PATH || await downloadAndUnzipVSCode(process.env.VSCODE_VERSION || 'stable');
+  if (process.platform === 'darwin' && !fs.existsSync(executable)) executable = path.join(path.dirname(executable), 'Code');
+  console.log(`Tour acceptance output: ${output}`);
+  await runTests({ vscodeExecutablePath: executable,
+    extensionDevelopmentPath: process.env.EXTENSION_PATH || path.resolve(__dirname, '../..'), extensionTestsPath: path.join(__dirname, 'index.js'),
+    extensionTestsEnv: { RELAY_TOUR_FIXTURE: path.join(f.root, 'fixture.json'), RELAY_TOUR_OUTPUT: output, RELAY_TOUR_MANUAL: process.env.RELAY_TOUR_MANUAL || '' },
+    launchArgs: [f.workspace, `--user-data-dir=${user}`, `--extensions-dir=${path.join(f.root, 'extensions')}`, '--disable-extensions', '--disable-gpu', '--use-inmemory-secretstorage', '--password-store=basic', '--skip-welcome', '--skip-release-notes'],
   });
 }
-
-main().catch((err) => {
-  console.error(err);
-  process.exit(1);
-});
+main().catch(error => { console.error(error); process.exitCode = 1; });

@@ -21,13 +21,13 @@ branch, working tree vs `HEAD`, a commit range, or a fetched MR/PR. State the
 resolved `git diff` command and proceed unless corrected.
 
 Resolve the absolute repository root with `git rev-parse --show-toplevel` and
-pass it as `workspace` on every `tour_*` tool call. The bridge uses this to
+pass it as `workspace` on every editor bridge tool call. The bridge uses this to
 select the VS Code window that has the reviewed repository open.
 
 Then **pin it**. Run `git rev-parse --verify <ref>^{commit}` on both ends and
 carry the resulting SHAs for the rest of the tour, keeping the human-readable
-names for display. For a tour of uncommitted work, use the literal head sha
-`"WORKTREE"`.
+names for display. For uncommitted work, anchors use the current dossier manifest
+`WORKTREE:<manifestDigest>` identity.
 
 Pinning is what keeps a commit, rebase, or checkout during the tour from
 silently repointing a stop you have already narrated.
@@ -114,35 +114,25 @@ session with `dossier_apply` and keep its session ID.
 
 ### 4. Narrate one stop at a time
 
-In a driven tour, call `tour_stop` before narrating, passing the pinned `base`
-and `head` on every call. Use `mode: "diff"` when touring committed work and
-`mode: "file"` when touring the working tree. Both open files by default; the
-reviewer can use **kanko: Toggle Diff View** in VS Code (or its status
-bar control) to switch the active stop to a diff and back without another
-model prompt. The choice persists across stops until `tour_clear`. Added files
-stay in a file view because they have no base content. Tour rails and focus
-outlines remain visible in diffs without tinting their backgrounds. Anchor ranges with
-`side: "head"` for added or changed code,
-`side: "base"` for code that was deleted, and `side: "working"` only in file
-mode.
+In a driven tour, call `relay_load_tour` with `workspace` and `dossierId` once
+its current plan is ready. This validates the complete plan before changing the
+editor and returns `findings` plus an extension-owned `snapshot`. Fix findings
+before retrying. If the dossier is stale, refresh and regenerate its anchors.
 
-Then `tour_focus` as you zoom into a specific construct. Do not call
-`tour_stop` again mid-stop; that is what `tour_focus` is for.
+Use `relay_navigate` with `nextBeat`, `previousBeat`, `nextStop`, `previousStop`,
+or `goto` (both `stopId` and `beatId`). Include the snapshot's `revision` as
+`expectedRevision` to reject a move based on stale state. Use `relay_set_state`
+for `following`, `exploring`, or `paused`; these are presentation states, not
+review outcomes. The reviewer can use the same controls in the Tour sidebar.
 
-Keep focus spans tight: point at the lines the sentence makes a claim about,
-not the whole hunk. Omit focus for narration about the entire context unit.
-Removed-code focus uses `side: "base"`, even when its context is on the head.
-It opens the pinned diff and, when inline, a read-only base companion or a
-removal seam with a peek link according to the reviewer's settings.
-For panel-authored beat anchors, use `context` (a 1-based inclusive range)
-and optional `focus: [{ side: "base" | "head", range }]`. Legacy `range`
-anchors load as rail-only context. `contentHash` still hashes the context text.
+Narrate from the returned snapshot. It renders `{{a:N}}` references as numbered
+terminal citations; the sidebar renders focusable chips, and receipt narration
+includes full paths, line spans, and source revisions. A chip opens that anchor.
+The current phase displays one selected anchor at a time; do not claim that all
+active anchors are visible. Keep authored focus spans tight and revision-correct.
 
-If `tour_stop` returns a non-empty `deferred` list, its entries are
-`{path, side}` pairs: that side of that file has not been highlighted yet —
-the diff editor materializes each side independently on scroll. A file can be
-deferred on one side and already visible on the other. Do not claim to be
-pointing at code on a deferred side.
+Never call removed `tour_stop` or `tour_focus` tools or private editor commands.
+If the current bridge is unavailable, use a text tour with explicit citations.
 
 For each stop, cover:
 - **What changed** — concise, not a restatement of the diff the reviewer can

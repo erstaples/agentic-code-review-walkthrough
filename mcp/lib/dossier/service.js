@@ -8,7 +8,7 @@ const { buildReceipt, renderMarkdown } = require("./receipt.js");
 const { id } = require("./canonical.js");
 const { DossierError, invariant } = require("./errors.js");
 const { assertHardLimit, validateTourPlan } = require("../../../contract/tour.js");
-const { tourSources } = require("./tour-sources.js");
+const { tourSources } = require("../../../contract/tour-sources.js");
 
 const REVIEW_COMMANDS = new Set(["StartReviewSession", "StartStop", "SetClaimDisposition", "SetRiskDisposition", "SetStopReviewState", "RecordQuestion", "RecordConcern", "RecordAnswer", "PauseReviewSession", "ResumeReviewSession", "CompleteReviewSession"]);
 const SENSITIVE_KEY = /^(?:password|passwd|secret|token|api[_-]?key|authorization|credential)$/i;
@@ -54,6 +54,18 @@ class DossierService {
       hardLimit: this.tourAnchorLimit,
       claims: Object.values(state.entities.claims),
     });
+  }
+
+  loadTour(args) {
+    const { state } = this.locate(args.workspace, args.dossierId);
+    const fresh = this.freshness(state);
+    invariant(fresh.freshness === "current", "stale_change", "Refresh the dossier before loading changed sources.", fresh);
+    const plan = state.tourPlans[state.currentTourPlanId];
+    invariant(plan, "invalid_tour_plan", "Create a complete tour plan before loading it.");
+    const checked = this.validateTour(state, plan);
+    invariant(checked.ok, "invalid_tour_plan", "Fix tour validation findings before loading.", { findings: checked.findings });
+    return { workspace: state.repository.workspace, tourId: state.id, plan: checked.plan, change: currentChange(state),
+      claims: Object.values(state.entities.claims).map(({ id, truthStatus, status, disposition }) => ({ id, truthStatus, status, disposition })), findings: checked.findings };
   }
 
   open(args) {

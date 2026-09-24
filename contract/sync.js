@@ -27,3 +27,7 @@ console.log(`wrote ${out}`);
 const tourOut = path.join(path.dirname(out), "tour-contract.js");
 fs.writeFileSync(tourOut, fs.readFileSync(path.join(__dirname, "tour.js")));
 console.log(`wrote ${tourOut}`);
+for (const name of ["tour-sources", "narration"]) {
+  const source = fs.readFileSync(path.join(__dirname, `${name}.js`), "utf8").replace('require("./tour.js")', 'require("./tour-contract.js")');
+  fs.writeFileSync(path.join(path.dirname(out), `${name}.js`), source);
+}

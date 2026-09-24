@@ -9,7 +9,7 @@ const { execFileSync } = require("node:child_process");
 const { DossierService, redactSensitive } = require("../lib/dossier/service.js");
 const { FileDossierStore } = require("../lib/dossier/file-store.js");
 const { resolveChange, repositoryIdentity } = require("../lib/dossier/git-adapter.js");
-const { tourSources } = require("../lib/dossier/tour-sources.js");
+const { tourSources } = require("../../contract/tour-sources.js");
 const { hashText } = require("../../contract/tour.js");
 
 const actor = { kind: "agent", id: "test-agent" };
@@ -104,6 +104,9 @@ test("completed review emits immutable JSON and Markdown receipts", () => {
   ] });
   const preview = f.service.receipt({ workspace: f.workspace, dossierId: opened.dossierId, sessionId: prepared.session.id, mode: "preview", actor });
   assert.match(preview.markdown, /Outcome: \*\*ready-to-approve\*\*/);
+  assert.match(preview.markdown, /## Tour narration/);
+  assert.match(preview.receipt.stops[0].beats[0].narration, /① .+:1–1 @/);
+  assert.doesNotMatch(preview.markdown, /\{\{a:/);
   const emitted = f.service.receipt({ workspace: f.workspace, dossierId: opened.dossierId, sessionId: prepared.session.id, mode: "emit", expectedRevision: result.aggregateRevision, actor });
   assert.ok(fs.existsSync(emitted.jsonPath)); assert.ok(fs.existsSync(emitted.markdownPath));
   assert.throws(() => fs.openSync(emitted.jsonPath, "wx"), (error) => error.code === "EEXIST");

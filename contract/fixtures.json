@@ -1,63 +1,118 @@
 {
   "tour_status": {
-    "requests": [{ "query": { "protocolVersion": 1 }, "body": {} }],
-    "responses": [
-      { "ok": true, "protocolVersion": 1, "extensionVersion": "0.1.0", "ideName": "Visual Studio Code", "workspaceFolders": ["/repo"], "deferred": [] },
-      { "ok": false, "error": { "code": "unauthorized", "message": "missing or invalid bearer token" } }
-    ]
-  },
-  "tour_stop": {
     "requests": [
-      { "body": { "protocolVersion": 1, "stopId": "s1", "index": 1, "total": 3, "label": "Extract the retry policy", "type": "implementation", "mode": "file",
-                  "base": { "sha": "WORKTREE", "name": "working tree" }, "head": { "sha": "WORKTREE", "name": "working tree" },
-                  "files": [{ "path": "internal/retry/policy.go", "ranges": [{ "side": "working", "startLine": 12, "endLine": 48 }] }] } },
-      { "body": { "protocolVersion": 1, "stopId": "s2", "index": 2, "total": 3, "label": "Cap the backoff", "type": "risk", "mode": "diff",
-                  "base": { "sha": "4f2a9c1000000000000000000000000000000000", "name": "main" },
-                  "head": { "sha": "8b71e03000000000000000000000000000000000", "name": "HEAD" },
-                  "files": [{ "path": "internal/client/do.go", "ranges": [{ "side": "base", "startLine": 88, "endLine": 94 }, { "side": "head", "startLine": 88, "endLine": 91 }] }] } }
+      {
+        "query": {
+          "protocolVersion": 2
+        },
+        "body": {}
+      }
     ],
     "responses": [
-      { "ok": true, "opened": ["internal/retry/policy.go"], "deferred": [] },
-      { "ok": true, "opened": ["internal/client/do.go", "internal/retry/policy.go"], "deferred": [{ "path": "internal/retry/policy.go", "side": "base" }] },
-      { "ok": false, "error": { "code": "diff_identity_mismatch", "message": "this tour is pinned to 4f2a9c1..8b71e03; got 4f2a9c1..cccc333" } },
-      { "ok": false, "error": { "code": "content_drift", "message": "changed since this tour started: internal/retry/policy.go" } },
-      { "ok": false, "error": { "code": "git_failed", "message": "git diff --name-status -z --find-renames 4f2a9c1 8b71e03 -- failed: fatal: bad object 4f2a9c1" } }
-    ]
-  },
-  "tour_focus": {
-    "requests": [
-      { "body": { "protocolVersion": 1, "path": "internal/retry/policy.go", "side": "head", "startLine": 31, "endLine": 35, "note": "backoff is capped here, not in the caller" } }
-    ],
-    "responses": [
-      { "ok": true, "revealed": true, "deferred": [{ "path": "internal/client/do.go", "side": "head" }] },
-      { "ok": false, "error": { "code": "range_out_of_bounds", "message": "lines 99999-99999 fall outside 48-line file" } },
-      { "ok": false, "error": { "code": "file_not_found", "message": "does/not/exist.go does not exist in this workspace" } }
+      {
+        "ok": true,
+        "protocolVersion": 2,
+        "extensionVersion": "0.1.0",
+        "ideName": "Visual Studio Code",
+        "workspaceFolders": [
+          "/repo"
+        ],
+        "snapshot": {
+          "loaded": false,
+          "revision": 0
+        }
+      },
+      {
+        "ok": false,
+        "error": {
+          "code": "unauthorized",
+          "message": "missing or invalid bearer token"
+        }
+      }
     ]
   },
   "tour_clear": {
-    "requests": [{ "body": { "protocolVersion": 1 } }],
-    "responses": [{ "ok": true }]
-  },
-  "tour_context": {
-    "requests": [{ "query": { "protocolVersion": 1 }, "body": {} }],
+    "requests": [
+      {
+        "body": {
+          "protocolVersion": 2
+        }
+      }
+    ],
     "responses": [
-      { "ok": true, "context": { "path": "internal/retry/policy.go", "side": "head", "cursor": { "line": 33, "character": 8 },
-        "selection": { "startLine": 31, "endLine": 35, "text": "if d > max {\n\td = max\n}" },
-        "symbol": { "name": "capBackoff", "kind": "Function", "startLine": 28, "endLine": 41 },
-        "visibleRange": { "startLine": 18, "endLine": 52 },
-        "nearby": { "before": "// cap prevents unbounded sleep\n", "after": "\nreturn d\n" },
-        "stopId": "s2", "focus": { "path": "internal/retry/policy.go", "side": "head", "startLine": 31, "endLine": 35 } } },
-      { "ok": true, "context": { "path": "internal/retry/policy.go", "side": "working", "cursor": { "line": 3, "character": 0 },
-        "selection": null, "symbol": null, "visibleRange": { "startLine": 1, "endLine": 40 },
-        "nearby": { "before": "", "after": "package retry\n" }, "stopId": null, "focus": null } },
-      { "ok": false, "error": { "code": "no_active_editor", "message": "no editor is focused" } }
+      {
+        "ok": true
+      }
     ]
   },
-  "tour_rebaseline": {
-    "requests": [{ "body": { "protocolVersion": 1, "paths": ["internal/retry/policy.go"], "reason": "applied review edit at stop 2" } }],
+  "relay_load_tour": {
+    "requests": [
+      {
+        "method": "POST",
+        "path": "/tour/load",
+        "body": {
+          "protocolVersion": 2,
+          "workspace": "/repo",
+          "tourId": "dossier",
+          "plan": {
+            "presentationVersion": 2,
+            "stops": []
+          }
+        }
+      }
+    ],
     "responses": [
-      { "ok": true, "digests": { "internal/retry/policy.go": "0000000000000000000000000000000000000000000000000000000000000000" } },
-      { "ok": false, "error": { "code": "bad_request", "message": "paths must be a non-empty array" } }
+      {
+        "ok": false,
+        "error": {
+          "code": "invalid_tour_plan",
+          "message": "Fix tour validation findings before loading."
+        }
+      }
+    ]
+  },
+  "relay_navigate": {
+    "requests": [
+      {
+        "method": "POST",
+        "path": "/tour/navigate",
+        "body": {
+          "protocolVersion": 2,
+          "workspace": "/repo",
+          "action": "nextBeat"
+        }
+      }
+    ],
+    "responses": [
+      {
+        "ok": false,
+        "error": {
+          "code": "no_tour",
+          "message": "Load a tour first."
+        }
+      }
+    ]
+  },
+  "relay_set_state": {
+    "requests": [
+      {
+        "method": "POST",
+        "path": "/tour/state",
+        "body": {
+          "protocolVersion": 2,
+          "workspace": "/repo",
+          "mode": "exploring"
+        }
+      }
+    ],
+    "responses": [
+      {
+        "ok": false,
+        "error": {
+          "code": "no_tour",
+          "message": "Load a tour first."
+        }
+      }
     ]
   }
 }

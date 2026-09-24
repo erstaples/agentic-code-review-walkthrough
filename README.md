@@ -28,30 +28,17 @@ and anything non-obvious worth spotlighting.
 As it zooms in on a particular function it highlights that range specifically,
 so you're always looking at the code being discussed.
 
-Use **kanko: Toggle Diff View** from the Command Palette or the tour
-status bar control to show or hide the native multi-file diff without prompting
-the agent. Tour rails and focus outlines remain visible in either view without
-covering the diff's added/removed backgrounds. Only context text dims while
-following; selecting code switches to Exploring. Use **Follow Presenter** or
-**Pause Presentation** from the Command Palette to control presentation.
-Diff view starts off for each tour. Newly added files stay in file
-view because they have no base content.
+The **Tour** view in the secondary sidebar shows the current stop, beat,
+risk, revisions, and narration. Numbered chips open the cited source. Use
+**Previous beat**, **Next beat**, or the stop controls to navigate. **Following**
+opens the selected anchor; **Exploring** lets narration advance while the
+editor stays still; **Paused** removes tour highlights. **End tour** clears the
+presentation without recording review acceptance.
 
-Focusing removed code opens a pinned diff. In an inline layout, a read-only
-base companion appears beside it; a seam marks the removal in the head file.
-Set `relay.presentation.removedCode` to `seam` for a peek link instead.
-VS Code also exposes original editors in inline mode, so automatic layouts
-conservatively use this fallback. To use only the original pane, enable
-side-by-side diffs and disable automatic inline switching for narrow windows.
-`relay.presentation.dimOpacity`, `showLabels`, and `closeCompanion` control
-opacity, labels, and companion lifetime. Pinned or moved companions are yours
-and are never automatically closed. Theme authors can override the five
-`relay.presenter*` colors.
-
-Then it stops and waits. You can ask a question, say "next", go back, or jump
-to a named stop. If you point at something in the editor and ask "what's
-this?", the agent reads where you're looking — selection, cursor, or enclosing
-symbol — and answers about that code.
+An agent loads the complete authored plan and advances it through public MCP
+operations. Invalid plans return findings before changing the current display.
+For now, one selected anchor is presented at a time. Multi-anchor presentation,
+layout placement, and the complete anchor list are subsequent phases.
 
 Questions, concerns, and decisions become sourced dossier entries when they
 matter beyond the current conversation. At closeout you can save an immutable
@@ -60,7 +47,7 @@ inspected, what risk was accepted, and what remains unresolved.
 
 ## Requirements
 
-- **VS Code** with the `code` CLI on your `PATH`
+- **VS Code 1.139 or newer** with the `code` CLI on your `PATH`
 - **Node.js 22 or newer** on the `PATH` of whichever agent launches the MCP server
 - One of the supported agents below
 
@@ -203,7 +190,7 @@ is never copied.
 Three processes, two hops — the agent talks to a small MCP server, which
 proxies to the VS Code extension over an authenticated loopback HTTP channel.
 The two find each other through a lockfile the extension writes on activation.
-See [`diagram.md`](diagram.md) for the flow.
+See [the loading guide](docs/relay-v2-tour-loading.md) for the flow.
 
 The MCP server has two boundaries. Editor navigation remains a thin proxy to
 the extension. The dossier application service owns durable review state in a
@@ -215,9 +202,10 @@ per-user application-state directory outside the repository. Set
 | Tool | What it does |
 |---|---|
 | `tour_status` | Preflight — confirms the extension is reachable and reports the resolved workspace |
-| `tour_stop` | Opens a stop's files, as a multi-file diff or as working-tree files, and highlights its ranges |
-| `tour_focus` | Points at one range inside the current stop, with an optional inline note |
-| `tour_clear` | Removes highlights |
+| `relay_load_tour` | Validates and loads the current dossier plan into the sidebar |
+| `relay_navigate` | Moves by beat, by stop, or to an explicit stop and beat |
+| `relay_set_state` | Sets Following, Exploring, or Paused |
+| `tour_clear` | Ends the presentation and removes highlights |
 | `dossier_open` | Opens or creates the dossier for an exact committed or working-tree change |
 | `dossier_get` | Reads a bounded overview, entity set, tour, evidence matrix, or resume recap |
 | `dossier_apply` | Atomically applies typed, provenance-bearing domain commands |
@@ -228,7 +216,8 @@ per-user application-state directory outside the repository. Set
 
 Relay v2's stop, anchor, and beat authoring contract is documented in
 [the tour model guide](docs/relay-v2-tour-model.md). It validates plans before
-storage; editor loading and navigation are a later phase.
+storage. [Loading and navigation](docs/relay-v2-tour-loading.md) use bridge
+protocol 2; the old stop/focus tools and routes have been removed.
 
 **The bridge has no write verb.** No endpoint modifies a file, so "installing
 this extension cannot alter your repository" is a property of the software
@@ -243,19 +232,19 @@ before command content is persisted.
 Throughout, the tour keeps narrating the pinned base/head commits, so the code
 under review stays still while you annotate it.
 
-Highlighting never moves your cursor or changes your selection. That would
-overwrite the thing `tour_context` reads, and the selection belongs to you.
+## Current boundaries
 
-## Known gaps
-
-- **`vscode.changes`** — the command driving the multi-file diff editor is built-in but has no formal API contract. Verified working against 1.138.0; a breaking change would mean falling back to per-file `vscode.diff`.
-- **Lazy decoration.** The multi-file diff editor materializes each file's editors only when you scroll to them, so a stop's highlights land progressively rather than all at once. A file you never scroll to is never highlighted.
-- **Large stops** may open more tabs than is comfortable. The skill classifies bulk and generated changes and samples representatively instead; no hard cap is implemented.
-- **Conservative refresh.** A changed working tree invalidates reviewed stops
-  and stales evidence broadly. Semantic carry-forward is deliberately deferred
-  rather than guessing that old review remains valid.
-- **No dossier sidebar yet.** Dossier projections are presented in the agent
-  conversation; the extension remains a navigation and highlighting surface.
+- Presentation currently opens one selected anchor in a read-only revision view
+  or native diff. Multi-anchor colors, badges, layout placement, and tab ownership
+  are later phases.
+- Explicit Exploring and Paused controls are available. Automatic changes of
+  mode after editor interaction are not implemented yet.
+- Ending a tour removes highlights and the sidebar snapshot; revision tabs stay
+  open. Automatic tab cleanup is a later phase.
+- Changed working trees conservatively invalidate review state and stale evidence.
+  A loaded tour retains its captured source until it is reloaded.
+- Dossier claims and review decisions remain in the agent conversation; this
+  sidebar displays the authored tour and does not record human acceptance.
 
 ## Development
 
