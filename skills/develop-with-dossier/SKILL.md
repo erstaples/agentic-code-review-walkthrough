@@ -117,6 +117,12 @@ logical, commit-message-worthy unit and cover at least one dossier entity unless
 it is explicitly a context stop. Order foundations before consumers and put
 real risk or weak evidence where the reviewer will encounter it.
 
+Use `presentationVersion: 2` and the required
+[stop, anchor, and beat contract](../../docs/relay-v2-tour-model.md). Every stop
+needs an id, risk, numbered source-backed anchors, and beats with `{{a:N}}`
+narration references and prioritized `active` numbers. Resolve validation
+findings; do not substitute unversioned or metadata-only stops.
+
 Issue `MarkPrepared` only after the current dossier has:
 
 - a truthful final thesis;

@@ -11,7 +11,6 @@ const { tourSources } = require("../lib/dossier/tour-sources.js");
 const { createDispatcher } = require("../lib/rpc.js");
 const { TOOLS, createCallTool } = require("../lib/tools.js");
 const { hashText } = require("../../contract/tour.js");
-const { eventForCommand } = require("../lib/dossier/domain.js");
 
 const actor = { kind: "agent", id: "test" };
 const provenance = [{ kind: "execution-observed", source: { type: "test" } }];
@@ -78,34 +77,44 @@ test("invalid tour rejects an entire command batch and does not navigate the edi
   assert.equal(getTour(f, opened), null);
 });
 
-test("legacy events replay unchanged alongside normalized v2 plans", (t) => {
+test("normalized tour plans persist rewritten anchor references", (t) => {
   const f = fixture(t); const opened = open(f);
-  const legacy = apply(f, opened, [{ type: "CreateTourPlan", id: "legacy", stops: [{ title: "Legacy", type: "context" }] }]);
-  const old = structuredClone(getTour(f, opened));
   const cmd = command([anchor(f), anchor(f, { n: 2, context: { startLine: 1, endLine: 2 }, contentHash: hashText("after\nshared") })]);
   cmd.stops[0].beats[0] = { id: "b", narration: "Compare {{a:2}} to {{a:1}}.", active: [2, 1] };
-  const result = apply(f, opened, [cmd], legacy.aggregateRevision);
+  const result = apply(f, opened, [cmd]);
   assert.ok(result.findings.some((finding) => finding.code === "overlapping_anchors"));
   const current = getTour(f, opened);
   assert.equal(current.stops[0].anchors.length, 1);
   assert.deepEqual(current.stops[0].beats[0].active, [1]);
-  const loaded = f.service.locate(f.workspace, opened.dossierId).state;
-  assert.deepEqual(loaded.tourPlans.legacy, old);
+  f.service = new DossierService({ root: f.stateRoot });
+  assert.deepEqual(getTour(f, opened), current);
   assert.equal(f.service.check({ workspace: f.workspace, dossierId: opened.dossierId }).eventChainValid, true);
 });
 
-test("historical unversioned anchor metadata is replayed without v2 validation", (t) => {
+test("unversioned and incomplete plans cannot bypass authoring validation", (t) => {
   const f = fixture(t); const opened = open(f);
-  const { repository } = f.service.locate(f.workspace, opened.dossierId);
-  // Reproduce an event written by the pre-v2 domain, whose metadata was open.
-  f.service.store.mutate(repository.repositoryKey, opened.dossierId, 1, actor, (state) => [eventForCommand(state, {
-    type: "CreateTourPlan", stops: [{ type: "context", title: "Legacy", anchors: [{ path: "feature.txt", side: "head", rev: f.head, range: { startLine: 1, endLine: 1 } }] }],
-  }, actor)]);
-  const stored = getTour(f, opened);
-  assert.equal(stored.presentationVersion, undefined);
-  f.service = new DossierService({ root: f.stateRoot });
-  assert.deepEqual(getTour(f, opened), stored);
-  assert.equal(f.service.check({ workspace: f.workspace, dossierId: opened.dossierId }).ok, true);
+  const unversioned = command([anchor(f)]); delete unversioned.presentationVersion;
+  const metadataOnly = { type: "CreateTourPlan", stops: [{ type: "context", title: "Incomplete" }] };
+  for (const cmd of [unversioned, metadataOnly, { ...metadataOnly, presentationVersion: 2 }]) {
+    assert.throws(() => apply(f, opened, [cmd]), (e) => e.code === "invalid_tour_plan" && e.details.findings.length > 0);
+  }
+  assert.equal(getTour(f, opened), null);
+  assert.equal(f.service.get({ workspace: f.workspace, dossierId: opened.dossierId, selector: { kind: "overview" } }).aggregateRevision, 1);
+});
+
+test("checking a stored plan always validates its version and required fields", (t) => {
+  const f = fixture(t); const opened = open(f);
+  apply(f, opened, [command([anchor(f)])]);
+  const located = f.service.locate(f.workspace, opened.dossierId);
+  const stored = located.state.tourPlans[located.state.currentTourPlanId];
+  delete stored.presentationVersion; delete stored.stops[0].anchors;
+  // Inject an invalid projection to test the read boundary independently of
+  // authoring, which already prevents storing this shape.
+  f.service.locate = () => located;
+  const result = f.service.check({ workspace: f.workspace, dossierId: opened.dossierId });
+  assert.equal(result.ok, false);
+  assert.ok(result.findings.some((f) => f.code === "unsupported_version"));
+  assert.ok(result.findings.some((f) => f.code === "invalid_anchors"));
 });
 
 test("staged-only tours bind index blobs and ignore unstaged bytes", (t) => {

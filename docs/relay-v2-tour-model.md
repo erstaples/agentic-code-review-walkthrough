@@ -7,12 +7,11 @@ and navigation are phase 3. Creating a plan does not contact the editor.
 
 ## Authoring a plan
 
-Set `presentationVersion: 2` on `CreateTourPlan`. A stop with `anchors` or
-`beats` also selects v2 validation, so omitting the version cannot bypass it.
-Every stop in that plan must use the v2 shape. Dossier schema version 1 and the
-plan's existing `version` field retain their meanings. Legacy commands without
-presentation fields still work; old events are replayed without rewriting or
-applying new validation rules to them.
+Set `presentationVersion: 2` on every `CreateTourPlan`. Every stop must include
+the required anchors and beats. Unversioned plans, other versions, and
+metadata-only stops are rejected; there is no format detection, migration, or
+compatibility path. `dossier_check` validates every current plan. Dossier schema
+version and the plan's entity `version` are separate from the presentation format.
 
 Each stop needs a stable `id`, `title`, `risk` (`low`, `medium`, `high`), ordered
 `anchors`, and ordered `beats`. The existing dossier coverage rule still applies:
@@ -40,9 +39,8 @@ Each anchor has:
 `side` defaults to `base` for a base view or deletion and `head` otherwise.
 A single-side view must agree with `side`. Focus spans have independent base/head
 coordinates, including removed code outside the head context. Their optional
-`kind` is `added`, `removed`, or `unchanged`. The legacy presentation anchor's
-string `rev` and `range` alias remain unchanged; v2's revision pair and explicit
-context belong to this new contract and will be adapted by the loader.
+`kind` is `added`, `removed`, or `unchanged`. Tour anchors require a revision pair
+and an explicit `context`; a string revision or `range` alias is not accepted.
 
 Hash exactly the selected lines, joined by LF, without the final line separator.
 CR bytes in CRLF source remain part of the hash, matching the existing presenter.
@@ -118,5 +116,5 @@ inputs and only navigate after `ok` is true. No validator function opens files i
 an editor or changes review state.
 
 `contract/sync.js` copies the dependency-free validator into the VSIX. Tests
-require that copy to match exactly. The current presenter continues using the
-legacy anchor API until the separate phase 3 loader is implemented.
+require that copy to match exactly. Phase 3 will connect the editor loader to
+this required contract.

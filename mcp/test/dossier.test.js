@@ -9,6 +9,8 @@ const { execFileSync } = require("node:child_process");
 const { DossierService, redactSensitive } = require("../lib/dossier/service.js");
 const { FileDossierStore } = require("../lib/dossier/file-store.js");
 const { resolveChange, repositoryIdentity } = require("../lib/dossier/git-adapter.js");
+const { tourSources } = require("../lib/dossier/tour-sources.js");
+const { hashText } = require("../../contract/tour.js");
 
 const actor = { kind: "agent", id: "test-agent" };
 const provenance = [{ kind: "model-inferred", source: { type: "code-inspection", path: "feature.txt" }, inferenceExplanation: "Observed in the diff." }];
@@ -37,8 +39,11 @@ function prepare(f, opened) {
     { type: "AddClaim", claim: { statement: "The feature now says after.", category: "behavior", provenance } },
   ] });
   const claim = f.service.get({ workspace: f.workspace, dossierId: opened.dossierId, selector: { kind: "entities", type: "claims" } }).entities[0];
+  const source = tourSources(f.workspace, opened.changeRevision);
+  const anchor = { n: 1, role: "change", label: "Feature behavior", path: "feature.txt", view: "diff", change: "modified", rev: source.revisions, context: { startLine: 1, endLine: 1 } };
+  anchor.contentHash = hashText(source.readSource(anchor).head.split("\n")[0]);
   result = f.service.apply({ workspace: f.workspace, dossierId: opened.dossierId, expectedRevision: result.aggregateRevision, actor, commands: [
-    { type: "CreateTourPlan", title: "Feature tour", stops: [{ title: "Behavior", type: "implementation", coveredEntityIds: [claim.id] }] },
+    { type: "CreateTourPlan", presentationVersion: 2, title: "Feature tour", stops: [{ id: "behavior", title: "Behavior", risk: "low", type: "implementation", coveredEntityIds: [claim.id], anchors: [anchor], beats: [{ id: "inspect", narration: "Inspect {{a:1}}.", active: [1] }] }] },
     { type: "MarkPrepared" },
     { type: "StartReviewSession", reviewer: { kind: "reviewer", id: "human" } },
   ] });

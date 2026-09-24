@@ -7,7 +7,7 @@ const { eventForCommand, applyEvent, projectionOverview, findEntity, validateAct
 const { buildReceipt, renderMarkdown } = require("./receipt.js");
 const { id } = require("./canonical.js");
 const { DossierError, invariant } = require("./errors.js");
-const { isV2Tour, assertHardLimit, validateTourPlan } = require("../../../contract/tour.js");
+const { assertHardLimit, validateTourPlan } = require("../../../contract/tour.js");
 const { tourSources } = require("./tour-sources.js");
 
 const REVIEW_COMMANDS = new Set(["StartReviewSession", "StartStop", "SetClaimDisposition", "SetRiskDisposition", "SetStopReviewState", "RecordQuestion", "RecordConcern", "RecordAnswer", "PauseReviewSession", "ResumeReviewSession", "CompleteReviewSession"]);
@@ -155,7 +155,7 @@ class DossierService {
       let state = structuredClone(initialState);
       const specs = [];
       for (const command of commands) {
-        if (command.type === "CreateTourPlan" && isV2Tour(command)) {
+        if (command.type === "CreateTourPlan") {
           const fresh = this.freshness(state);
           invariant(fresh.freshness === "current", "stale_change", "refresh the dossier before authoring a tour for changed sources", fresh);
           const validated = this.validateTour(state, command);
@@ -185,9 +185,7 @@ class DossierService {
     const freshness = this.freshness(state);
     const plan = state.tourPlans[state.currentTourPlanId];
     let findings = [];
-    // Only new, versioned plans opt into validation during reads. Older events
-    // may contain arbitrary presentation metadata and must still replay as-is.
-    if (plan?.presentationVersion === 2) {
+    if (plan) {
       try { findings = this.validateTour(state, plan).findings; }
       catch (error) { findings = [{ severity: "error", code: "source_unavailable", location: "stops", message: error.message }]; }
     }

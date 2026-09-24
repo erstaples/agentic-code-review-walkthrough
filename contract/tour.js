@@ -19,10 +19,6 @@ function rangeText(text, range) {
   return range.endLine > lines.length ? null : lines.slice(range.startLine - 1, range.endLine).join("\n");
 }
 
-function isV2Tour(plan) {
-  return plan?.presentationVersion !== undefined || (Array.isArray(plan?.stops) && plan.stops.some((stop) => object(stop) && ("anchors" in stop || "beats" in stop)));
-}
-
 function assertHardLimit(value = LIMITS.hard) {
   if (!Number.isInteger(value) || value < 1 || value > LIMITS.maximum) throw new RangeError("anchor hard limit must be an integer from 1 through 99");
   return value;
@@ -41,8 +37,7 @@ function validateTourPlan(input, options = {}) {
     return { ok: false, plan: null, findings };
   }
   const plan = structuredClone(input);
-  if (plan.presentationVersion !== undefined && plan.presentationVersion !== 2) error("unsupported_version", "presentationVersion", "Use presentationVersion 2 for anchor-and-beat tours.");
-  plan.presentationVersion = 2;
+  if (plan.presentationVersion !== 2) error("unsupported_version", "presentationVersion", "Tour plans require presentationVersion 2.");
   if (typeof options.readSource !== "function") error("source_reader_required", "stops", "Supply a revision-pinned source reader before accepting this tour.");
   const stopIds = new Set();
   const sources = new Map();
@@ -177,4 +172,4 @@ function validateTourPlan(input, options = {}) {
   return { ok, plan: ok ? plan : null, findings };
 }
 
-module.exports = { ROLES, LIMITS, hashText, rangeText, validPath, isV2Tour, assertHardLimit, validateTourPlan };
+module.exports = { ROLES, LIMITS, hashText, rangeText, validPath, assertHardLimit, validateTourPlan };

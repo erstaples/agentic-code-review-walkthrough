@@ -129,9 +129,9 @@ const COMMAND = {
     command("SetThesis", ["thesis"], { thesis: ENTITY_INPUT }),
     ...["Requirement", "Claim", "Decision", "Assumption", "Invariant", "Risk", "Evidence", "CodeReference"].map((noun) => command(`Add${noun}`, [noun[0].toLowerCase() + noun.slice(1)], { [noun[0].toLowerCase() + noun.slice(1)]: ENTITY_INPUT })),
     command("AddRelationship", ["relationship"], { relationship: ENTITY_INPUT }),
-    command("CreateTourPlan", ["stops"], {
+    command("CreateTourPlan", ["presentationVersion", "stops"], {
       title: { type: "string" }, presentationVersion: { const: 2 },
-      stops: { type: "array", minItems: 1, items: { anyOf: [inlineTourSchema(tourSchema.$defs.stop), { type: "object", not: { anyOf: [{ required: ["anchors"] }, { required: ["beats"] }] }, description: "Legacy dossier stop without anchors/beats. New presentations use the v2 shape above." }] } },
+      stops: { type: "array", minItems: 1, items: inlineTourSchema(tourSchema.$defs.stop) },
     }),
     command("MarkPrepared"),
     command("StartReviewSession", [], { reviewer: ACTOR, sessionId: { type: "string" } }),

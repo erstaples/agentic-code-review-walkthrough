@@ -4,7 +4,7 @@ const { test } = require("node:test");
 const assert = require("node:assert/strict");
 const fs = require("node:fs");
 const path = require("node:path");
-const { validateTourPlan, hashText, rangeText, isV2Tour } = require("../contract/tour.js");
+const { validateTourPlan, hashText, rangeText } = require("../contract/tour.js");
 
 const text = Array.from({ length: 120 }, (_, n) => `line ${n + 1}`).join("\n") + "\n";
 const options = { readSource: () => ({ base: text, head: text }), revisions: { base: "base-sha", head: "head-sha" } };
@@ -27,8 +27,16 @@ test("valid v2 tours round-trip without mutating input and retain priority and s
   assert.deepEqual(result.plan.stops[0].beats[0].active, [3, 1, 2]);
   assert.equal(result.plan.stops[0].anchors[0].side, "head");
   assert.deepEqual(validateTourPlan(JSON.parse(JSON.stringify(result.plan)), options).plan, result.plan);
-  assert.equal(isV2Tour({ stops: [{ title: "legacy" }] }), false);
-  assert.equal(isV2Tour({ stops: [{ anchors: [] }] }), true);
+});
+
+test("tour plans require the current version explicitly", () => {
+  for (const presentationVersion of [undefined, null, 1, 3, "2"]) {
+    const input = plan(); input.presentationVersion = presentationVersion;
+    const result = validateTourPlan(input, options);
+    assert.equal(result.ok, false);
+    assert.equal(result.plan, null);
+    assert.ok(result.findings.some((f) => f.code === "unsupported_version"));
+  }
 });
 
 const invalid = [
