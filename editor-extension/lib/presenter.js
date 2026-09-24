@@ -67,7 +67,7 @@ function createPresenter(vscode, color) {
         const n = Math.max(0, Math.min(count - 1, seam.line));
         const deco = { range: line(n), hoverMessage: seam.hover };
         (seam.line >= count ? bottom : top).push(deco);
-        if (p.showLabels !== false && p.state !== "exploring") labels.push({ ...deco, renderOptions: { after: { contentText: `\u2002${seam.label}\u2002` } } });
+        if (p.showLabels !== false && p.state !== "exploring") labels.push({ range: deco.range, renderOptions: { after: { contentText: `\u2002${seam.label}\u2002` } } });
       }
       editor.setDecorations(types.seam, top);
       editor.setDecorations(types.seamBottom, bottom);

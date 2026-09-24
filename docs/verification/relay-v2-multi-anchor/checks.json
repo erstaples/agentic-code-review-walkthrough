@@ -11,10 +11,25 @@
   },
   "package": {
     "files": 32,
-    "sha256": "4f4ce803acd17b499a0048812f4da8b2cd9fbf41676b63a2fb06674f0301f166"
+    "sha256": "f28eb5b750b14b46b15e4c5c2088c8216f159b34329b5901c2c7fe256626705b"
   },
   "screenshots": {
-    "status": "blocked",
-    "reason": "Mac remains locked; native computer control cannot interact or capture screenshots."
+    "status": "completed",
+    "count": 16,
+    "capture": "Unedited native window screenshots, macOS, VS Code 1.139.0, Default Dark Modern, disposable profile.",
+    "baselineScreenshots": [
+      "01-loaded.png",
+      "02-evidence-beat.png",
+      "03-three-anchors.png",
+      "05-dirty-source.png",
+      "06-paused.png"
+    ],
+    "baselineCommit": "39ae464bf9122f5234804b86793fba8041d52485",
+    "remainingScreenshots": "Repaired VSIX with the package SHA256 above.",
+    "limitations": [
+      "Long inline labels clip in narrow columns.",
+      "Tab movement verified through native Split & Move > Move Right; drag gesture attempts did not move the tab.",
+      "Light themes, Windows, remote workspaces, and other screen sizes not checked."
+    ]
   }
 }

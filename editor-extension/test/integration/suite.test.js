@@ -81,6 +81,20 @@ module.exports = function register({ test, before }) {
     assert.equal(vscode.window.tabGroups.all.length,3);
     for (const file of ['service.js','service.test.js','navigation.js']) assert.equal(tabs().filter(t=>t.uri && decodeURIComponent(t.uri).split('?')[0].endsWith('/'+file)).length,1);
     record('three-anchors-peek',r.snapshot);
+    r = await api('relay_set_state', {mode:'exploring'});
+    assert.equal(r.snapshot.presentation.anchors[0].removedCode,'peek');
+    const focus = r.snapshot.stop.anchors[0].focus.find(f=>f.side==='base');
+    const args = JSON.parse(JSON.stringify([r.snapshot.tourId,r.snapshot.stopIndex,1,focus.range.startLine,focus.range.endLine]));
+    await vscode.commands.executeCommand('relay.tour.peekRemoved',...args);
+    assert.equal(vscode.window.tabGroups.all.length,3);
+    await vscode.commands.executeCommand('closeReferenceSearch');
+    record('peek-command-json-boundary',{arguments:args,retainedWhileExploring:true});
+    // Native peek opens a plain source tab in place of a diff. End this
+    // scenario with a fresh editor set so later ownership checks are isolated.
+    await api('tour_clear');
+    await vscode.commands.executeCommand('workbench.action.closeAllEditors');
+    await load();
+    await api('relay_set_state', {mode:'following'});
     r = await api('relay_navigate',{action:'goto',stopId:'validation',beatId:'proof'});
   });
   test('disjoint anchors in one file reuse a tab and present the selected identity', async () => {

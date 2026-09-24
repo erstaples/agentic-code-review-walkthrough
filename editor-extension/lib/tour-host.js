@@ -66,9 +66,11 @@ function createTourHost(vscode, { changed = () => {}, explore = () => {} } = {})
         const seams = record.removedCode && side === "head" ? anchor.focus.filter(f => f.side === "base").flatMap(f => {
           const line = seamLineFor(f.range.startLine - 1, hunks); if (line === undefined) return [];
           const hover = new vscode.MarkdownString("Removed code. ");
-          const args = [record.head, new vscode.Position(Math.max(0, Math.min(line, editor.document.lineCount - 1)), 0), [new vscode.Location(record.base, new vscode.Range(f.range.startLine - 1, 0, f.range.endLine - 1, 0))]];
-          hover.appendMarkdown(`[Peek removed code](command:editor.action.showReferences?${encodeURIComponent(JSON.stringify(args))})`);
-          hover.isTrusted = { enabledCommands: ["editor.action.showReferences"] };
+          // Command links cross a JSON boundary. Resolve the current anchor in
+          // the extension so showReferences receives actual API value objects.
+          const args = [current.tourId, current.stopIndex, anchor.n, f.range.startLine, f.range.endLine];
+          hover.appendMarkdown(`[Peek removed code](command:relay.tour.peekRemoved?${encodeURIComponent(JSON.stringify(args))})`);
+          hover.isTrusted = { enabledCommands: ["relay.tour.peekRemoved"] };
           return [{ line, hover, label: `${anchorNumber(anchor.n)} ${f.range.endLine - f.range.startLine + 1} lines removed · ${record.companion ? "shown beside" : "peek"}` }];
         }) : [];
         registry.forAnchor(anchor.n).paint(editor, { context: [context], focus, seams, removedLines: side === "base" && record.companion ? removedBaseLines0(hunks) : [],
@@ -90,7 +92,13 @@ function createTourHost(vscode, { changed = () => {}, explore = () => {} } = {})
     try {
       const stop = state.plan.stops[state.stopIndex], beat = stop.beats[state.beatIndex];
       current = state;
-      records = stop.anchors.map(anchor => opener.describe(state, anchor));
+      const previous = records;
+      records = stop.anchors.map(anchor => {
+        const record = opener.describe(state, anchor);
+        const retained = previous.find(r => r.anchor === anchor && key(r.target) === key(record.target));
+        if (retained) { record.companion = retained.companion; record.removedCode = retained.removedCode; }
+        return record;
+      });
       const active = [...new Set([state.selectedAnchor, ...beat.active].filter(Boolean))];
       if (state.mode === "following" || focus) {
         // Keep every anchor of this stop, including inactive previews. Obsolete
@@ -124,6 +132,17 @@ function createTourHost(vscode, { changed = () => {}, explore = () => {} } = {})
     } finally { navigating--; }
   }
   const subscriptions = [
+    vscode.commands.registerCommand("relay.tour.peekRemoved", async (tourId, stopIndex, n, startLine, endLine) => {
+      if (!current || current.tourId !== tourId || current.stopIndex !== stopIndex || current.mode === "paused") return;
+      const record = records.find(r => r.anchor.n === n);
+      if (!record || stale(record) || !record.anchor.focus.some(f => f.side === "base" && f.range.startLine === startLine && f.range.endLine === endLine)) return;
+      const editor = vscode.window.visibleTextEditors.find(e => key(e.document.uri) === key(record.head));
+      const seam = seamLineFor(startLine - 1, current.hunks.get(record.anchor.path));
+      if (!editor || seam === undefined) return;
+      return vscode.commands.executeCommand("editor.action.showReferences", record.head,
+        new vscode.Position(Math.max(0, Math.min(seam, editor.document.lineCount - 1)), 0),
+        [new vscode.Location(record.base, new vscode.Range(startLine - 1, 0, endLine - 1, 0))]);
+    }),
     vscode.window.registerFileDecorationProvider({ onDidChangeFileDecorations: badgeEvents.event, provideFileDecoration(uri) {
       if (!current || current.mode === "paused") return;
       const record = orderedRecords().find(r => key(r.target) === key(uri) || (r.companion && key(r.base) === key(uri)));

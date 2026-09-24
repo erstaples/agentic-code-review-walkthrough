@@ -1,0 +1,41 @@
+{
+  "result": {
+    "ok": false,
+    "error": {
+      "code": "invalid_tour_plan",
+      "message": "Fix tour validation findings before loading.",
+      "details": {
+        "findings": [
+          {
+            "severity": "error",
+            "code": "invalid_active",
+            "location": "stops[0].beats[0].active",
+            "message": "Active must contain unique anchor numbers from this stop, in priority order."
+          }
+        ]
+      }
+    }
+  },
+  "tabs": [
+    {
+      "label": "service.js",
+      "uri": "file:///private/tmp/relay-tour-Xh4uMs/workspace/service.js"
+    },
+    {
+      "label": "service.test.js",
+      "uri": "file:///private/tmp/relay-tour-Xh4uMs/workspace/service.test.js"
+    },
+    {
+      "label": "navigation.js",
+      "uri": "file:///private/tmp/relay-tour-Xh4uMs/workspace/navigation.js"
+    },
+    {
+      "label": "retired.js",
+      "uri": "relay-rev:/retired.js?%7B%22path%22%3A%22%2Fprivate%2Ftmp%2Frelay-tour-Xh4uMs%2Fworkspace%2Fretired.js%22%2C%22ref%22%3A%224a4c78c130aabed48942be7a76a8d237877d458f%22%2C%22side%22%3A%22base%22%2C%22relay%22%3A%22tour%22%2C%22identity%22%3A%22sha256%3Ab3d2571520dbe80c972956ebd4f124ba9009665d28354a2f8af30a188d27cd68%22%7D"
+    },
+    {
+      "label": "service.js",
+      "uri": "relay-rev:/service.js?%7B%22path%22%3A%22%2Fprivate%2Ftmp%2Frelay-tour-Xh4uMs%2Fworkspace%2Fservice.js%22%2C%22ref%22%3A%224a4c78c130aabed48942be7a76a8d237877d458f%22%2C%22side%22%3A%22base%22%2C%22relay%22%3A%22tour%22%2C%22identity%22%3A%22sha256%3Ab3d2571520dbe80c972956ebd4f124ba9009665d28354a2f8af30a188d27cd68%22%7D"
+    }
+  ]
+}
