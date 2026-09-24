@@ -10,11 +10,13 @@ manifest = json.loads((root / 'editor-extension/package.json').read_text())
 expected = {
     'extension/package.json', 'extension/extension.js', 'extension/readme.md',
     'extension/changelog.md', 'extension/LICENSE.txt',
-    'extension/' + manifest['icon'],
+    'extension/' + manifest['icon'], 'extension/assets/kanko-sidebar.svg',
     '[Content_Types].xml', 'extension.vsixmanifest',
 }
 expected.update('extension/' + str(p.relative_to(root / 'editor-extension'))
                 for p in (root / 'editor-extension/lib').rglob('*.js'))
+expected.update('extension/' + str(p.relative_to(root / 'editor-extension'))
+                for p in (root / 'editor-extension/media').glob('*') if p.is_file())
 if len(sys.argv) != 2:
     sys.exit('Expected exactly one VSIX path')
 with zipfile.ZipFile(sys.argv[1]) as archive:

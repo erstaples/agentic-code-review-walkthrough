@@ -2,10 +2,27 @@
 
 const fs = require("node:fs");
 const path = require("node:path");
-const { git, parseRawDiff } = require("./git-adapter.js");
-const { digest } = require("./canonical.js");
-const { invariant } = require("./errors.js");
-const { validPath } = require("../../../contract/tour.js");
+const { execFileSync } = require("node:child_process");
+const { createHash } = require("node:crypto");
+
+const { validPath } = require("./tour-contract.js");
+
+
+function invariant(ok, code, message) { if (!ok) throw Object.assign(new Error(message), { code }); }
+const digest = (bytes) => `sha256:${createHash("sha256").update(bytes).digest("hex")}`;
+function git(workspace, args, options = {}) {
+  try { return execFileSync("git", ["-C", workspace, ...args], { encoding: options.encoding === null ? null : "utf8", maxBuffer: 32 * 1024 * 1024, stdio: ["ignore", "pipe", "pipe"] }); }
+  catch (error) { throw Object.assign(new Error(error.stderr?.toString().trim() || error.message), { code: "git_failed" }); }
+}
+function renamedFiles(workspace, base, head) {
+  const fields = git(workspace, ["diff", "--name-status", "-z", "--find-renames", base, head, "--"]).split("\0");
+  const files = [];
+  for (let i = 0; i < fields.length && fields[i];) {
+    const kind = fields[i++][0], oldPath = fields[i++];
+    files.push({ kind, oldPath, path: kind === "R" || kind === "C" ? fields[i++] : oldPath });
+  }
+  return files;
+}
 
 function tree(workspace, commit) {
   const entries = new Map();
@@ -22,11 +39,13 @@ function tourSources(workspace, change) {
   const manifest = change.manifest;
   const base = manifest.effectiveBase || manifest.baselineCommit;
   const head = manifest.headCommit || manifest.currentHead;
+  invariant([base, head].every((ref) => typeof ref === "string" && /^[0-9a-f]{40,64}$/.test(ref)), "invalid_revision", "source revisions must be pinned commit ids");
+  invariant(Array.isArray(manifest.files) && manifest.files.every((f) => validPath(f.path) && (!f.renamedFrom || validPath(f.renamedFrom)) && (!f.oldPath || validPath(f.oldPath))), "invalid_path", "manifest paths must stay inside the repository");
   const baseTree = tree(workspace, base);
   const headTree = tree(workspace, head);
   const working = manifest.kind === "working-tree";
   const revisions = { base, head: working ? `WORKTREE:${change.manifestDigest}` : head };
-  const changes = working ? parseRawDiff(git(workspace, ["diff", "--raw", "-z", "--no-abbrev", "--find-renames", base, head])) : manifest.files;
+  const changes = working ? renamedFiles(workspace, base, head) : manifest.files;
   const renames = new Map(changes.filter((f) => f.kind === "R").map((f) => [f.path, f.oldPath]));
   const selected = new Map(working ? manifest.files.map((f) => [f.path, f]) : []);
   for (const f of selected.values()) {
@@ -38,6 +57,7 @@ function tourSources(workspace, change) {
   const cache = new Map();
   const readBlob = (blob) => {
     if (!blob) return null;
+    invariant(/^[0-9a-f]{40,64}$/.test(blob), "invalid_revision", "source blobs must use pinned ids");
     if (!cache.has(blob)) cache.set(blob, git(workspace, ["cat-file", "blob", blob], { encoding: null }));
     return cache.get(blob);
   };

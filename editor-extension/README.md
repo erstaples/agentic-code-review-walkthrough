@@ -12,7 +12,7 @@ The extension alone does not provide an AI assistant.
 
 ## Getting started
 
-1. Install this extension in VS Code 1.90 or newer.
+1. Install this extension in VS Code 1.139 or newer.
 2. Follow the [agent setup instructions](https://github.com/erstaples/agentic-code-review-walkthrough#step-2--your-agent).
    The MCP server requires Node.js 22 or newer and Git on its PATH.
 3. Open your repository and ask your agent to “tour the changes”.
@@ -22,21 +22,28 @@ it runs on the same side as your code and the agent's MCP server.
 
 ## Controls
 
-- **kanko: Toggle Diff View** shows or hides the native multi-file diff.
-- **kanko: Follow Presenter** follows the current tour focus.
-- **kanko: Pause Presentation** lets you explore independently.
-- **kanko: Copy Citation** copies the selected code location for your agent.
+The **Tour** view opens in the secondary sidebar when your agent loads a tour.
+It shows stop and beat progress, risk, pinned revisions, and narration.
 
-The `relay.presentation` settings control removed-code companions, context
-opacity, beat labels, and when companion tabs close. Selecting code switches
-from following the presenter to exploring.
+- Numbered narration chips open the referenced source.
+- **Previous beat / Next beat** and the stop controls move through the plan.
+- **Following** opens the selected anchor as narration advances.
+- **Exploring** advances narration without moving your editor.
+- **Paused** removes tour decorations; **Following** resumes at the current beat.
+- **End tour** clears presentation without marking anything reviewed.
+- **kanko: Copy Citation** copies the selected code location and source revision.
+
+`relay.presentation.dimOpacity` and `relay.presentation.showLabels` control
+context opacity and inline labels. `relay.tour.anchorLimit` limits anchors per
+stop (24 by default). The current phase presents one selected anchor at a time;
+multi-anchor layout and automatic tab cleanup are still to come.
 
 ## Local connection
 
 The extension starts a loopback HTTP server with a per-session authentication
 token. The local MCP server discovers it through a lockfile under
-`~/.claude/tour`. It lets the agent open files, control diff views, and inspect
-editor selection within your workspace.
+`~/.claude/tour`. It lets the agent open files, navigate authored beats, and change presentation mode within your workspace.
+Bridge protocol 2 is required on both sides.
 
 [Report an issue](https://github.com/erstaples/agentic-code-review-walkthrough/issues)
 with your VS Code version and whether you use a local or remote workspace.

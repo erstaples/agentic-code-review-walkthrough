@@ -14,7 +14,7 @@ function send(res, status, payload) {
   res.end(body);
 }
 
-const sendError = (res, status, code, message) => send(res, status, { ok: false, error: { code, message } });
+const sendError = (res, status, code, message, details) => send(res, status, { ok: false, error: { code, message, ...(details === undefined ? {} : { details }) } });
 
 function readBody(req) {
   return new Promise((resolve, reject) => {
@@ -73,7 +73,7 @@ function startServer({ handlers, authToken, protocolVersion }) {
     } catch (err) {
       const code = err && KNOWN_CODES.has(err.code) ? err.code : "bad_request";
       const status = STATUS_FOR[code] || (code === "bad_request" && !(err && KNOWN_CODES.has(err.code)) ? 500 : 400);
-      sendError(res, status, code, String(err && err.message ? err.message : err));
+      sendError(res, status, code, String(err && err.message ? err.message : err), err?.details);
     }
   });
 

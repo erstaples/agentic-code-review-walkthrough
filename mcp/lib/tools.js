@@ -18,81 +18,12 @@ const WORKSPACE = {
   description: "Absolute path to the repository root being toured. Resolve it with git rev-parse --show-toplevel.",
 };
 
-const RANGE = {
-  type: "object",
-  required: ["side", "startLine", "endLine"],
-  properties: {
-    side: { type: "string", enum: ["base", "head", "working"], description: "base: file at the pinned base commit; head: file at the pinned head commit; working: file on disk with uncommitted changes. Use head for added or changed code, base for deleted code, working when touring the working tree." },
-    startLine: { type: "integer", description: "1-based inclusive." },
-    endLine: { type: "integer", description: "1-based inclusive." },
-  },
-};
-
 const BRIDGE_TOOLS = [
-  {
-    name: "tour_status",
-    description: "Preflight the editor bridge. Returns the extension version, the workspace folders of the VS Code window that owns the requested repository, and the current stop's deferred (path, side) pairs -- files not yet decorated because their editor hasn't materialized. Call this before starting a tour; if it fails, run the tour as text and links instead.",
-    inputSchema: {
-      type: "object",
-      required: ["workspace"],
-      properties: { workspace: WORKSPACE },
-    },
-  },
-  {
-    name: "tour_stop",
-    description: "Open a tour stop's files and highlight its ranges. Replaces the previous stop's highlights. Call once per stop, before narrating it.",
-    inputSchema: {
-      type: "object",
-      required: ["workspace", "stopId", "label", "type", "mode", "base", "head", "files"],
-      properties: {
-        workspace: WORKSPACE,
-        stopId: { type: "string" },
-        index: { type: "integer", description: "1-based position of this stop in the tour." },
-        total: { type: "integer" },
-        label: { type: "string" },
-        type: { type: "string", enum: ["context", "implementation", "risk", "evidence", "limitation"] },
-        mode: { type: "string", enum: ["file", "diff"], description: "Use \"diff\" for committed revisions and \"file\" for working-tree ranges. Both open as files by default; the reviewer toggles the display locally in VS Code." },
-        base: { type: "object", required: ["sha", "name"], properties: { sha: { type: "string" }, name: { type: "string" } }, description: "Pinned base commit. Resolve with git rev-parse before the first stop and reuse it for every stop in the tour." },
-        head: { type: "object", required: ["sha", "name"], properties: { sha: { type: "string" }, name: { type: "string" } }, description: "Pinned head commit, or sha \"WORKTREE\" for a tour of uncommitted work." },
-        files: {
-          type: "array",
-          items: {
-            type: "object",
-            required: ["path", "ranges"],
-            properties: {
-              path: { type: "string", description: "Repository-relative." },
-              ranges: { type: "array", items: RANGE },
-            },
-          },
-        },
-      },
-    },
-  },
-  {
-    name: "tour_focus",
-    description: "Point at one range inside the current stop. Reveals it and highlights it more strongly than the surrounding stop. Use this when zooming into a specific construct mid-narration rather than calling tour_stop again.",
-    inputSchema: {
-      type: "object",
-      required: ["workspace", "path", "side", "startLine", "endLine"],
-      properties: {
-        workspace: WORKSPACE,
-        path: { type: "string", description: "Repository-relative." },
-        side: RANGE.properties.side,
-        startLine: { type: "integer" },
-        endLine: { type: "integer" },
-        note: { type: "string", description: "Short inline label rendered at the end of the range." },
-      },
-    },
-  },
-  {
-    name: "tour_clear",
-    description: "Remove all tour highlights. Call at the end of a tour. Does not close tabs.",
-    inputSchema: {
-      type: "object",
-      required: ["workspace"],
-      properties: { workspace: WORKSPACE },
-    },
-  },
+  { name: "tour_status", description: "Read the editor's current tour snapshot without changing it.", inputSchema: { type: "object", required: ["workspace"], properties: { workspace: WORKSPACE } } },
+  { name: "relay_load_tour", description: "Validate and load the current authored dossier tour into the editor. Returns findings, the current stop/beat, and terminal narration. Invalid tours leave the current display unchanged.", inputSchema: { type: "object", required: ["workspace", "dossierId"], properties: { workspace: WORKSPACE, dossierId: { type: "string" } } } },
+  { name: "relay_navigate", description: "Navigate the loaded tour by stop or beat. Use goto with stopId and beatId for an exact destination. Presentation changes do not mark dossier claims or stops reviewed.", inputSchema: { type: "object", required: ["workspace", "action"], properties: { workspace: WORKSPACE, action: { enum: ["nextBeat", "previousBeat", "nextStop", "previousStop", "goto"] }, stopId: { type: "string" }, beatId: { type: "string" }, expectedRevision: { type: "integer", minimum: 0 } } } },
+  { name: "relay_set_state", description: "Set following, exploring, or paused presentation mode for the loaded tour. Following reveals the selected anchor; exploring leaves the editor in place; paused removes presentation highlights.", inputSchema: { type: "object", required: ["workspace", "mode"], properties: { workspace: WORKSPACE, mode: { enum: ["following", "exploring", "paused"] }, expectedRevision: { type: "integer", minimum: 0 } } } },
+  { name: "tour_clear", description: "End the current presentation and clear its sidebar and highlights. Does not complete a dossier review.", inputSchema: { type: "object", required: ["workspace"], properties: { workspace: WORKSPACE } } },
 ];
 
 const ACTOR = {
@@ -197,8 +128,9 @@ const TOOLS = [...BRIDGE_TOOLS, ...DOSSIER_TOOLS];
 
 const ROUTES = {
   tour_status: ["GET", "/status"],
-  tour_stop: ["POST", "/stop"],
-  tour_focus: ["POST", "/focus"],
+  relay_load_tour: ["POST", "/tour/load"],
+  relay_navigate: ["POST", "/tour/navigate"],
+  relay_set_state: ["POST", "/tour/state"],
   tour_clear: ["POST", "/clear"],
 };
 
@@ -214,8 +146,9 @@ function createCallTool({ resolveLock, dossierService = new DossierService() }) 
     const route = ROUTES[name];
     if (!route) throw new Error(`unknown tool: ${name}`);
     const { workspace, ...bridgeArgs } = args;
+    const payload = name === "relay_load_tour" ? dossierService.loadTour(args) : { ...bridgeArgs, workspace };
     const lock = resolveLock(workspace);
-    return request(lock, route[0], route[1], bridgeArgs);
+    return request(lock, route[0], route[1], payload);
   };
 }
 

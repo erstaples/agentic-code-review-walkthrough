@@ -5,7 +5,7 @@
 // directory, so the shared contract is copied here and drift-checked in CI.
 
 module.exports = {
-  "PROTOCOL_VERSION": 1,
+  "PROTOCOL_VERSION": 2,
   "ERROR_CODES": [
     "unauthorized",
     "protocol_mismatch",
@@ -15,7 +15,11 @@ module.exports = {
     "git_failed",
     "no_active_editor",
     "content_drift",
-    "diff_identity_mismatch"
+    "diff_identity_mismatch",
+    "invalid_tour_plan",
+    "no_tour",
+    "stale_presentation",
+    "navigation_boundary"
   ],
   "SIDES": [
     "base",

@@ -7,7 +7,7 @@ const os = require("node:os");
 const path = require("node:path");
 const { execFileSync } = require("node:child_process");
 const { DossierService } = require("../lib/dossier/service.js");
-const { tourSources } = require("../lib/dossier/tour-sources.js");
+const { tourSources } = require("../../contract/tour-sources.js");
 const { createDispatcher } = require("../lib/rpc.js");
 const { TOOLS, createCallTool } = require("../lib/tools.js");
 const { hashText } = require("../../contract/tour.js");
@@ -184,4 +184,19 @@ test("observed claim warnings use the staged command state and existing claim id
   assert.ok(result.findings.some((finding) => finding.code === "observed_without_evidence"));
   const supported = apply(f, opened, [command([anchor(f, { role: "evidence", claimRefs: ["claim1"] })])], result.aggregateRevision);
   assert.deepEqual(supported.findings, []);
+});
+
+test("load resolves a current plan without mutating the dossier and rejects missing or stale plans", (t) => {
+  const f = fixture(t); f.write("feature.txt", "working\n");
+  const opened = open(f, { kind: "working-tree", baseline: f.head });
+  const args = { workspace: f.workspace, dossierId: opened.dossierId };
+  assert.throws(() => f.service.loadTour(args), e => e.code === "invalid_tour_plan");
+  const rev = tourSources(f.workspace, opened.changeRevision).revisions;
+  const saved = apply(f, opened, [command([anchor(f, { rev, contentHash: hashText("working") })])]);
+  const loaded = f.service.loadTour(args);
+  assert.equal(loaded.tourId, opened.dossierId);
+  assert.equal(loaded.plan.stops[0].beats[0].id, "beat1");
+  assert.equal(f.service.get({ ...args, selector: { kind: "overview" } }).aggregateRevision, saved.aggregateRevision);
+  f.write("feature.txt", "drift\n");
+  assert.throws(() => f.service.loadTour(args), e => e.code === "stale_change");
 });

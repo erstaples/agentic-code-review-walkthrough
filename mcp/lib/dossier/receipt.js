@@ -3,6 +3,7 @@
 const { canonicalize, digest, id } = require("./canonical.js");
 const { invariant } = require("./errors.js");
 const { PRODUCER_VERSION } = require("./domain.js");
+const { renderNarration } = require("../../../contract/narration.js");
 
 function sortedValues(collection) { return Object.values(collection).filter((item) => item.status !== "redacted").sort((a, b) => a.id.localeCompare(b.id)); }
 
@@ -30,7 +31,8 @@ function buildReceipt(state, sessionId, options = {}) {
     claims: sortedValues(state.entities.claims).map(({ id, statement, category, disposition, evidenceRefs, provenance }) => ({ id, statement, category: category || "other", disposition, evidenceRefs: evidenceRefs || [], provenance })),
     risks: sortedValues(state.entities.risks).map(({ id, concern, statement, impact, disposition, mitigation }) => ({ id, statement: concern || statement, impact: impact || "unknown", disposition, mitigation: mitigation || null })),
     evidence: sortedValues(state.entities.evidence).map(({ id, observation, result, freshness, limitations }) => ({ id, observation, result: result || "unknown", freshness, limitations: limitations || [] })),
-    stops: [...(plan?.stops || [])].sort((a, b) => a.index - b.index).map(({ id, title, type, reviewState, reviewedAtChangeRevisionId }) => ({ id, title, type, reviewState, reviewedAtChangeRevisionId })),
+    stops: [...(plan?.stops || [])].sort((a, b) => a.index - b.index).map(({ id, title, type, reviewState, reviewedAtChangeRevisionId, anchors, beats }) => ({ id, title, type, reviewState, reviewedAtChangeRevisionId,
+      beats: beats.map((beat) => ({ id: beat.id, narration: renderNarration(beat.narration, anchors, "receipt") })) })),
     questions: [...sortedValues(state.entities.questions), ...sortedValues(state.entities.concerns)].sort((a, b) => a.id.localeCompare(b.id)).map(({ id, entityType, question, concern, disposition, answers }) => ({ id, type: entityType, text: question || concern, disposition, answers: answers || [] })),
   };
   return { ...receipt, digest: digest(receipt) };
@@ -54,6 +56,7 @@ function renderMarkdown(receipt) {
     section("Risks", ["| Risk | Disposition |", "|---|---|", ...receipt.risks.map((item) => `| ${escapeCell(item.statement)} | ${item.disposition} |`)]),
     section("Evidence", ["| Observation | Freshness | Result |", "|---|---|---|", ...receipt.evidence.map((item) => `| ${escapeCell(item.observation)} | ${item.freshness} | ${item.result} |`)]),
     section("Coverage", ["| Stop | State |", "|---|---|", ...receipt.stops.map((item) => `| ${escapeCell(item.title)} | ${item.reviewState} |`)]),
+    section("Tour narration", receipt.stops.flatMap((stop) => [`### ${stop.title}\n`, ...stop.beats.map((beat) => `${beat.narration}\n`)])),
     section("Questions and concerns", receipt.questions.map((item) => `- **${item.disposition}:** ${item.text}`)),
     `Receipt digest: \`${receipt.digest}\``,
     "",

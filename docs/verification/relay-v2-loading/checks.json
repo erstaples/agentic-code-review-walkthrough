@@ -1,0 +1,20 @@
+{
+  "date": "2026-09-24",
+  "vscode": "1.139.0",
+  "unitTests": {
+    "passed": 190,
+    "failed": 0
+  },
+  "nativeTests": {
+    "passed": 7,
+    "failed": 0
+  },
+  "package": {
+    "files": 29,
+    "sha256": "cb673dcae28d9a5d5ff7f4e780aee8868294b28b91766596c10238e15224e8a7"
+  },
+  "screenshots": {
+    "status": "blocked",
+    "reason": "Mac is locked; computer-control tool cannot capture or interact with the acceptance window."
+  }
+}
