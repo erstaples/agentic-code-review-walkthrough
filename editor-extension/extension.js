@@ -9,6 +9,7 @@ const { PROTOCOL_VERSION } = require("./lib/contract.js");
 const { anchorNumber, filename } = require("./lib/narration.js");
 const { formatCitation } = require("./lib/citation.js");
 const { createTourController } = require("./lib/tour-controller.js");
+const { createLayoutState } = require("./lib/layout-state.js");
 const { createTourHost } = require("./lib/tour-host.js");
 const { createTourView } = require("./lib/tour-view.js");
 const { createAnchorQuickPick } = require("./lib/anchor-quick-pick.js");
@@ -18,7 +19,7 @@ let server, lockPath;
 async function activate(context) {
   let controller;
   const report = error => vscode.window.showWarningMessage(`Tour presentation: ${error.message}`);
-  const host = createTourHost(vscode, { changed: () => controller?.updatePresentation(host.snapshot).catch(report), explore: () => controller?.setState({ mode: "exploring" }).catch(report) });
+  const host = createTourHost(vscode, { storage: createLayoutState(context.globalState), changed: () => controller?.updatePresentation(host.snapshot).catch(report), explore: () => controller?.setState({ mode: "exploring" }).catch(report) });
   const status = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Right, 100);
   status.command = "kanko.tour.focus";
   const view = createTourView(vscode, context.extensionUri, () => controller);

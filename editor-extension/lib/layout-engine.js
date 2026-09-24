@@ -1,12 +1,14 @@
 "use strict";
 const { SHAPES, shapeFor, splitShape, geometry, cramped } = require("./layout-model.js");
+const { createLayoutState, stopIdentity, compatible } = require("./layout-state.js");
 const uriKey = uri => uri?.toString();
 const invalid = message => Object.assign(new Error(message), { code: "bad_request" });
 
-function createLayoutEngine(vscode, opener) {
+function createLayoutEngine(vscode, opener, storage = createLayoutState()) {
   let records = [], shape = "single", customized = false, pins = new Set(), pinnedTabs = new Set(), prefs = new Map();
   let tourId, stopId, expected, tabs = [], internal = 0, sequence = false, override = false, unplaced = [];
   let clock = 0, activity = new Map();
+  let state, layouts = {}, actualLayout, restored = false, suspended = false, deferred = false;
   // TabGroup array order can retain creation order after inserting a split.
   // viewColumn is the current visual leaf order; tab identity survives moves.
   const groups = () => [...vscode.window.tabGroups.all].sort((a, b) => a.viewColumn - b.viewColumn);
@@ -30,21 +32,25 @@ function createLayoutEngine(vscode, opener) {
     const structure = JSON.stringify(topology(layout));
     return Object.keys(SHAPES).find(name => JSON.stringify(topology(SHAPES[name].layout)) === structure) || null;
   }
-  async function capture() { const layout = await vscode.commands.executeCommand("vscode.getEditorLayout"); expected = geometry(layout); shape = identifyShape(layout); tabs = tabState(); }
+  async function capture() { const layout = await vscode.commands.executeCommand("vscode.getEditorLayout"); actualLayout = layout; expected = geometry(layout); shape = identifyShape(layout); tabs = tabState(); }
   async function observe() {
-    if (internal || !tourId) return;
+    if (internal || !tourId || suspended) return;
     const layout = await vscode.commands.executeCommand("vscode.getEditorLayout");
     const actual = geometry(layout);
     shape = identifyShape(layout);
     if (internal) return;
     const now = tabState();
     if (expected && (actual !== expected || tabs.length !== now.length || tabs.some((t, i) => t.tab !== now[i]?.tab || t.column !== now[i]?.column || t.active !== now[i]?.active))) customized = true;
-    expected = actual; tabs = now;
+    expected = actual; actualLayout = layout; tabs = now;
+    // Closed anchors lose their pins; moved tabs are resolved from live groups.
+    for (const r of records) if (!opener.find(r)) pins.delete(token(r));
+    for (const tab of pinnedTabs) if (!now.some(t => t.tab === tab)) pinnedTabs.delete(tab);
+    await save();
   }
   async function transaction(action) {
     internal++;
     try { return await action(); }
-    finally { try { await capture(); } finally { internal--; } }
+    finally { try { await capture(); if (internal === 1) await save(); } finally { internal--; } }
   }
   async function setShape(name) {
     await opener.reshape(() => vscode.commands.executeCommand("vscode.setEditorLayout", structuredClone(SHAPES[name].layout)));
@@ -77,27 +83,72 @@ function createLayoutEngine(vscode, opener) {
   const unique = wanted => wanted.filter((r, i) => wanted.findIndex(other => token(other) === token(r)) === i);
   function safeToReshape() { return !customized && pins.size === 0; }
   function safeToCollapse() { return !customized && pins.size === 0 && groups().every(g => g.tabs.every(t => opener.disposable(t))); }
-  async function begin(state, nextRecords) {
-    await observe();
-    const newTour = tourId !== state.tourId;
-    if (newTour) { for (const tab of pinnedTabs) opener.keep(tab); pins.clear(); pinnedTabs.clear(); prefs.clear(); activity.clear(); clock = 0; }
-    if (newTour || stopId !== state.plan.stops[state.stopIndex].id) {
-      sequence = false; override = false; unplaced = [];
-      // Preserve an inherited reviewer arrangement. Persistence and restoration
-      // are phase 7; a new stop must not erase evidence of customization.
-      if (newTour) customized = groups().some(g => g.tabs.some(t => !opener.disposable(t))) || groups().length > cap();
-      tourId = state.tourId; stopId = state.plan.stops[state.stopIndex].id;
+  async function save() {
+    if (!state || suspended || deferred || !actualLayout) return;
+    const stop = state.plan.stops[state.stopIndex];
+    layouts[stop.id] = { identity: stopIdentity(state, stop), layout: structuredClone(actualLayout), customized, sequence, override,
+      slots: slots().map(s => ({ anchor: s.anchor ?? null, pinned: Boolean(s.anchor && s.pinned), lastActive: s.lastActive })) };
+    await storage.write(state, { layouts, preferences: Object.fromEntries(prefs) });
+  }
+  async function restore(saved) {
+    // Existing reviewer work always wins over a saved geometry. Reuse matching
+    // tabs in their current groups, and only fill groups safe for replacement.
+    const protectedWork = groups().some(g => g.tabs.some(t => !opener.disposable(t)));
+    if (!protectedWork) {
+      await opener.closeExcept(() => false);
+      await opener.reshape(() => vscode.commands.executeCommand("vscode.setEditorLayout", structuredClone(saved.layout)));
+      await capture();
     }
-    const priority = [state.selectedAnchor, ...(state.plan.stops[state.stopIndex].beats?.[state.beatIndex]?.active || [])];
+    customized = saved.customized || protectedWork;
+    sequence = saved.sequence; override = saved.override;
+    for (const [i, entry] of saved.slots.entries()) {
+      const r = records.find(r => r.anchor.n === entry.anchor); if (!r) continue;
+      const existing = opener.find(r);
+      const slot = slots().find(s => s.column === existing?.column) || slots()[i];
+      if (!slot || (slot.group.activeTab !== existing?.tab && !eligible(slot))) continue;
+      const opened = await put(r, slot, false); if (!opened) continue;
+      activity.set(opened.tab, entry.lastActive); clock = Math.max(clock, entry.lastActive);
+      if (entry.pinned) { pins.add(token(r)); pinnedTabs.add(opened.tab); }
+    }
+    restored = true;
+  }
+  async function begin(nextState, nextRecords) {
+    await observe();
+    const nextStop = nextState.plan.stops[nextState.stopIndex];
+    const newTour = !state || state.tourId !== nextState.tourId || state.workspace !== nextState.workspace || state.identity !== nextState.identity;
+    const changedStop = newTour || stopId !== nextStop.id || stopIdentity(state, state.plan.stops[state.stopIndex]) !== stopIdentity(nextState, nextStop);
+    const resume = suspended && nextState.mode !== "paused";
+    if (changedStop) {
+      deferred = nextState.mode !== "following";
+      for (const tab of pinnedTabs) opener.keep(tab);
+      pins.clear(); pinnedTabs.clear(); activity.clear(); clock = 0;
+      sequence = false; override = false; unplaced = []; restored = false;
+      if (newTour) {
+        const stored = storage.read(nextState); layouts = stored.layouts; prefs = new Map(Object.entries(stored.preferences));
+      }
+      customized = groups().some(g => g.tabs.some(t => !opener.disposable(t))) || groups().length > cap();
+    }
+    state = nextState; tourId = state.tourId; stopId = nextStop.id;
+    const priority = [state.selectedAnchor, ...(nextStop.beats?.[state.beatIndex]?.active || [])];
     records = [...nextRecords].sort((a, b) => {
       const rank = r => priority.includes(r.anchor.n) ? priority.indexOf(r.anchor.n) : priority.length;
       return rank(a) - rank(b);
     });
     if (!expected) await capture();
+    if ((changedStop || resume || deferred) && state.mode === "following") {
+      suspended = deferred = false;
+      const saved = layouts[stopId];
+      if (compatible(saved, state, nextStop, cap())) await transaction(() => restore(saved));
+      else delete layouts[stopId];
+    }
   }
   async function apply(state, wanted, { focus = false } = {}) {
     if (state.mode !== "following" && !focus) return;
     await observe();
+    if (restored && !focus) {
+      restored = false; unplaced = unique(wanted).filter(r => !visible(r)).map(r => r.anchor.n); return;
+    }
+    restored = false;
     return transaction(async () => {
       const all = unique(wanted), requested = (sequence ? all.slice(0, 1) : all.slice(0, cap()));
       unplaced = all.slice(requested.length).filter(r => !visible(r)).map(r => r.anchor.n);
@@ -173,7 +224,7 @@ function createLayoutEngine(vscode, opener) {
       if (body.action === "reset") {
         // Reset is an explicit reviewer action. Native pinned/dirty/kept tabs
         // still belong to the reviewer; only disposable tour previews close.
-        pins.clear(); pinnedTabs.clear(); sequence = false; override = false;
+        pins.clear(); pinnedTabs.clear(); sequence = false; override = false; restored = false;
         const protectedTabs = groups().some(g => g.tabs.some(t => !opener.disposable(t)));
         if (!protectedTabs) { await opener.closeExcept(() => false); await setShape("single"); }
         customized = protectedTabs;
@@ -271,8 +322,15 @@ function createLayoutEngine(vscode, opener) {
       options: Object.fromEntries(records.map(r => [r.anchor.n, options(r.anchor.n).map(option => ({ ...option, preview: preview(r.anchor.n, option) }))])),
       preferences: Object.fromEntries(prefs) };
   }
-  function clear() { for (const tab of pinnedTabs) opener.keep(tab); records = []; pins.clear(); pinnedTabs.clear(); prefs.clear(); activity.clear(); tourId = stopId = expected = undefined; tabs = []; customized = sequence = override = false; shape = "single"; unplaced = []; }
-  return { begin, apply, action, observe, transaction, companion, snapshot, clear,
+  async function suspend() {
+    await observe(); await save(); suspended = true;
+    // A pin protects its tab at exit, including after the engine is cleared.
+    for (const tab of pinnedTabs) opener.keep(tab);
+    await opener.reshape(() => opener.closeExcept(tab => pinnedTabs.has(tab)));
+    if (groups().every(g => g.tabs.length === 0)) await setShape("single");
+  }
+  function clear() { for (const tab of pinnedTabs) opener.keep(tab); records = []; pins.clear(); pinnedTabs.clear(); prefs.clear(); activity.clear(); tourId = stopId = expected = undefined; tabs = []; customized = sequence = override = false; shape = "single"; unplaced = []; state = undefined; layouts = {}; actualLayout = undefined; restored = suspended = deferred = false; }
+  return { begin, apply, action, observe, transaction, companion, snapshot, clear, suspend, save,
     isPinnedTab: tab => pinnedTabs.has(tab), visible };
 }
 module.exports = { createLayoutEngine };

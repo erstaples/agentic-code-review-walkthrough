@@ -9,13 +9,13 @@ const { sourceHunks } = require("./source-diff.js");
 const { mapRange, seamLineFor, removedBaseLines0 } = require("./hunks.js");
 const { anchorNumber, filename, colorIndex } = require("./narration.js");
 
-function createTourHost(vscode, { changed = () => {}, explore = () => {} } = {}) {
+function createTourHost(vscode, { changed = () => {}, explore = () => {}, storage } = {}) {
   const registry = createDecorationRegistry(vscode);
   const badgeEvents = new vscode.EventEmitter();
   let current = null, records = [], navigating = 0, timer;
   const key = uri => uri?.toString();
   const opener = createAnchorOpener(vscode, schedule);
-  const layout = createLayoutEngine(vscode, opener);
+  const layout = createLayoutEngine(vscode, opener, storage);
   const settings = () => vscode.workspace.getConfiguration("kanko.presentation");
   const inline = () => { const c = vscode.workspace.getConfiguration("diffEditor"); return !c.get("renderSideBySide", true) || c.get("useInlineViewWhenSpaceIsLimited", true); };
   function prepare(body) {
@@ -96,6 +96,8 @@ function createTourHost(vscode, { changed = () => {}, explore = () => {} } = {})
     navigating++;
     try {
       const stop = state.plan.stops[state.stopIndex], beat = stop.beats[state.beatIndex];
+      const stopChanged = !current || current.tourId !== state.tourId || current.plan.stops[current.stopIndex].id !== stop.id;
+      const wasPaused = current?.mode === "paused";
       current = state;
       const previous = records;
       records = stop.anchors.map(anchor => {
@@ -105,16 +107,22 @@ function createTourHost(vscode, { changed = () => {}, explore = () => {} } = {})
         return record;
       });
       await layout.begin(state, records);
+      if (state.mode === "paused" && !wasPaused) await layout.suspend();
       const active = [...new Set([state.selectedAnchor, ...beat.active].filter(Boolean))];
       if (state.mode === "following" || focus) {
         await layout.transaction(async () => {
           // Closing the last preview can remove a native group. Do not change
           // reviewer geometry as a side effect of cleanup; replacement will
           // retire an eligible preview when that slot is actually needed.
-          if (layout.snapshot().customized) return;
+          if (layout.snapshot().customized && !stopChanged) return;
           const targets = new Set(records.map(r => key(r.target)));
           for (const record of records) if (record.companion && representative(record) === record && active.includes(record.anchor.n)) targets.add(key(record.base));
-          await opener.closeExcept(tab => layout.isPinnedTab(tab) || targets.has(key(tab.input?.uri)) || targets.has(key(tab.input?.modified)));
+          const geometry = await vscode.commands.executeCommand("vscode.getEditorLayout");
+          const count = vscode.window.tabGroups.all.length;
+          await opener.reshape(async () => {
+            await opener.closeExcept(tab => layout.isPinnedTab(tab) || targets.has(key(tab.input?.uri)) || targets.has(key(tab.input?.modified)));
+            if (layout.snapshot().customized && vscode.window.tabGroups.all.length !== count) await vscode.commands.executeCommand("vscode.setEditorLayout", geometry);
+          });
         });
         const requested = (focus && state.mode !== "following" ? [state.selectedAnchor] : active).map(n => records.find(r => r.anchor.n === n));
         const candidates = requested.filter((r, i) => requested.findIndex(other => key(other.target) === key(r.target)) === i);
@@ -176,7 +184,7 @@ function createTourHost(vscode, { changed = () => {}, explore = () => {} } = {})
       badgeEvents.fire(undefined);
       paint(); return snapshot(); } finally { navigating--; } },
     citation(uri) { const r = current && records.find(r => key(r.head) === key(uri) && !stale(r)); return r ? { side: "head", ref: r.anchor.rev.head } : null; },
-    async clear() { navigating++; try { current = null; records = []; clearPaint(); badgeEvents.fire(undefined); await opener.closeExcept(tab => layout.isPinnedTab(tab)); opener.prune(); layout.clear(); } finally { navigating--; } },
+    async clear() { navigating++; try { await layout.suspend(); current = null; records = []; clearPaint(); badgeEvents.fire(undefined); await opener.closeExcept(tab => layout.isPinnedTab(tab)); opener.prune(); layout.clear(); } finally { navigating--; } },
     dispose() { clearTimeout(timer); subscriptions.forEach(s => s.dispose()); opener.dispose(); registry.dispose(); },
   };
 }

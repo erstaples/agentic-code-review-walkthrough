@@ -189,6 +189,7 @@ module.exports = function register({ test, before }) {
     assert.equal(Object.keys(state.reviewSessions).length, 0); assert.equal(state.phase, 'prepared');
     r = await load(); assert.equal(r.snapshot.beat.id, 'guard'); record('reloaded', r.snapshot);
   });
+  let fixtureNumber=0;
   const layoutCommand = body => vscode.commands.executeCommand('kanko.tour.layout', body);
   const layoutConfig = vscode.workspace.getConfiguration('kanko.layout');
   async function layoutFixture({cap=3,beat='pair',sequence=false,single=false}={}) {
@@ -201,7 +202,7 @@ module.exports = function register({ test, before }) {
     const stop=payload.plan.stops.find(s=>s.id==='layout');
     stop.beats=[...stop.beats.filter(b=>b.id===beat),...stop.beats.filter(b=>b.id!==beat)];
     if(single)stop.beats[0].active=[1];
-    payload.plan.stops=[stop];payload.plan.title='Reviewer-controlled layouts';
+    payload.plan.stops=[stop];payload.plan.title='Reviewer-controlled layouts';payload.tourId += `-layout-${++fixtureNumber}`;
     const result=await http('/tour/load',payload);assert.equal(result.ok,true,JSON.stringify(result));return result.snapshot;
   }
   test('layout caps 2, 3 and 4 produce stack, split bottom and grid without duplicating visible anchors',async()=>{
@@ -299,9 +300,10 @@ module.exports = function register({ test, before }) {
       const {tourSources}=require('../../../contract/tour-sources.js'),{hashText,rangeText}=require('../../../contract/tour.js');
       const source=tourSources(fixture.workspace,payload.change);
       stop.anchors=Array.from({length:count},(_,i)=>{const a={...stop.anchors[0],n:i+1,path:`source-${i+1}.js`,role:['change','evidence','callee','caller','config','schema','context'][i%7],label:`Inventory source ${i+1}`,context:{startLine:1,endLine:2},focus:[],change:'added'};a.contentHash=hashText(rangeText(source.readSource(a).head,a.context));return a;});
-      stop.beats=[{id:'large',narration:'{{a:1}} and {{a:2}} are active. Find {{a:99}} using the file picker.',active:[1,2]}];
+      stop.beats=[{id:'large',narration:`{{a:1}} and {{a:2}} are active. Find {{a:${count}}} using the file picker.`,active:[1,2]}];
     }
-    payload.plan.stops=[stop];payload.plan.title='The complete stop, one beat at a time';
+    if(count===1)stop.beats=[{id:'first',narration:'{{a:1}} preserves the active review.',active:[1]}];
+    payload.plan.stops=[stop];payload.plan.title='The complete stop, one beat at a time';payload.tourId += `-sidebar-${++fixtureNumber}`;
     const r=await http('/tour/load',payload);assert.equal(r.ok,true,JSON.stringify(r));return r.snapshot;
   }
   test('stop inventory retains all seven roles and every anchor across beats',async()=>{
@@ -335,6 +337,60 @@ module.exports = function register({ test, before }) {
     const s=await sidebarFixture({count:99});assert.equal(s.stop.anchors.length,99);assert.equal(s.presentation.layout.slots.length,2);record('large-stop',s);
   });
 
+  test('every required anchor count loads with a complete inventory and bounded tabs',async()=>{
+    for(const count of [1,3,7,12,24,99]) {
+      const s=await sidebarFixture({count});assert.equal(s.stop.anchors.length,count);
+      assert.ok(tabs().length<=3);assert.deepEqual(s.stop.anchors.map(a=>a.n),Array.from({length:count},(_,i)=>i+1));
+      record(`inventory-${count}`,s);
+    }
+  });
+  async function persistenceFixture() {
+    await api('kanko_tour_clear');await vscode.commands.executeCommand('workbench.action.closeAllEditors');await vscode.commands.executeCommand('workbench.action.editorLayoutSingle');
+    await layoutConfig.update('maxGroups',3,vscode.ConfigurationTarget.Workspace);await layoutConfig.update('sequenceFallback',false,vscode.ConfigurationTarget.Workspace);
+    const payload=service.loadTour({workspace:fixture.workspace,mapId:fixture.mapId});
+    payload.tourId+=`-persistence-${++fixtureNumber}`;
+    payload.plan.stops=payload.plan.stops.filter(s=>['sidebar','navigation'].includes(s.id)).reverse();
+    // The first stop uses the service and regression as single sources.
+    const r=await http('/tour/load',payload);assert.equal(r.ok,true,JSON.stringify(r));return payload;
+  }
+  test('native return and reload restore resized arrangements, pins and remembered roles',async()=>{
+    const payload=await persistenceFixture();
+    await layoutCommand({action:'place',anchor:3,placement:{kind:'replace',of:2},remember:true});
+    await vscode.commands.executeCommand('vscode.setEditorLayout',{orientation:1,groups:[{size:.65},{size:.35}]});
+    const geometry=await vscode.commands.executeCommand('vscode.getEditorLayout');
+    await api('kanko_tour_navigate',{action:'nextStop'});
+    let s=(await api('kanko_tour_navigate',{action:'previousStop'})).snapshot;
+    assert.deepEqual(s.presentation.layout.slots.map(s=>s.anchor),[1,3]);assert.deepEqual(await vscode.commands.executeCommand('vscode.getEditorLayout'),geometry);
+    await layoutCommand({action:'pin',anchor:3,pinned:true});
+    await api('kanko_tour_clear');await vscode.commands.executeCommand('workbench.action.closeAllEditors');
+    s=(await http('/tour/load',payload)).snapshot;
+    assert.deepEqual(s.presentation.layout.slots.map(s=>s.anchor),[1,3]);assert.equal(s.presentation.layout.slots[1].pinned,true);
+    assert.equal(s.presentation.layout.preferences.caller.slot,'bottom');record('persisted-return-reload',s);
+    s=await layoutCommand({action:'reset'});assert.ok(s.presentation.layout.slots.every(s=>!s.pinned));assert.equal(s.presentation.layout.preferences.caller.slot,'bottom');
+  });
+  test('closed tabs are reconciled before return and rapid navigation does not accumulate previews',async()=>{
+    await persistenceFixture();
+    const second=vscode.window.tabGroups.all.find(g=>g.viewColumn===2).activeTab;
+    await vscode.window.tabGroups.close(second,true);
+    await api('kanko_tour_navigate',{action:'nextStop'});
+    let s=(await api('kanko_tour_navigate',{action:'previousStop'})).snapshot;
+    assert.equal(s.presentation.anchors.find(a=>a.n===2).status,'not-open');record('closed-anchor-return',s);
+    const actions=Array.from({length:12},(_,i)=>api('kanko_tour_navigate',{action:i%2?'previousStop':'nextStop'}));
+    const responses=await Promise.all(actions);assert.ok(responses.every(r=>r.snapshot));
+    assert.ok(tabs().length<=3);record('rapid-navigation',{snapshot:(await api('kanko_tour_status')).snapshot,tabs:tabs()});
+  });
+  test('pause closes unclaimed tour tabs and retains dirty reviewer work',async()=>{
+    await persistenceFixture();
+    let s=(await api('kanko_tour_set_state',{mode:'paused'})).snapshot;
+    assert.equal(tabs().length,0);assert.equal(vscode.window.tabGroups.all.length,1);
+    await api('kanko_tour_set_state',{mode:'following'});assert.equal(tabs().length,2);
+    const doc=await vscode.workspace.openTextDocument(vscode.Uri.file(path.join(fixture.workspace,'service.js')));
+    const edit=new vscode.WorkspaceEdit();edit.insert(doc.uri,new vscode.Position(0,0),'// Reviewer draft\n');await vscode.workspace.applyEdit(edit);
+    s=(await api('kanko_tour_set_state',{mode:'paused'})).snapshot;
+    assert.equal(doc.isDirty,true);assert.ok(tabs().some(t=>t.uri?.endsWith('/service.js')));record('paused-dirty',s);
+    await vscode.window.showTextDocument(doc);await vscode.commands.executeCommand('workbench.action.files.revert');
+  });
+
   if (process.env.KANKO_TOUR_MANUAL) test('manual screenshot acceptance session', async () => {
     fs.writeFileSync(path.join(output, 'ready.json'), JSON.stringify({ workspace: fixture.workspace, stateRoot: fixture.stateRoot, mapId: fixture.mapId }));
     const file = path.join(output, 'control.json'); const deadline = Date.now() + 20 * 60 * 1000;
@@ -346,6 +402,7 @@ module.exports = function register({ test, before }) {
         if (command.action === 'finish') return;
         let result;
         if (command.action === 'sidebar') result = await sidebarFixture(command.options);
+        else if (command.action === 'persistence') { const payload=await persistenceFixture(); fs.writeFileSync(path.join(output,'reload-payload.json'),JSON.stringify(payload)); result=(await api('kanko_tour_status')).snapshot; }
         else if (command.action === 'layout') result = await layoutFixture(command.options);
         else if (command.action === 'load') result = await load();
         else if (command.action === 'invalid') { const bad = service.loadTour({ workspace: fixture.workspace, mapId: fixture.mapId }); bad.plan.stops[0].beats[0].active = [99]; result = await http('/tour/load', bad); }

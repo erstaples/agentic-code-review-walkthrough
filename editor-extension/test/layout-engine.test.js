@@ -2,7 +2,7 @@
 const test = require('node:test'), assert = require('node:assert/strict');
 const { SHAPES, geometry, cramped, shapeFor } = require('../lib/layout-model.js');
 const { createLayoutEngine } = require('../lib/layout-engine.js');
-function fixture({cap=3,orientation='stacked',diff=false}={}) {
+function fixture({cap=3,orientation='stacked',diff=false,storage}={}) {
   let layout=structuredClone(SHAPES.single.layout), current=1;
   const groups=[{viewColumn:1,tabs:[]}], calls=[], opened=[], closed=[];
   const records=Array.from({length:8},(_,i)=>({anchor:{n:i+1,role:i%2?'evidence':'change',view:diff?'diff':'head',context:{startLine:1,endLine:3}},target:{toString:()=>`head:${i+1}`}}));
@@ -16,7 +16,7 @@ function fixture({cap=3,orientation='stacked',diff=false}={}) {
     window:{tabGroups:{all:groups,close:async tab=>{for(const g of groups){g.tabs=g.tabs.filter(t=>t!==tab);if(g.activeTab===tab)g.activeTab=g.tabs.at(-1);}closed.push(tab);}},visibleTextEditors:[]},
     commands:{executeCommand:async(command,arg)=>{if(command==='vscode.getEditorLayout')return structuredClone(layout);if(command==='vscode.setEditorLayout'){calls.push(arg);layout=structuredClone(arg);const leaves=n=>n.groups?n.groups.reduce((s,g)=>s+leaves(g),0):1;const count=leaves(arg);while(groups.length<count)groups.push({viewColumn:groups.length+1,tabs:[]});while(groups.length>count){const g=groups.pop();groups[0].tabs.push(...g.tabs);} }}}
   };
-  const engine=createLayoutEngine(vscode,opener),state={tourId:'t',mode:'following',plan:{stops:[{id:'a'}]},stopIndex:0};
+  const engine=createLayoutEngine(vscode,opener,storage),state={tourId:'t',mode:'following',identity:'revision-1',workspace:'/fixture',plan:{stops:[{id:'a',anchors:records.map(r=>r.anchor)}]},stopIndex:0};
   const apply=async(...numbers)=>{await engine.begin(state,records);return engine.apply(state,numbers.map(n=>records[n-1]));};
   return {engine,state,records,groups,calls,opened,closed,apply,vscode,resize(){layout.groups[0].size=.7;layout.groups[1].size=.3;},reviewerTab(column=1){const g=groups[column-1];g.activeTab={input:{uri:{toString:()=>`user:${current++}`}},isPreview:true};g.tabs.push(g.activeTab);}};
 }
@@ -68,4 +68,53 @@ test('reset clears tour pins and customization but preserves role preferences an
   await f.engine.action({action:'pin',anchor:1,pinned:true},f.state);await f.engine.action({action:'reset'},f.state);
   assert.ok(f.engine.snapshot().slots.every(s=>!s.pinned));assert.equal(f.engine.snapshot().preferences.evidence.slot,'bottom');
   f.reviewerTab();const protectedTab=f.groups[0].activeTab;await f.engine.action({action:'reset'},f.state);assert.ok(f.groups[0].tabs.includes(protectedTab));
+});
+
+function memory() {
+  const values = new Map();
+  return require('../lib/layout-state.js').createLayoutState({get:k=>values.get(k),update:async(k,v)=>values.set(k,structuredClone(v))});
+}
+test('returning to a stop restores its resized arrangement and excludes a closed anchor', async()=>{
+  const f=fixture({storage:memory()});await f.apply(1,2);f.resize();
+  f.groups[1].tabs=[];f.groups[1].activeTab=undefined;await f.engine.observe();
+  const saved=await f.vscode.commands.executeCommand('vscode.getEditorLayout');
+  f.state={...f.state}; // apply uses the original state: change its stop selection below.
+  const state=f.state;
+  state.plan.stops.push({id:'b',anchors:f.records.map(r=>r.anchor)});
+  await f.engine.begin({...state,stopIndex:1},f.records);await f.engine.apply({...state,stopIndex:1},[f.records[2]]);
+  await f.engine.begin({...state,stopIndex:0},f.records);await f.engine.apply({...state,stopIndex:0},[f.records[0],f.records[1]]);
+  assert.deepEqual(await f.vscode.commands.executeCommand('vscode.getEditorLayout'),saved);
+  assert.deepEqual(f.engine.snapshot().slots.map(s=>s.anchor),[1,undefined]);
+  assert.deepEqual(f.engine.snapshot().unplaced,[2]);
+});
+test('a new engine restores layout, pins and role preferences from profile storage', async()=>{
+  const storage=memory(),f=fixture({storage});await f.apply(1);
+  await f.engine.action({action:'place',anchor:2,placement:{kind:'below',of:1},remember:true},f.state);
+  await f.engine.action({action:'pin',anchor:2,pinned:true},f.state);f.resize();await f.engine.observe();
+  const reloaded=fixture({storage});await reloaded.apply(1,3);
+  assert.deepEqual(reloaded.engine.snapshot().slots.map(s=>s.anchor),[1,2]);
+  assert.equal(reloaded.engine.snapshot().slots[1].pinned,true);assert.equal(reloaded.engine.snapshot().customized,true);
+  assert.equal(reloaded.engine.snapshot().preferences.evidence.slot,'bottom');
+  assert.deepEqual(reloaded.engine.snapshot().unplaced,[3]);
+});
+test('changed sources, changed stop definitions and a smaller cap discard incompatible arrangements', async()=>{
+  for(const change of ['revision','anchor','cap']) {
+    const storage=memory(),f=fixture({storage});await f.apply(1,2,3);
+    const next=fixture({storage,cap:change==='cap'?2:3});
+    if(change==='revision')next.state.identity='revision-2';
+    if(change==='anchor')next.state.plan.stops[0].anchors[0].path='renamed.js';
+    await next.apply(4);assert.deepEqual(next.engine.snapshot().slots.map(s=>s.anchor),[4]);
+  }
+});
+test('reload keeps reviewer tabs and geometry instead of replaying ownership',async()=>{
+  const storage=memory(),f=fixture({storage});await f.apply(1,2);
+  const next=fixture({storage});next.reviewerTab();const tab=next.groups[0].activeTab;await next.apply(1,2);
+  assert.equal(next.groups[0].activeTab,tab);assert.deepEqual(next.opened,[]);assert.equal(next.groups.length,1);
+});
+test('pause closes disposable previews, collapses empty groups, and resumes the saved arrangement',async()=>{
+  const f=fixture({storage:memory()});await f.apply(1,2);await f.engine.suspend();
+  assert.ok(f.groups.every(g=>g.tabs.length===0));assert.equal(f.groups.length,1);
+  await f.apply(1,2);assert.deepEqual(f.engine.snapshot().slots.map(s=>s.anchor),[1,2]);
+  await f.engine.action({action:'pin',anchor:1,pinned:true},f.state);const tab=f.groups[0].activeTab;
+  await f.engine.suspend();assert.ok(f.groups[0].tabs.includes(tab));assert.equal(tab.owned,false);
 });
