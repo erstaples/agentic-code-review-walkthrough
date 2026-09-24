@@ -23,7 +23,7 @@ function roleIcon(role, decorative = false) {
   svg.setAttribute("viewBox", "0 0 16 16"); svg.setAttribute("aria-hidden", "true");
   const path = document.createElementNS(svg.namespaceURI, "path"); path.setAttribute("d", rolePaths[role]); svg.append(path); icon.append(svg);
   if (decorative) icon.setAttribute("aria-hidden", "true");
-  else { icon.tabIndex = 0; icon.setAttribute("role", "img"); icon.setAttribute("aria-label", label); icon.title = label; icon.dataset.tooltip = label; }
+  else { icon.tabIndex = 0; icon.setAttribute("role", "img"); icon.setAttribute("aria-label", label); icon.dataset.tooltip = label; }
   return icon;
 }
 function rowElement(row, showRoleIcon) {
@@ -41,7 +41,7 @@ function rowElement(row, showRoleIcon) {
   const controls = element("div", undefined, "row-controls");
   if (row.slot) {
     const focus = button("", `${roleName(row.role)}: focus anchor ${row.n}`, { anchor: row.n }); focus.className = "role-focus";
-    focus.title = roleName(row.role); focus.dataset.tooltip = roleName(row.role); focus.append(roleIcon(row.role, true));
+    focus.dataset.tooltip = roleName(row.role); focus.append(roleIcon(row.role, true));
     const actions = element("div", undefined, "row-actions");
     actions.append(button(row.pinned ? "Unpin" : "Pin", `${row.pinned ? "Unpin" : "Pin"} anchor ${row.n}`, { pin: row.n }), button("Move…", `Move anchor ${row.n}`, { move: row.n }));
     controls.append(focus, actions);

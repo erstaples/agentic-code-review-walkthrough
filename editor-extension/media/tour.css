@@ -75,4 +75,4 @@ input:focus-visible { outline: 1px solid var(--vscode-focusBorder); }
 .section-chevron { width: 8px; flex-shrink: 0; }
 .role-icon:focus-visible { outline: 1px solid var(--vscode-focusBorder); outline-offset: 3px; }
 [data-tooltip] { position: relative; }
-[data-tooltip]:focus-visible::after { content: attr(data-tooltip); position: absolute; right: 0; bottom: 100%; z-index: 2; padding: 3px 6px; border: 1px solid var(--vscode-editorHoverWidget-border); border-radius: 3px; background: var(--vscode-editorHoverWidget-background); color: var(--vscode-editorHoverWidget-foreground); font: 11px var(--vscode-font-family); white-space: nowrap; }
+[data-tooltip]:hover::after, [data-tooltip]:focus-visible::after { content: attr(data-tooltip); pointer-events: none; position: absolute; right: 0; bottom: 100%; z-index: 2; padding: 3px 6px; border: 1px solid var(--vscode-editorHoverWidget-border); border-radius: 3px; background: var(--vscode-editorHoverWidget-background); color: var(--vscode-editorHoverWidget-foreground); font: 11px var(--vscode-font-family); white-space: nowrap; }

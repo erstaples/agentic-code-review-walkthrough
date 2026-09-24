@@ -75,5 +75,18 @@
       "editor-extension/media/sidebar-model.js": "48c4f4e4b320243fd252ffccf55cf5b1b8c42f76c65740a0c70e1535bac9065c"
     },
     "vsixSha256": "71c7049887cc1a7e0786bd2fc806dcc256526333788695be4f185c3b79b6843a"
+  },
+  "hoverLabelFollowup": {
+    "unitTestsPassed": 217,
+    "nativeScenariosPassed": 23,
+    "nativeExitCode": 0,
+    "screenshots": [
+      "27-in-view-role-hover.png"
+    ],
+    "verifiedFiles": {
+      "editor-extension/media/tour.css": "f0350793db46bc3404a46129ae7b1172041ad632f997655d08ace0e77703a122",
+      "editor-extension/media/tour.js": "4a1e4bd6a1761694f3e7c6375cacb547d8001c12d64e7a963113ef913f3f110b"
+    },
+    "vsixSha256": "22aea6070116ef0b85cd2f7dbd07bc53026e1de170c9e05cc7162ea53ffb38cf"
   }
 }

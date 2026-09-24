@@ -2,6 +2,10 @@
 
 Verified the packaged Kankō extension in an isolated VS Code 1.139.0 development host on macOS, with vertically stacked editor groups. Explicit split-placement scenarios additionally exercise Below/Beside shapes. Screenshots are unmodified native captures of real source-backed tours; they are not mockups or browser approximations.
 
+## In View hover labels
+
+[Hovering the Callee icon](27-in-view-role-hover.png) displays its full role name immediately, even when the corresponding role section is absent. Moving the pointer to Schema changes the label to Schema. Keyboard-focus labels remain available. Native title attributes were removed to avoid duplicate delayed tooltips. Rechecked 217 automated tests, 23 packaged native scenarios, VSIX source parity and release metadata.
+
 ## Role icon refinement
 
 The latest role treatment is shown in [In View and grouped rows](23-role-icons-grouped.png), [Order mode and keyboard tooltip](24-role-icons-order.png), [all seven collapsed role sections](25-role-icons-collapsed.png), and [a compact stop](26-role-icons-compact.png). These supersede earlier row/section role styling.
