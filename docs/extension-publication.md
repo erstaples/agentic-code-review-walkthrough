@@ -26,14 +26,15 @@ masters are retained as source assets for future use.
 4. Extracts that artifact and runs the extension-host tests against it in stable
    VS Code on Linux under Xvfb.
 5. For a release tag, publishes that same artifact to the Visual Studio
-   Marketplace using OIDC, then attaches it and its checksum to a GitHub release.
+   Marketplace using the `VSCE_PAT` environment secret, then attaches it and its
+   checksum to a GitHub release.
 
 Tags must match `extension-v<package version>` exactly and point to a commit
 reachable from `origin/main`. Only stable `major.minor.patch` versions are
 accepted. Pre-release channels and Open VSX publishing are not configured.
 A failure in packaging or tests prevents publishing. PR jobs have read-only
 repository permissions and no publishing credentials. Only the Marketplace
-job can request an OIDC token; only the GitHub release job can write releases.
+job receives `VSCE_PAT`; only the GitHub release job can write releases.
 Actions are pinned to commits and Dependabot proposes updates weekly.
 
 ## One-time Marketplace setup
@@ -41,27 +42,27 @@ Actions are pinned to commits and Dependabot proposes updates weekly.
 1. In [Marketplace publisher management](https://marketplace.visualstudio.com/manage/publishers/),
    confirm that you control the `erstaples` publisher. This is the registered
    publisher ID, and the extension package name is `kanko`.
-2. Configure a trusted publishing policy for publisher `erstaples`, repository
-   `erstaples/agentic-code-review-walkthrough`, workflow `extension.yml`, and
-   environment `vscode-marketplace`. See
-   [vsce trusted publishing](https://github.com/microsoft/vscode-vsce#trusted-publishing).
-3. Create the GitHub environment `vscode-marketplace`. Restrict its deployment
-   tags to `extension-v*`. Add required reviewers if your release process needs
-   manual approval. The policy must match the environment used by the job.
+2. Create an Azure DevOps Personal Access Token using the Microsoft account
+   that controls the publisher. Select **All accessible organizations** and
+   **Marketplace → Manage** under custom scopes. See Microsoft's
+   [PAT instructions](https://code.visualstudio.com/api/working-with-extensions/publishing-extension#get-a-personal-access-token).
+3. In [GitHub environment settings](https://github.com/erstaples/codewalk/settings/environments),
+   create or open `vscode-marketplace`. Restrict deployment tags to `extension-v*`
+   and add the PAT as an **environment secret** named `VSCE_PAT`. Add required
+   reviewers if your release process needs manual approval. Never commit the token.
 4. Protect `main` and release tags with repository rulesets. Require the workflow's
    build and integration checks before merging, and restrict release-tag creation
    and updates to maintainers.
 
-No `VSCE_PAT` or other long-lived Marketplace secret is needed. `vsce` 4.0.0
-is pinned in the lockfile and supports `publish --oidc`; it exchanges a GitHub
-identity token for a short-lived Marketplace credential. Trust configuration
-must exist before the first publish. The workflow fails if that exchange is
-rejected; it does not fall back to a token.
+The publish job passes `VSCE_PAT` to the pinned `vsce` CLI and fails with an
+explicit setup error if the secret is missing. The environment must permit the
+release tag before the job can start. A manual Marketplace upload does not
+configure this credential for GitHub Actions.
 
-These account settings are separate from the checked-in workflow. If trusted
-publishing is not available for your publisher, configure Microsoft's
+Microsoft has announced retirement of global Azure DevOps PATs on December 1,
+2026. This PAT setup is an interim publishing method; migrate to Microsoft's
 [Entra ID publishing approach](https://code.visualstudio.com/api/working-with-extensions/publishing-extension#secure-automated-publishing-to-visual-studio-marketplace)
-and adapt the authentication step before releasing.
+before that deadline. This workflow does not currently use OIDC or Entra ID.
 
 ## Release procedure
 
@@ -75,8 +76,9 @@ npm version patch --no-git-tag-version
 npm run check:release
 ```
 
-Version `0.1.0` has been published. The kanko asset update is prepared as
-`0.1.1`; upload it as an update to the existing extension.
+The kanko asset update is version `0.1.1`. Before tagging any release, confirm
+that its version has not already been published through the Marketplace UI.
+If it has, bump the version and add release notes before tagging.
 
 After merging and checking CI, tag the release from the updated `main`:
 
@@ -101,7 +103,8 @@ releasing. Verify the checksum from its extracted directory with
 ## Failures and recovery
 
 Fix a failed check before issuing a release. If authentication fails, correct
-the publisher trust configuration and rerun the failed job. If Marketplace
+the `VSCE_PAT` environment secret, its expiry, and its Marketplace permissions,
+then rerun the failed job. If Marketplace
 publishing succeeds but the GitHub release job fails, use **Re-run failed jobs**
 so the already-published version is not sent again. If GitHub created the release
 before a network error, inspect its assets and upload any missing files from

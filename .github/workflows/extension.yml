@@ -105,7 +105,6 @@ jobs:
     environment: vscode-marketplace
     permissions:
       contents: read
-      id-token: write
     steps:
       - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6.1.0
         with:
@@ -127,7 +126,14 @@ jobs:
           python3 ../scripts/check-vsix.py ./*.vsix
       - name: Publish to Visual Studio Marketplace
         working-directory: editor-extension
-        run: ./node_modules/.bin/vsce publish --oidc --packagePath ../dist/*.vsix
+        env:
+          VSCE_PAT: ${{ secrets.VSCE_PAT }}
+        run: |
+          if [ -z "$VSCE_PAT" ]; then
+            echo "::error::Add the VSCE_PAT secret to the vscode-marketplace GitHub environment."
+            exit 1
+          fi
+          ./node_modules/.bin/vsce publish --packagePath ../dist/*.vsix
 
   release:
     needs: publish
