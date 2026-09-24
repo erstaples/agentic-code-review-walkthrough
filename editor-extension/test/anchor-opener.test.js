@@ -39,15 +39,15 @@ test('real head files require matching disk and open buffer; symlinks and drift 
 test('existing reviewer tabs are reused in their group and never adopted or closed', async t => {
   const f=fixture(t), r=f.opener.describe(f.state,f.anchor);
   f.show({uri:r.head},{viewColumn:1}); const user=f.groups[0].activeTab;
-  const first=await f.opener.open(r,new Set(),{focus:true}); const second=await f.opener.open(r,new Set());
+  const first=await f.opener.open(r,1,{focus:true}); const second=await f.opener.open(r,1);
   assert.equal(first.tab,user); assert.equal(second.tab,user); assert.equal(f.groups.length,1);
   assert.equal(f.opener.disposable(user),false); await f.opener.closeExcept(()=>false); assert.equal(f.closed.length,0);
 });
 test('cleanup closes only untouched owned previews; adoption is permanent', async t => {
   const f=fixture(t), r=f.opener.describe(f.state,f.anchor);
-  let entry=await f.opener.open(r,new Set()); await f.opener.closeExcept(()=>false); assert.deepEqual(f.closed,[entry.tab]);
+  let entry=await f.opener.open(r,1); await f.opener.closeExcept(()=>false); assert.deepEqual(f.closed,[entry.tab]);
   for (const kind of ['pin','dirty','move']) {
-    entry=await f.opener.open(r,new Set()); const tab=entry.tab;
+    entry=await f.opener.open(r,1); const tab=entry.tab;
     if(kind==='pin') tab.isPreview=false;
     if(kind==='dirty') tab.isDirty=true;
     if(kind==='move') f.groups[0].viewColumn=9;
@@ -56,12 +56,12 @@ test('cleanup closes only untouched owned previews; adoption is permanent', asyn
     f.groups[0].tabs=[]; f.groups[0].activeTab=null; f.emit();
   }
 });
-test('opener protects reviewer previews and refuses a fourth occupied group', async t => {
+test('opener rejects a protected preview and an unallocated group', async t => {
   const f=fixture(t); f.show({uri:f.vscode.Uri.file(path.join(f.workspace,'reviewer.js'))},{viewColumn:1});
   const user=f.groups[0].activeTab, r=f.opener.describe(f.state,f.anchor);
-  assert.equal((await f.opener.open(r,new Set())).column,2); assert.ok(f.groups[0].tabs.includes(user));
+  assert.equal(await f.opener.open(r,1),null); assert.ok(f.groups[0].tabs.includes(user));
   const next={...r,target:f.vscode.Uri.file(path.join(f.workspace,'other.js')),head:f.vscode.Uri.file(path.join(f.workspace,'other.js'))};
-  assert.equal(await f.opener.open(next,new Set([1,2,3])),null); assert.equal(f.groups.length,2);
+  assert.equal(await f.opener.open(next,4),null); assert.equal(f.groups.length,1);
 });
 test('captured-text hunks place removed-code seams independent of repository changes', () => {
   assert.deepEqual(sourceHunks({base:'one\nremoved\nthree\n',head:'one\nthree\n'}),[{baseStart:2,baseLen:1,headStart:1,headLen:0}]);
@@ -77,11 +77,12 @@ test('the registry reuses six palette sets, keeps distinct colors, and disposes 
   registry.dispose(); assert.ok(created.every(t=>t.disposed));
 });
 test('a removed-code companion uses a new third column, never the occupied adjacent one', async t => {
-  const f=fixture(t), r=f.opener.describe(f.state,f.anchor), used=new Set();
-  await f.opener.open(r,used);
+  const f=fixture(t), r=f.opener.describe(f.state,f.anchor);
+  f.groups.push({viewColumn:2,tabs:[],activeTab:null},{viewColumn:3,tabs:[],activeTab:null});
+  await f.opener.open(r,1);
   const otherUri=f.vscode.Uri.file(path.join(f.workspace,'other.js'));
-  await f.opener.open({...r,target:otherUri,head:otherUri},used);
-  const result=await f.opener.open(r,used,{companion:true});
+  await f.opener.open({...r,target:otherUri,head:otherUri},2);
+  const result=await f.opener.open(r,3,{companion:true});
   assert.equal(result.column,3); assert.equal(f.groups.length,3);
   assert.ok(f.groups[1].tabs.some(t=>t.input.uri.toString()===otherUri.toString()));
 });

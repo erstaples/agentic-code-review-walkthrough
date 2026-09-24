@@ -20,6 +20,7 @@ function createTourView(vscode, extensionUri, controller) {
         <h2 id="stop-title"></h2><div id="revisions" class="revisions"></div>
         <nav class="modes" aria-label="Presentation mode"><button data-mode="following">Following</button><button data-mode="exploring">Exploring</button><button data-mode="paused">Paused</button></nav>
         <p id="mode-help" class="muted"></p><div id="narration" class="narration" aria-live="polite"></div>
+        <p id="sequence-note" class="muted" hidden>Sequence mode keeps small editors readable. <button id="sequence-override">Show multiple groups</button></p>
         <p id="warnings" class="muted"></p><div class="navigation"><button id="previous-beat" data-action="previousBeat">← Previous beat</button><button id="next-beat" data-action="nextBeat">Next beat →</button></div>
         <div class="navigation stops"><button id="previous-stop" data-action="previousStop">Previous stop</button><button id="next-stop" data-action="nextStop">Next stop</button></div>
         <button id="end-tour" class="end">End tour</button></section><p id="error" role="alert"></p></main><script nonce="${nonce}" src="${script}"></script></body></html>`;
@@ -31,6 +32,7 @@ function createTourView(vscode, extensionUri, controller) {
           if (message.type === "navigate") await api.navigate({ action: message.action, expectedRevision: message.revision });
           else if (message.type === "state") await api.setState({ mode: message.mode, expectedRevision: message.revision });
           else if (message.type === "focus") await api.focus({ anchor: message.anchor, expectedRevision: message.revision });
+          else if (message.type === "sequenceOverride") await api.layout({ action: "overrideSequence", expectedRevision: message.revision });
           else if (message.type === "clear") await api.clear();
         } catch (error) { view?.webview.postMessage({ type: "error", message: error.message }); }
       });

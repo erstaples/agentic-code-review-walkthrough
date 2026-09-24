@@ -7,6 +7,7 @@ const { filename } = require("./narration.js");
 // edits, or moves it, the tour can never reclaim it for automatic cleanup.
 function createAnchorOpener(vscode, changed = () => {}) {
   const documents = new Map(), owned = new Map();
+  let movingGroups = false;
   const key = uri => uri?.toString();
   const entries = () => vscode.window.tabGroups.all.flatMap(group => group.tabs.map(tab => ({ tab, column: group.viewColumn })));
   function reconcile() {
@@ -14,7 +15,7 @@ function createAnchorOpener(vscode, changed = () => {}) {
     for (const [tab, owner] of owned) {
       const entry = all.find(e => e.tab === tab);
       if (!entry) owned.delete(tab);
-      else if (!tab.isPreview || tab.isPinned || tab.isDirty || entry.column !== owner.column) owner.detached = true;
+      else if (!tab.isPreview || tab.isPinned || tab.isDirty || (!movingGroups && entry.column !== owner.column)) owner.detached = true;
     }
   }
   function disposable(tab) { reconcile(); return owned.has(tab) && !owned.get(tab).detached; }
@@ -52,17 +53,14 @@ function createAnchorOpener(vscode, changed = () => {}) {
     return entries().find(({ tab }) => key(tab.input?.uri) === key(target) ||
       (!companion && key(tab.input?.modified) === key(target) && key(tab.input?.original) === key(record.base)));
   }
-  function column(used) {
-    if (used.size >= 3) return null;
-    const groups = vscode.window.tabGroups.all;
-    const free = groups.find(g => !used.has(g.viewColumn) && (!g.activeTab || !g.activeTab.isPreview || disposable(g.activeTab)));
-    if (free) return free.viewColumn;
-    return groups.length < 3 ? groups.length + 1 : null;
-  }
-  async function open(record, used, { focus = false, companion = false } = {}) {
+  async function open(record, column, { focus = false, companion = false } = {}) {
     const existing = find(record, companion);
-    const targetColumn = existing?.column ?? column(used);
-    if (targetColumn === null || (existing && used.has(existing.column))) return null;
+    // Reuse a matching tab wherever the reviewer put it. Allocation belongs to
+    // the layout engine; the opener cannot create an unbudgeted group.
+    const targetColumn = existing?.column ?? column;
+    if (!vscode.window.tabGroups.all.some(g => g.viewColumn === targetColumn)) return null;
+    const group = vscode.window.tabGroups.all.find(g => g.viewColumn === targetColumn);
+    if (!existing && group.tabs.some(t => t.isPreview && !disposable(t))) return null;
     const before = new Set(entries().map(e => e.tab));
     const options = { preview: true, preserveFocus: !focus, viewColumn: targetColumn };
     if ((!companion && record.anchor.view === "diff" && !existing?.tab.input?.uri) || existing?.tab.input?.modified) {
@@ -75,7 +73,7 @@ function createAnchorOpener(vscode, changed = () => {}) {
     const entry = find(record, companion);
     if (!entry) throw new Error("The requested tour editor did not open.");
     if (!before.has(entry.tab)) owned.set(entry.tab, { column: entry.column, detached: false });
-    used.add(entry.column); return entry;
+    return entry;
   }
   async function closeExcept(keep) {
     reconcile();
@@ -88,7 +86,15 @@ function createAnchorOpener(vscode, changed = () => {}) {
     const retained = new Set([...sources.map(key), ...entries().flatMap(({tab}) => [key(tab.input?.uri), key(tab.input?.original), key(tab.input?.modified)])]);
     for (const uri of documents.keys()) if (!retained.has(uri)) documents.delete(uri);
   }
-  return { prune, describe, find, open, entries, matchesWorking, disposable, closeExcept,
+  return { keep(tab) { if (owned.has(tab)) owned.get(tab).detached = true; }, prune, describe, find, open, entries,
+    async reshape(action) {
+      reconcile(); movingGroups = true;
+      try { return await action(); }
+      finally {
+        for (const entry of entries()) if (owned.has(entry.tab)) owned.get(entry.tab).column = entry.column;
+        movingGroups = false;
+      }
+    }, matchesWorking, disposable, closeExcept,
     dispose() { subscriptions.forEach(s => s.dispose()); documents.clear(); owned.clear(); } };
 }
 module.exports = { createAnchorOpener };

@@ -20,8 +20,11 @@ window.addEventListener("message", ({ data }) => {
   // Only extension-generated, escaped Markdown and numbered buttons enter here.
   byId("narration").innerHTML = s.narrationHtml;
   for (const chip of document.querySelectorAll("[data-anchor]")) chip.classList.toggle("active", s.beat.active.includes(Number(chip.dataset.anchor)));
+  byId("sequence-note").hidden = !s.presentation?.layout?.sequence;
   const notes = s.stop.anchors.length > 7 ? ["Above the 7-file guideline."] : [];
   const states = s.presentation?.anchors || [];
+  const pinned = s.presentation?.layout?.slots.filter(slot => slot.pinned).length || 0;
+  if (pinned) notes.push(`${pinned} anchor${pinned === 1 ? " is" : "s are"} pinned.`);
   if (states.some(a => a.status === "stale")) notes.push("A source has changed. Reload the tour before relying on its highlights.");
   const hidden = states.filter(a => s.beat.active.includes(a.n) && a.status === "not-open");
   if (hidden.length) notes.push(`${hidden.length} cited source${hidden.length === 1 ? " is" : "s are"} not open. Select a numbered citation to inspect it.`);
@@ -36,6 +39,7 @@ document.addEventListener("click", (event) => {
   if (button.dataset.action) vscode.postMessage({ type: "navigate", action: button.dataset.action, revision });
   else if (button.dataset.mode) vscode.postMessage({ type: "state", mode: button.dataset.mode, revision });
   else if (button.dataset.anchor) vscode.postMessage({ type: "focus", anchor: Number(button.dataset.anchor), revision });
+  else if (button.id === "sequence-override") vscode.postMessage({ type: "sequenceOverride", revision });
   else if (button.id === "end-tour") vscode.postMessage({ type: "clear", revision });
 });
 vscode.postMessage({ type: "ready" });

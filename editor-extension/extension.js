@@ -21,7 +21,7 @@ async function activate(context) {
   const status = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Right, 100);
   status.command = "kanko.tour.focus";
   const view = createTourView(vscode, context.extensionUri, () => controller);
-  controller = createTourController({ prepare: host.prepare, present: host.present, clear: host.clear,
+  controller = createTourController({ prepare: host.prepare, present: host.present, clear: host.clear, layoutAction: host.layoutAction,
     publish(snapshot) {
       view.publish(snapshot);
       if (snapshot.loaded) { const anchors = snapshot.beat.active.map(n => snapshot.stop.anchors.find(a => a.n === n));
@@ -62,6 +62,14 @@ async function activate(context) {
         await vscode.env.clipboard.writeText(value); return value;
       } catch (error) { vscode.window.showWarningMessage(error.message); }
     }),
+    vscode.commands.registerCommand("kanko.tour.layout", body => controller.layout(body || {})),
+    vscode.commands.registerCommand("kanko.tour.pinActive", async () => {
+      const snapshot = controller.snapshot();
+      const slot = snapshot.presentation?.layout?.slots.find(s => s.column === vscode.window.activeTextEditor?.viewColumn);
+      if (slot?.anchor) return controller.layout({ action: "pin", anchor: slot.anchor, pinned: !slot.pinned });
+      return vscode.window.showInformationMessage("Focus a visible tour anchor to pin it.");
+    }),
+    vscode.commands.registerCommand("kanko.tour.overrideSequence", () => controller.layout({ action: "overrideSequence" })),
     status, host, { dispose: () => { removeLock(lockPath); server?.close(); } },
   );
 }

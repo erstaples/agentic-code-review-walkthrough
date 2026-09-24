@@ -1,0 +1,32 @@
+{
+  "productionCommit": "17174508dbd903ef018a7333515aa9a689e85ee2",
+  "vscode": "1.139.0",
+  "platform": "macOS arm64",
+  "unitTests": {
+    "command": "TMPDIR=/private/tmp node --test test/*.test.js mcp/test/*.test.js editor-extension/test/*.test.js",
+    "passed": 208,
+    "failed": 0
+  },
+  "nativeTests": {
+    "command": "node editor-extension/test/integration/runner.js",
+    "passed": 19,
+    "failed": 0,
+    "manualSessionCompleted": true,
+    "hostExitCode": 0,
+    "extensionSource": "extracted VSIX"
+  },
+  "packageFilesVerified": 34,
+  "screenshots": [
+    "01-stacked.png",
+    "02-all-pinned.png",
+    "03-unpin-replaces.png",
+    "04-reviewer-resize.png",
+    "05-custom-layout-retained.png",
+    "06-exploring-retained.png",
+    "07-sequence.png",
+    "08-sequence-override.png",
+    "09-cap-three.png",
+    "10-cap-four.png"
+  ],
+  "screenshotCommit": "d03cf37"
+}

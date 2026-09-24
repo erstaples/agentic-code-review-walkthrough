@@ -5,7 +5,7 @@ const fail = (code, message, details) => Object.assign(new Error(message), { cod
 
 // All incoming operations share one queue. Validation finishes before any
 // editor changes, and failed loads leave the previous tour and cursor intact.
-function createTourController({ prepare, present, clear, publish }) {
+function createTourController({ prepare, present, clear, publish, layoutAction }) {
   let current = null, revision = 0, queue = Promise.resolve();
   function snapshot(state = current) {
     if (!state) return { revision, loaded: false };
@@ -66,6 +66,12 @@ function createTourController({ prepare, present, clear, publish }) {
       guard(body.expectedRevision);
       if (!current.plan.stops[current.stopIndex].anchors.some((a) => a.n === body.anchor)) throw fail("bad_request", "Choose an anchor from the current stop.");
       return commit({ ...current, selectedAnchor: body.anchor }, { focus: true });
+    }),
+    layout: body => run(async () => {
+      guard(body.expectedRevision);
+      if (current.mode === "paused") throw fail("bad_request", "Resume the tour before changing its layout.");
+      const presentation = await layoutAction(body, current);
+      current = { ...current, presentation }; revision++; const value = snapshot(); publish(value); return value;
     }),
     clear: () => run(async () => { await clear(); current = null; revision++; const value = snapshot(); publish(value); return value; }),
   };
