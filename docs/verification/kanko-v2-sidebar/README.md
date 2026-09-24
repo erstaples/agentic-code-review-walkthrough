@@ -2,6 +2,14 @@
 
 Verified the packaged Kankō extension in an isolated VS Code 1.139.0 development host on macOS, with vertically stacked editor groups. Explicit split-placement scenarios additionally exercise Below/Beside shapes. Screenshots are unmodified native captures of real source-backed tours; they are not mockups or browser approximations.
 
+## Styling refinement
+
+The latest styling is shown in [the wider sidebar](20-refined-wide.png), [the narrow sidebar](21-refined-narrow.png), and [keyboard-focused row actions](22-refined-keyboard-actions.png). These supersede the row styling in screenshots 01–19, which remain functional evidence.
+
+Rows are 68px instead of 88px, with regular-weight monospace filenames, filled change badges, a shared subtle highlight, and separated row backgrounds. File roles remain visible. Pin/Move appear on hover or keyboard focus and stay visible for pinned rows. Position and Open controls fit inside the scrollport at the tested narrow width; long names and descriptions use ellipsis with full identity in the tooltip. The virtual list uses the same shorter row measurements.
+
+Rechecked all 216 automated tests and 23 native scenarios. The final spacing adjustment was reloaded and visually checked in that native session. The final VSIX source parity check covers the updated CSS. Native visual coverage remains macOS dark theme.
+
 ## Observable criteria
 
 | I should be able to… | Evidence |

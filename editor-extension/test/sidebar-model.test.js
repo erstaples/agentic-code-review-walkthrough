@@ -22,6 +22,6 @@ test('large inactive role sections collapse, but filtering and explicit expansio
   assert.equal(model.entries(rows,{collapsed:{schema:false}}).find(e=>e.key==='schema').closed,false);
 });
 test('virtual windows bound mounted rows and preserve offsets through anchor 99',()=>{
-  const entries=model.entries(model.rows(snapshot(99)),{order:'order'}), start=model.windowed(entries,0,352),end=model.windowed(entries,88*95,352);
-  assert.ok(start.visible.length<10);assert.ok(end.visible.length<10);assert.equal(start.total,99*88);assert.equal(end.visible.at(-1).row.n,99);assert.equal(end.after,0);
+  const entries=model.entries(model.rows(snapshot(99)),{order:'order'}), start=model.windowed(entries,0,340),end=model.windowed(entries,68*95,340);
+  assert.ok(start.visible.length<10);assert.ok(end.visible.length<10);assert.equal(start.total,99*68);assert.equal(end.visible.at(-1).row.n,99);assert.equal(end.after,0);
 });

@@ -7,7 +7,7 @@ const element = (tag, text, className) => { const e = document.createElement(tag
 const button = (text, label, data = {}) => { const e = element("button", text); e.setAttribute("aria-label", label); Object.assign(e.dataset, data); return e; };
 const color = n => `color-${(n - 1) % 6 + 1}`;
 function rowElement(row) {
-  const wrapper = element("div", undefined, `anchor-row ${color(row.n)}${row.active ? " current-beat" : ""}`);
+  const wrapper = element("div", undefined, `anchor-row ${color(row.n)}${row.active ? " current-beat" : ""}${row.pinned ? " pinned" : ""}`);
   wrapper.dataset.row = row.n; wrapper.setAttribute("aria-label", `Anchor ${row.n}: ${row.path}, ${row.role}${row.active ? ", current beat" : ""}`);
   const chip = button(String(row.n), `Anchor ${row.n}: ${row.path}`, { anchor: row.n }); chip.className = `chip ${color(row.n)}`;
   const identity = element("div", undefined, "identity");
@@ -17,6 +17,7 @@ function rowElement(row) {
   const details = element("div", `${row.directory} · ${row.context.startLine}–${row.context.endLine} · ${row.label}`, "details"); details.title = `${row.path}:${row.context.startLine}–${row.context.endLine} · ${row.label}`;
   const role = element("span", row.role, "role-label");
   if (row.status === "stale") role.append(element("span", " · source changed", "stale"));
+  identity.title = `${row.path}:${row.context.startLine}–${row.context.endLine} · ${row.label} · ${row.role}`;
   identity.append(name, details, role);
   const controls = element("div", undefined, "row-controls");
   if (row.slot) {
@@ -33,7 +34,7 @@ function renderList() {
   const list = byId("anchor-list"), entries = model.entries(rows, { filter: byId("filter").value, order, collapsed });
   const active = document.activeElement, restoreRow = active?.closest("[data-row]")?.dataset.row;
   const restoreAction = active?.dataset && Object.keys(active.dataset)[0];
-  const page = model.windowed(entries, list.scrollTop, list.clientHeight || 352), content = byId("list-content");
+  const page = model.windowed(entries, list.scrollTop, list.clientHeight || 340), content = byId("list-content");
   content.replaceChildren();
   const spacer = height => { const e = element("div"); e.style.height = `${height}px`; e.setAttribute("aria-hidden", "true"); return e; };
   content.append(spacer(page.before));
