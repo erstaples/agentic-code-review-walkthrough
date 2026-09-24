@@ -1,0 +1,101 @@
+{
+  "checkedAt": "2026-09-24",
+  "testedCodeCommit": "cd5a6d0858a02eb967f8e7f3f925251fcc1686a1",
+  "unit": {
+    "passed": 227,
+    "failed": 0,
+    "command": "TMPDIR=/private/tmp node --test test/*.test.js mcp/test/*.test.js editor-extension/test/*.test.js"
+  },
+  "native": {
+    "platform": "macOS arm64",
+    "vscode": "1.139.0",
+    "packagedExtension": true,
+    "passed": 30,
+    "failed": 0,
+    "snapshotNames": [
+      "load",
+      "next-beat",
+      "deleted-base",
+      "exploring",
+      "paused",
+      "rejected-load",
+      "three-anchors-peek",
+      "peek-command-json-boundary",
+      "same-source-identity",
+      "dirty-head-protected",
+      "pinned-tab-protected",
+      "reviewer-preview-protected",
+      "retained-peek-source",
+      "reloaded",
+      "layout-cap-2",
+      "layout-cap-3",
+      "layout-cap-4",
+      "all-pinned",
+      "unpin-replace",
+      "customized-exploring",
+      "split-top",
+      "split-bottom",
+      "remember-role",
+      "columns",
+      "custom-companion-retained",
+      "pin-blocks-growth",
+      "sequence",
+      "sequence-override",
+      "stop-wide-inventory",
+      "move-reset",
+      "move-renumbered-group",
+      "large-stop",
+      "inventory-1",
+      "inventory-3",
+      "inventory-7",
+      "inventory-12",
+      "inventory-24",
+      "inventory-99",
+      "color-grid",
+      "persisted-return-reload",
+      "closed-anchor-return",
+      "rapid-navigation",
+      "reviewer-moved-tab",
+      "paused-dirty",
+      "renamed-source"
+    ]
+  },
+  "ci": {
+    "platform": "Linux",
+    "result": "passed",
+    "url": "https://github.com/getkanko/kanko/actions/runs/36059246225",
+    "jobs": [
+      "build",
+      "integration"
+    ]
+  },
+  "package": {
+    "sourceParityFiles": 37,
+    "releaseMetadata": "passed"
+  },
+  "manual": {
+    "screenshots": 20,
+    "realWindowReload": "passed; compared slots, preferences, customization and visible source columns",
+    "themes": [
+      "Dark Modern",
+      "Light Modern",
+      "Dark High Contrast"
+    ],
+    "inventoryCounts": [
+      1,
+      3,
+      7,
+      12,
+      24,
+      99
+    ],
+    "fixtureRegression": "1 passed"
+  },
+  "notExecuted": [
+    "Windows",
+    "remote hosts",
+    "non-US keyboard layouts",
+    "Light High Contrast",
+    "full screen-reader audit"
+  ]
+}

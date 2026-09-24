@@ -77,9 +77,15 @@ arrangement wins.
 
 ## Checks and reproduction
 
-`checks.json` records the final counts and native scenario names. The complete
-repository/contract/MCP suite, packaged native suite, package/source parity,
-release metadata and whitespace checks pass.
+[`checks.json`](checks.json) records the final counts and native snapshot names:
+227 repository/contract/MCP tests, 30 packaged native tests with 45 snapshots,
+and 20 native screenshots. Package/source parity (37 files), release metadata
+and whitespace checks pass. The [Linux build and packaged integration run](https://github.com/getkanko/kanko/actions/runs/36059246225) also passed.
+
+Linux initially exposed a pin-restoration race: an editor observer awaiting
+geometry could finish after navigation changed the stop. Observation now runs
+inside the same controller queue as navigation and pin actions. A controller
+regression verifies this ordering; both native platforms pass with the fix.
 
 ```sh
 TMPDIR=/private/tmp node --test test/*.test.js mcp/test/*.test.js editor-extension/test/*.test.js
@@ -114,7 +120,7 @@ editor profile and keychain are not used. The existing manual integration
 ## Remaining verification limits
 
 Fresh screenshots and physical interaction cover macOS 1.139.0 with Dark Modern,
-Light Modern and Dark High Contrast. Linux packaged integration runs in PR CI;
+Light Modern and Dark High Contrast. Linux packaged integration passed in PR CI;
 Windows, remote hosts, non-US keyboard layouts, Light High Contrast and a full
 screen-reader audit were not executed here. Existing TypeScript/Go symbol-provider
 constraints remain as documented by the capability spike. No support for
