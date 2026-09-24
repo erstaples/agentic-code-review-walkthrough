@@ -2,7 +2,7 @@
   "name": "kanko",
   "displayName": "kanko",
   "description": "Let your coding agent guide you through code changes with focused highlights, native diffs, and editor citations.",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "publisher": "erstaples",
   "license": "MIT",
   "repository": {
@@ -158,9 +158,9 @@
     "README.md",
     "CHANGELOG.md",
     "LICENSE",
-    "assets/codewalk-icon-256.png"
+    "assets/kanko-icon-256.png"
   ],
-  "icon": "assets/codewalk-icon-256.png",
+  "icon": "assets/kanko-icon-256.png",
   "galleryBanner": {
     "color": "#2E2873",
     "theme": "dark"

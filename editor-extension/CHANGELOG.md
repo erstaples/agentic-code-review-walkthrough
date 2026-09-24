@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.1.1
+
+- Replace the original codewalk branding assets with the kanko masters.
+- Update the Marketplace icon and README image to use the kanko asset paths.
+
 ## 0.1.0
 
 - Initial kanko release under the `erstaples` publisher.

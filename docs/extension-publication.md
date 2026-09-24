@@ -3,13 +3,13 @@
 The extension identity is `erstaples.kanko`. Its version comes from
 `editor-extension/package.json`; the agent plugin has its own version lifecycle.
 The Marketplace package name is `kanko` and the display name is
-`kanko`. The supplied codewalk logo assets remain in use.
+`kanko`. The supplied kanko logo assets are used for branding.
 
 ## Branding assets
 
 The supplied brand masters are in `editor-extension/assets/`, with palette and
 usage notes in its `README.md`. The Marketplace icon and listing README use
-`codewalk-icon-256.png`; the gallery banner uses the brand indigo `#2E2873`
+`kanko-icon-256.png`; the gallery banner uses the brand indigo `#2E2873`
 with a dark theme. Only the listing icon is included in the VSIX; the remaining
 masters are retained as source assets for future use.
 
@@ -75,8 +75,8 @@ npm version patch --no-git-tag-version
 npm run check:release
 ```
 
-For the initial `0.1.0` release, the current version and changelog already match;
-no bump is necessary if that version has never been published.
+Version `0.1.0` has been published. The kanko asset update is prepared as
+`0.1.1`; upload it as an update to the existing extension.
 
 After merging and checking CI, tag the release from the updated `main`:
 

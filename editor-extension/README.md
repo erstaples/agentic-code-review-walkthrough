@@ -1,4 +1,4 @@
-<img src="https://raw.githubusercontent.com/erstaples/agentic-code-review-walkthrough/main/editor-extension/assets/codewalk-icon-256.png" alt="kanko icon" width="96" height="96">
+<img src="https://raw.githubusercontent.com/erstaples/agentic-code-review-walkthrough/main/editor-extension/assets/kanko-icon-256.png" alt="kanko icon" width="96" height="96">
 
 # kanko
 

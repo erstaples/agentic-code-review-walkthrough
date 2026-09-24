@@ -1,6 +1,0 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="128" height="128" viewBox="0 0 128 128"><title>codewalk</title><rect width="128" height="128" rx="27" fill="#2E2873"/><g fill="none" stroke-linecap="round" stroke-linejoin="round">
-      <path d="M26 28V50M26 78V101" stroke="#A99BF5" stroke-width="8"/>
-      <path d="M94 33H110V51M110 78V98H94" stroke="#A99BF5" stroke-width="5.5"/>
-      <path d="M44 47H65M44 81H77" stroke="#776CB3" stroke-width="7"/>
-      <path d="M44 64H91" stroke="#F4F0FF" stroke-width="9"/>
-    </g><path d="M21 56.5L33.5 63.4Q34.6 64 33.5 64.6L21 71.5Q20 72.1 20 70.8V57.2Q20 55.9 21 56.5Z" fill="#F4F0FF"/></svg>
