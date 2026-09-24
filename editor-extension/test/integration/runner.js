@@ -13,6 +13,7 @@ async function main() {
     'telemetry.telemetryLevel': 'off', 'workbench.colorTheme': 'Default Dark Modern', 'editor.fontSize': 15,
     'diffEditor.renderSideBySide': false, 'diffEditor.useInlineViewWhenSpaceIsLimited': false,
     'workbench.editor.closeEmptyGroups': false, 'editor.minimap.enabled': false,
+    'workbench.editor.openSideBySideDirection': 'down',
     'workbench.secondarySideBar.defaultVisibility': 'visible', 'window.title': 'Relay acceptance · ${rootName}',
   }));
   let executable = process.env.VSCODE_EXECUTABLE_PATH || await downloadAndUnzipVSCode(process.env.VSCODE_VERSION || 'stable');

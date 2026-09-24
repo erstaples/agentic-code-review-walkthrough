@@ -15,7 +15,7 @@
   },
   "screenshots": {
     "status": "completed",
-    "count": 16,
+    "count": 17,
     "capture": "Unedited native window screenshots, macOS, VS Code 1.139.0, Default Dark Modern, disposable profile.",
     "baselineScreenshots": [
       "01-loaded.png",
@@ -25,11 +25,16 @@
       "06-paused.png"
     ],
     "baselineCommit": "39ae464bf9122f5234804b86793fba8041d52485",
-    "remainingScreenshots": "Repaired VSIX with the package SHA256 above.",
+    "remainingScreenshots": "Repaired VSIX with the package SHA256 above; screenshot 17 uses the new stacked test profile.",
     "limitations": [
       "Long inline labels clip in narrow columns.",
       "Tab movement verified through native Split & Move > Move Right; drag gesture attempts did not move the tab.",
       "Light themes, Windows, remote workspaces, and other screen sizes not checked."
     ]
+  },
+  "testProfile": {
+    "openSideBySideDirection": "down",
+    "nativeTestsPassed": 13,
+    "screenshot": "17-stacked-groups.png"
   }
 }

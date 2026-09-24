@@ -76,6 +76,13 @@ the crash report does not identify a narrower denied operation. These failures
 were in the temporary copy, not the installed application. No system-wide
 security setting was changed.
 
+## Default layout for future runs
+
+The test profile now opens editor groups downward, stacking them top to bottom.
+All 13 native checks pass with this setting. [Stacked groups](17-stacked-groups.png)
+shows the implementation, evidence, and base companion in three full-width rows.
+Earlier screenshots above retain the original side-by-side acceptance evidence.
+
 ## Reproduce
 
 From the repository root:
