@@ -1,0 +1,260 @@
+{
+  "name": "retry-backoff",
+  "title": "Cap retry backoff",
+  "description": "Committed branch with an added, modified, deleted, and renamed file. Tours in diff mode.",
+  "mode": "committed",
+  "repo": {
+    "baseBranch": "main",
+    "headBranch": "feature/capped-backoff",
+    "baseMessage": "Add retry helper",
+    "headMessage": "Cap retry backoff and sleep between attempts",
+    "base": {
+      "README.md": [
+        "# retry-demo",
+        "",
+        "A tiny retry helper used by the kanko simulator.",
+        "",
+        "Nothing in this file is part of the reviewed change."
+      ],
+      "src/retry.js": [
+        "\"use strict\";",
+        "",
+        "async function withRetry(fn, attempts = 3) {",
+        "  let lastError;",
+        "  for (let i = 0; i < attempts; i++) {",
+        "    try {",
+        "      return await fn();",
+        "    } catch (err) {",
+        "      lastError = err;",
+        "    }",
+        "  }",
+        "  throw lastError;",
+        "}",
+        "",
+        "module.exports = { withRetry };"
+      ],
+      "src/client.js": [
+        "\"use strict\";",
+        "",
+        "const { withRetry } = require(\"./retry.js\");",
+        "",
+        "async function fetchUser(http, id) {",
+        "  return withRetry(() => http.get(`/users/${id}`), 5);",
+        "}",
+        "",
+        "module.exports = { fetchUser };"
+      ],
+      "src/legacy-sleep.js": [
+        "\"use strict\";",
+        "",
+        "function sleep(ms) {",
+        "  const end = Date.now() + ms;",
+        "  while (Date.now() < end) {}",
+        "}",
+        "",
+        "module.exports = { sleep };"
+      ],
+      "docs/RETRY.md": [
+        "# Retries",
+        "",
+        "Use `withRetry(fn, attempts)` to retry a flaky call.",
+        "Attempts run back to back with no delay.",
+        "",
+        "## When to retry",
+        "",
+        "Retry idempotent reads and writes that carry an idempotency key.",
+        "Never retry a request that failed validation; it will fail again.",
+        "",
+        "## Where it lives",
+        "",
+        "See src/retry.js for the implementation and its tests."
+      ]
+    },
+    "head": {
+      "src/backoff.js": [
+        "\"use strict\";",
+        "",
+        "const DEFAULT_POLICY = { baseMs: 100, factor: 2, maxMs: 2000 };",
+        "",
+        "// Exponential backoff, capped so a long outage cannot stall callers for minutes.",
+        "function delayFor(attempt, policy = DEFAULT_POLICY) {",
+        "  const raw = policy.baseMs * policy.factor ** attempt;",
+        "  return Math.min(raw, policy.maxMs);",
+        "}",
+        "",
+        "module.exports = { DEFAULT_POLICY, delayFor };"
+      ],
+      "src/retry.js": [
+        "\"use strict\";",
+        "",
+        "const { DEFAULT_POLICY, delayFor } = require(\"./backoff.js\");",
+        "",
+        "const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));",
+        "",
+        "async function withRetry(fn, { attempts = 3, policy = DEFAULT_POLICY } = {}) {",
+        "  let lastError;",
+        "  for (let i = 0; i < attempts; i++) {",
+        "    try {",
+        "      return await fn();",
+        "    } catch (err) {",
+        "      lastError = err;",
+        "      if (i < attempts - 1) await sleep(delayFor(i, policy));",
+        "    }",
+        "  }",
+        "  throw lastError;",
+        "}",
+        "",
+        "module.exports = { withRetry };"
+      ],
+      "src/client.js": [
+        "\"use strict\";",
+        "",
+        "const { withRetry } = require(\"./retry.js\");",
+        "",
+        "async function fetchUser(http, id) {",
+        "  return withRetry(() => http.get(`/users/${id}`), { attempts: 5 });",
+        "}",
+        "",
+        "module.exports = { fetchUser };"
+      ],
+      "src/legacy-sleep.js": null,
+      "docs/RETRY.md": null,
+      "docs/retries.md": [
+        "# Retries",
+        "",
+        "Use `withRetry(fn, { attempts, policy })` to retry a flaky call.",
+        "Attempts back off exponentially, capped at `policy.maxMs`.",
+        "",
+        "## When to retry",
+        "",
+        "Retry idempotent reads and writes that carry an idempotency key.",
+        "Never retry a request that failed validation; it will fail again.",
+        "",
+        "## Where it lives",
+        "",
+        "See src/retry.js for the implementation and its tests."
+      ],
+      "test/backoff.test.js": [
+        "\"use strict\";",
+        "",
+        "const assert = require(\"node:assert\");",
+        "const { test } = require(\"node:test\");",
+        "const { delayFor } = require(\"../src/backoff.js\");",
+        "",
+        "test(\"delay grows exponentially and is capped\", () => {",
+        "  assert.strictEqual(delayFor(0), 100);",
+        "  assert.strictEqual(delayFor(3), 800);",
+        "  assert.strictEqual(delayFor(10), 2000);",
+        "});"
+      ]
+    }
+  },
+  "thesis": "Retries now back off exponentially with a cap instead of hammering the dependency in a tight loop.",
+  "entities": {
+    "claims": [
+      { "key": "cap", "statement": "Backoff delay is capped at policy.maxMs." },
+      { "key": "sleeps", "statement": "withRetry sleeps between attempts but not after the final one." },
+      { "key": "busy-wait", "statement": "The blocking busy-wait sleep helper is removed." },
+      { "key": "docs", "statement": "The retry guide describes the new signature and backoff." }
+    ],
+    "decisions": [
+      { "key": "options", "chosen": "Pass retry settings as an options object.", "alternatives": ["Keep the positional attempts argument"] }
+    ],
+    "risks": [
+      { "key": "positional", "concern": "Callers passing a positional attempts count silently get the default of 3.", "severity": "medium" }
+    ],
+    "evidence": [
+      { "key": "unit", "observation": "test/backoff.test.js covers growth and the cap for delayFor.", "freshness": "current" },
+      { "key": "no-timing", "observation": "No test exercises withRetry's sleep between attempts.", "freshness": "missing" }
+    ]
+  },
+  "stops": [
+    {
+      "id": "backoff-policy",
+      "title": "Introduce a capped backoff policy",
+      "type": "implementation",
+      "covers": ["cap"],
+      "files": [{ "path": "src/backoff.js", "ranges": [{ "side": "head", "startLine": 3, "endLine": 11 }] }],
+      "intro": "A new module owns the backoff math. Everything else in this tour builds on it, so it comes first.",
+      "beats": [
+        { "say": "The defaults: start at 100 ms, double each attempt, never exceed two seconds.", "focus": { "path": "src/backoff.js", "side": "head", "startLine": 3, "endLine": 3, "note": "defaults" } },
+        { "say": "The cap is enforced here, in the policy, so no caller can forget it.", "focus": { "path": "src/backoff.js", "side": "head", "startLine": 7, "endLine": 8, "note": "capped at maxMs" } }
+      ],
+      "qa": [
+        { "keywords": ["2s", "2000", "two seconds", "why cap", "maxms"], "answer": "The commit doesn't say. My inference: two seconds keeps the worst case for five attempts under ten seconds, which fits a typical request timeout. Treat that as reconstruction, not stated intent." },
+        { "keywords": ["jitter"], "answer": "There's no jitter. Many clients failing together will retry in lockstep. That's worth a concern if this runs at scale.", "focus": { "path": "src/backoff.js", "side": "head", "startLine": 7, "endLine": 7, "note": "no jitter" } }
+      ]
+    },
+    {
+      "id": "retry-sleeps",
+      "title": "withRetry sleeps between attempts",
+      "type": "risk",
+      "covers": ["sleeps", "options", "positional"],
+      "files": [
+        { "path": "src/retry.js", "ranges": [{ "side": "base", "startLine": 3, "endLine": 3 }, { "side": "head", "startLine": 7, "endLine": 18 }] },
+        { "path": "src/client.js", "ranges": [{ "side": "head", "startLine": 6, "endLine": 6 }] }
+      ],
+      "intro": "This stop carries the risk: withRetry's signature changed shape.",
+      "beats": [
+        { "say": "Before, attempts was positional. Removed code opens in the pinned diff, with a read-only base companion beside it in inline layouts.", "focus": { "path": "src/retry.js", "side": "base", "startLine": 3, "endLine": 3, "note": "old positional signature" } },
+        { "say": "Now it's an options object. A caller still passing a number gets the default of three, with no error.", "focus": { "path": "src/retry.js", "side": "head", "startLine": 7, "endLine": 7, "note": "options object" } },
+        { "say": "The sleep is skipped after the final attempt, so a hard failure isn't delayed for nothing.", "focus": { "path": "src/retry.js", "side": "head", "startLine": 14, "endLine": 14, "note": "no sleep after the last try" } },
+        { "say": "The only in-repo caller was updated in the same commit.", "focus": { "path": "src/client.js", "side": "head", "startLine": 6, "endLine": 6, "note": "only caller" } }
+      ],
+      "qa": [
+        { "keywords": ["caller", "callers", "positional", "still", "anything else", "breaking"], "answer": "I searched for `withRetry(`. src/client.js:6 is the only caller, and it's updated in this diff. Callers outside this repository would silently fall back to three attempts.", "record": true, "focus": { "path": "src/client.js", "side": "head", "startLine": 6, "endLine": 6, "note": "the only caller" } },
+        { "keywords": ["last", "final", "attempts - 1"], "answer": "`i < attempts - 1` skips the sleep after the final attempt. Without it, a caller that exhausts retries would wait one extra backoff before seeing the error.", "focus": { "path": "src/retry.js", "side": "head", "startLine": 14, "endLine": 14, "note": "guard" } }
+      ]
+    },
+    {
+      "id": "drop-busy-wait",
+      "title": "Remove the busy-wait sleep",
+      "type": "implementation",
+      "covers": ["busy-wait"],
+      "files": [{ "path": "src/legacy-sleep.js", "ranges": [{ "side": "base", "startLine": 3, "endLine": 6 }] }],
+      "intro": "A deleted file. It only has a base side.",
+      "beats": [
+        { "say": "This spun the CPU for the whole delay. The promise-based sleep in retry.js yields instead.", "focus": { "path": "src/legacy-sleep.js", "side": "base", "startLine": 5, "endLine": 5, "note": "busy-wait" } }
+      ],
+      "qa": [
+        { "keywords": ["used", "anyone", "import", "require"], "answer": "Nothing in the base revision required legacy-sleep.js. It was already dead code, so deleting it is safe." }
+      ]
+    },
+    {
+      "id": "docs-rename",
+      "title": "Rename and update the retry guide",
+      "type": "context",
+      "covers": ["docs"],
+      "files": [{ "path": "docs/retries.md", "ranges": [{ "side": "head", "startLine": 3, "endLine": 4 }] }],
+      "intro": "A renamed file: docs/RETRY.md became docs/retries.md, with two lines rewritten.",
+      "beats": [
+        { "say": "The old text, read from the old path at the base revision.", "focus": { "path": "docs/retries.md", "side": "base", "startLine": 3, "endLine": 4, "note": "old guidance" } },
+        { "say": "The new text matches the options signature and the backoff.", "focus": { "path": "docs/retries.md", "side": "head", "startLine": 3, "endLine": 4, "note": "new guidance" } }
+      ],
+      "qa": [
+        { "keywords": ["rename", "why rename", "lowercase", "links"], "answer": "My inference is that it matches the lowercase naming of the other docs. Nothing in the repository links to the old path, so no references broke." }
+      ]
+    },
+    {
+      "id": "tests",
+      "title": "What the tests do and don't cover",
+      "type": "evidence",
+      "covers": ["unit", "no-timing"],
+      "files": [{ "path": "test/backoff.test.js", "ranges": [{ "side": "head", "startLine": 7, "endLine": 11 }] }],
+      "intro": "An added test file. It has no base side, so it always opens as a file.",
+      "beats": [
+        { "say": "Growth and the cap are asserted directly.", "focus": { "path": "test/backoff.test.js", "side": "head", "startLine": 9, "endLine": 10, "note": "cap asserted" } },
+        { "say": "Nothing asserts that withRetry actually waits between attempts. I've recorded that as missing evidence, not as a pass." }
+      ],
+      "qa": [
+        { "keywords": ["timing", "fake timers", "mock", "how would", "test the sleep"], "answer": "With node:test's mock timers: enable them, call withRetry with a function that fails twice, then advance the clock by 100 ms and 200 ms and assert the call count after each tick." }
+      ]
+    }
+  ],
+  "qa": [
+    { "keywords": ["why", "motivation", "purpose"], "answer": "The commit message says only \"Cap retry backoff and sleep between attempts\". My reading: back-to-back retries were hammering a struggling dependency. That's inferred, not stated." },
+    { "keywords": ["risk", "risky", "worry"], "answer": "The main risk is the signature change in stop 2: positional callers silently get three attempts. Second is the missing timing test in stop 5." },
+    { "keywords": ["test", "tests", "coverage"], "answer": "delayFor is unit-tested; withRetry's sleeping is not. Stop 5 covers it." }
+  ],
+  "closing": "End to end, retries stop hammering the dependency: a capped exponential policy, a non-blocking sleep between attempts, the busy-wait helper gone, and the guide updated. The signature change is the part to watch."
+}
