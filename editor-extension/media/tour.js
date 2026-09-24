@@ -6,7 +6,27 @@ const send = message => vscode.postMessage({ ...message, revision });
 const element = (tag, text, className) => { const e = document.createElement(tag); if (text !== undefined) e.textContent = text; if (className) e.className = className; return e; };
 const button = (text, label, data = {}) => { const e = element("button", text); e.setAttribute("aria-label", label); Object.assign(e.dataset, data); return e; };
 const color = n => `color-${(n - 1) % 6 + 1}`;
-function rowElement(row) {
+// Neutral line icons identify roles; numbered chip colors identify files.
+const rolePaths = {
+  change: "M3 10.5 10.5 3l2.5 2.5L5.5 13H3z M9 4.5 11.5 7",
+  evidence: "M14 8a6 6 0 1 1-12 0 6 6 0 0 1 12 0 M5 8l2 2 4-4",
+  caller: "M3 3l10 10 M7 13h6V7",
+  callee: "M3 13 13 3 M7 3h6v6",
+  config: "M2 4h12 M2 8h12 M2 12h12 M5 2v4 M11 6v4 M7 10v4",
+  schema: "M5 2H2v12h3 M11 2h3v12h-3 M6 5h4 M6 8h4 M6 11h4",
+  context: "M14 8a6 6 0 1 1-12 0 6 6 0 0 1 12 0 M8 7v5 M8 4v.5",
+};
+const roleName = role => role[0].toUpperCase() + role.slice(1);
+function roleIcon(role, decorative = false) {
+  const icon = element("span", undefined, "role-icon"), label = roleName(role);
+  const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+  svg.setAttribute("viewBox", "0 0 16 16"); svg.setAttribute("aria-hidden", "true");
+  const path = document.createElementNS(svg.namespaceURI, "path"); path.setAttribute("d", rolePaths[role]); svg.append(path); icon.append(svg);
+  if (decorative) icon.setAttribute("aria-hidden", "true");
+  else { icon.tabIndex = 0; icon.setAttribute("role", "img"); icon.setAttribute("aria-label", label); icon.title = label; icon.dataset.tooltip = label; }
+  return icon;
+}
+function rowElement(row, showRoleIcon) {
   const wrapper = element("div", undefined, `anchor-row ${color(row.n)}${row.active ? " current-beat" : ""}${row.pinned ? " pinned" : ""}`);
   wrapper.dataset.row = row.n; wrapper.setAttribute("aria-label", `Anchor ${row.n}: ${row.path}, ${row.role}${row.active ? ", current beat" : ""}`);
   const chip = button(String(row.n), `Anchor ${row.n}: ${row.path}`, { anchor: row.n }); chip.className = `chip ${color(row.n)}`;
@@ -15,17 +35,20 @@ function rowElement(row) {
   const badge = element("span", ({ modified: "M", added: "A", deleted: "D", unchanged: "U" })[row.change], `change ${row.change}`); badge.title = row.change; name.append(badge);
   if (row.active) { const dot = element("span", "●", "active-dot"); dot.title = "Referenced in this beat"; name.append(dot); }
   const details = element("div", `${row.directory} · ${row.context.startLine}–${row.context.endLine} · ${row.label}`, "details"); details.title = `${row.path}:${row.context.startLine}–${row.context.endLine} · ${row.label}`;
-  const role = element("span", row.role, "role-label");
-  if (row.status === "stale") role.append(element("span", " · source changed", "stale"));
+  if (row.status === "stale") name.append(element("span", "source changed", "stale"));
   identity.title = `${row.path}:${row.context.startLine}–${row.context.endLine} · ${row.label} · ${row.role}`;
-  identity.append(name, details, role);
+  identity.append(name, details);
   const controls = element("div", undefined, "row-controls");
   if (row.slot) {
-    const focus = button(row.slot, `Focus anchor ${row.n} in ${row.slot}`, { anchor: row.n }); focus.className = "slot";
+    const focus = button("", `${roleName(row.role)}: focus anchor ${row.n}`, { anchor: row.n }); focus.className = "role-focus";
+    focus.title = roleName(row.role); focus.dataset.tooltip = roleName(row.role); focus.append(roleIcon(row.role, true));
     const actions = element("div", undefined, "row-actions");
     actions.append(button(row.pinned ? "Unpin" : "Pin", `${row.pinned ? "Unpin" : "Pin"} anchor ${row.n}`, { pin: row.n }), button("Move…", `Move anchor ${row.n}`, { move: row.n }));
     controls.append(focus, actions);
-  } else controls.append(button(row.status === "open" ? "Show ▾" : "Open ▾", `Open anchor ${row.n}: ${row.filename}`, { anchor: row.n }));
+  } else {
+    if (showRoleIcon) controls.append(roleIcon(row.role));
+    controls.append(button(row.status === "open" ? "Show ▾" : "Open ▾", `Open anchor ${row.n}: ${row.filename}`, { anchor: row.n }));
+  }
   for (const control of controls.querySelectorAll("button")) control.disabled = snapshot.mode === "paused";
   chip.disabled = snapshot.mode === "paused"; wrapper.append(chip, identity, controls); return wrapper;
 }
@@ -39,9 +62,12 @@ function renderList() {
   const spacer = height => { const e = element("div"); e.style.height = `${height}px`; e.setAttribute("aria-hidden", "true"); return e; };
   content.append(spacer(page.before));
   for (const entry of page.visible) {
-    if (entry.type === "row") content.append(rowElement(entry.row));
+    if (entry.type === "row") content.append(rowElement(entry.row, entry.showRoleIcon));
     else {
-      const header = button(`${entry.closed ? "▸" : "▾"} ${entry.label}  ${entry.count}`, `${entry.label}, ${entry.count} anchors`, { section: entry.key });
+      const header = button("", `${entry.label}, ${entry.count} anchors`, { section: entry.key });
+      header.append(element("span", entry.closed ? "▸" : "▾", "section-chevron"));
+      if (entry.key !== "view") header.append(roleIcon(entry.key, true));
+      header.append(element("span", `${entry.label}  ${entry.count}`));
       header.className = "role-section"; header.setAttribute("aria-expanded", String(!entry.closed)); content.append(header);
     }
   }

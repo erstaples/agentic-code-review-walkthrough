@@ -58,5 +58,22 @@
       "editor-extension/media/sidebar-model.js": "f30269e7da75c140655b781dbf4f3a60f8a43cacce11abe7f7c93ebabd815b9b"
     },
     "vsixSha256": "2688f3705c05c6b73b50550e1daa487caf4e96b1cd2b41a365095b1c91257126"
+  },
+  "roleIconFollowup": {
+    "unitTestsPassed": 217,
+    "nativeScenariosPassed": 23,
+    "nativeExitCode": 0,
+    "screenshots": [
+      "23-role-icons-grouped.png",
+      "24-role-icons-order.png",
+      "25-role-icons-collapsed.png",
+      "26-role-icons-compact.png"
+    ],
+    "verifiedFiles": {
+      "editor-extension/media/tour.css": "916e8f5e24a605647dde69c6d63dc566c4210e2876f6bb931fa6b9989f94d555",
+      "editor-extension/media/tour.js": "5bb0dc56e74e1a72790b06cbc819d1874df4033c56886f3cceabfcdbf713adca",
+      "editor-extension/media/sidebar-model.js": "48c4f4e4b320243fd252ffccf55cf5b1b8c42f76c65740a0c70e1535bac9065c"
+    },
+    "vsixSha256": "71c7049887cc1a7e0786bd2fc806dcc256526333788695be4f185c3b79b6843a"
   }
 }

@@ -15,12 +15,12 @@
   function entries(rows, { filter = "", order = "role", collapsed = {} } = {}) {
     const query = filter.toLowerCase().trim();
     const found = rows.filter(r => `${r.n} ${r.path} ${r.label} ${r.role}`.toLowerCase().includes(query));
-    if (rows.length < 5 || order === "order") return found.map(row => ({ type: "row", row, height: 68 }));
+    if (rows.length < 5 || order === "order") return found.map(row => ({ type: "row", row, showRoleIcon: true, height: 68 }));
     const groups = [["view", "In view", found.filter(r => r.slot)], ...Object.entries(roles).map(([role, label]) => [role, label, found.filter(r => !r.slot && r.role === role)])];
     return groups.flatMap(([key, label, members]) => {
       if (!members.length) return [];
       const closed = !query && (collapsed[key] ?? (rows.length >= 12 && key !== "view" && !members.some(r => r.active)));
-      return [{ type: "section", key, label, count: members.length, closed, height: 28 }, ...closed ? [] : members.map(row => ({ type: "row", row, height: 68 }))];
+      return [{ type: "section", key, label, count: members.length, closed, height: 28 }, ...closed ? [] : members.map(row => ({ type: "row", row, showRoleIcon: key === "view", height: 68 }))];
     });
   }
   // Fixed row heights let 99-anchor stops render only the viewport plus a small

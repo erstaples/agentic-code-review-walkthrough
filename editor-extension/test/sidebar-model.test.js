@@ -25,3 +25,13 @@ test('virtual windows bound mounted rows and preserve offsets through anchor 99'
   const entries=model.entries(model.rows(snapshot(99)),{order:'order'}), start=model.windowed(entries,0,340),end=model.windowed(entries,68*95,340);
   assert.ok(start.visible.length<10);assert.ok(end.visible.length<10);assert.equal(start.total,99*68);assert.equal(end.visible.at(-1).row.n,99);assert.equal(end.after,0);
 });
+
+test('role icons appear only where a role heading does not already identify the row',()=>{
+  const rows=model.rows(snapshot(9));
+  const grouped=model.entries(rows).filter(e=>e.row);
+  assert.deepEqual(grouped.filter(e=>e.showRoleIcon).map(e=>e.row.n),[1,2]);
+  assert.ok(grouped.filter(e=>!e.row.slot).every(e=>!e.showRoleIcon));
+  assert.ok(model.entries(rows,{order:'order'}).every(e=>e.showRoleIcon));
+  assert.ok(model.entries(model.rows(snapshot(3))).every(e=>e.showRoleIcon));
+  assert.ok(model.entries(rows,{filter:'file-9'}).some(e=>e.type==='section'&&e.key===rows[8].role));
+});

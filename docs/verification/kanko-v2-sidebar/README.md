@@ -2,6 +2,14 @@
 
 Verified the packaged Kankō extension in an isolated VS Code 1.139.0 development host on macOS, with vertically stacked editor groups. Explicit split-placement scenarios additionally exercise Below/Beside shapes. Screenshots are unmodified native captures of real source-backed tours; they are not mockups or browser approximations.
 
+## Role icon refinement
+
+The latest role treatment is shown in [In View and grouped rows](23-role-icons-grouped.png), [Order mode and keyboard tooltip](24-role-icons-order.png), [all seven collapsed role sections](25-role-icons-collapsed.png), and [a compact stop](26-role-icons-compact.png). These supersede earlier row/section role styling.
+
+Role headers show a neutral line icon beside the name and count. In View replaces top/bottom text with the role icon. Compact and numeric-order lists also retain per-row icons; rows under named role sections omit redundant role labels/icons. Full role names remain in hover tooltips and accessible names, with visible tooltips on keyboard focus. The mapping uses pencil/change, check/evidence, incoming arrow/caller, outgoing arrow/callee, sliders/config, brackets/schema and information/context.
+
+All 217 automated tests and 23 native scenarios passed. Native checks additionally exercised grouping, Order mode, keyboard focus, collapsed sections and compact lists. Icons remain visible in collapsed headings. Visual coverage is macOS dark theme.
+
 ## Styling refinement
 
 The latest styling is shown in [the wider sidebar](20-refined-wide.png), [the narrow sidebar](21-refined-narrow.png), and [keyboard-focused row actions](22-refined-keyboard-actions.png). These supersede the row styling in screenshots 01–19, which remain functional evidence.
