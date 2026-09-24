@@ -1,0 +1,866 @@
+{
+  "environment": {
+    "vscode": "1.139.0",
+    "platform": "darwin",
+    "arch": "arm64",
+    "goExtension": "0.56.1"
+  },
+  "checks": [
+    {
+      "name": "layout read/write and all six shapes",
+      "status": "observed",
+      "observation": {
+        "snapshots": [
+          {
+            "name": "single",
+            "layout": {
+              "orientation": 0,
+              "groups": [
+                {
+                  "size": 1082
+                }
+              ]
+            },
+            "groups": [
+              {
+                "column": 1,
+                "active": true,
+                "tabs": [
+                  {
+                    "label": "slot-1.txt",
+                    "preview": true,
+                    "dirty": false,
+                    "scheme": "file"
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "name": "stack",
+            "layout": {
+              "orientation": 1,
+              "groups": [
+                {
+                  "size": 400
+                },
+                {
+                  "size": 400
+                }
+              ]
+            },
+            "groups": [
+              {
+                "column": 1,
+                "active": false,
+                "tabs": [
+                  {
+                    "label": "slot-1.txt",
+                    "preview": true,
+                    "dirty": false,
+                    "scheme": "file"
+                  }
+                ]
+              },
+              {
+                "column": 2,
+                "active": true,
+                "tabs": [
+                  {
+                    "label": "slot-2.txt",
+                    "preview": true,
+                    "dirty": false,
+                    "scheme": "file"
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "name": "stackSplitBottom",
+            "layout": {
+              "orientation": 1,
+              "groups": [
+                {
+                  "size": 376
+                },
+                {
+                  "size": 424,
+                  "groups": [
+                    {
+                      "size": 541
+                    },
+                    {
+                      "size": 541
+                    }
+                  ]
+                }
+              ]
+            },
+            "groups": [
+              {
+                "column": 1,
+                "active": false,
+                "tabs": [
+                  {
+                    "label": "slot-1.txt",
+                    "preview": true,
+                    "dirty": false,
+                    "scheme": "file"
+                  }
+                ]
+              },
+              {
+                "column": 2,
+                "active": false,
+                "tabs": [
+                  {
+                    "label": "slot-2.txt",
+                    "preview": true,
+                    "dirty": false,
+                    "scheme": "file"
+                  }
+                ]
+              },
+              {
+                "column": 3,
+                "active": true,
+                "tabs": [
+                  {
+                    "label": "slot-3.txt",
+                    "preview": true,
+                    "dirty": false,
+                    "scheme": "file"
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "name": "stackSplitTop",
+            "layout": {
+              "orientation": 1,
+              "groups": [
+                {
+                  "size": 424,
+                  "groups": [
+                    {
+                      "size": 541
+                    },
+                    {
+                      "size": 541
+                    }
+                  ]
+                },
+                {
+                  "size": 376
+                }
+              ]
+            },
+            "groups": [
+              {
+                "column": 1,
+                "active": false,
+                "tabs": [
+                  {
+                    "label": "slot-1.txt",
+                    "preview": true,
+                    "dirty": false,
+                    "scheme": "file"
+                  }
+                ]
+              },
+              {
+                "column": 2,
+                "active": false,
+                "tabs": [
+                  {
+                    "label": "slot-2.txt",
+                    "preview": true,
+                    "dirty": false,
+                    "scheme": "file"
+                  }
+                ]
+              },
+              {
+                "column": 3,
+                "active": true,
+                "tabs": [
+                  {
+                    "label": "slot-3.txt",
+                    "preview": true,
+                    "dirty": false,
+                    "scheme": "file"
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "name": "columns",
+            "layout": {
+              "orientation": 0,
+              "groups": [
+                {
+                  "size": 541
+                },
+                {
+                  "size": 541
+                }
+              ]
+            },
+            "groups": [
+              {
+                "column": 1,
+                "active": false,
+                "tabs": [
+                  {
+                    "label": "slot-1.txt",
+                    "preview": true,
+                    "dirty": false,
+                    "scheme": "file"
+                  }
+                ]
+              },
+              {
+                "column": 2,
+                "active": true,
+                "tabs": [
+                  {
+                    "label": "slot-2.txt",
+                    "preview": true,
+                    "dirty": false,
+                    "scheme": "file"
+                  },
+                  {
+                    "label": "slot-3.txt",
+                    "preview": false,
+                    "dirty": false,
+                    "scheme": "file"
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "name": "grid",
+            "layout": {
+              "orientation": 1,
+              "groups": [
+                {
+                  "size": 400,
+                  "groups": [
+                    {
+                      "size": 541
+                    },
+                    {
+                      "size": 541
+                    }
+                  ]
+                },
+                {
+                  "size": 400,
+                  "groups": [
+                    {
+                      "size": 541
+                    },
+                    {
+                      "size": 541
+                    }
+                  ]
+                }
+              ]
+            },
+            "groups": [
+              {
+                "column": 1,
+                "active": false,
+                "tabs": [
+                  {
+                    "label": "slot-1.txt",
+                    "preview": true,
+                    "dirty": false,
+                    "scheme": "file"
+                  }
+                ]
+              },
+              {
+                "column": 2,
+                "active": false,
+                "tabs": [
+                  {
+                    "label": "slot-2.txt",
+                    "preview": true,
+                    "dirty": false,
+                    "scheme": "file"
+                  },
+                  {
+                    "label": "slot-3.txt",
+                    "preview": false,
+                    "dirty": false,
+                    "scheme": "file"
+                  }
+                ]
+              },
+              {
+                "column": 3,
+                "active": false,
+                "tabs": [
+                  {
+                    "label": "slot-3.txt",
+                    "preview": true,
+                    "dirty": false,
+                    "scheme": "file"
+                  }
+                ]
+              },
+              {
+                "column": 4,
+                "active": true,
+                "tabs": [
+                  {
+                    "label": "slot-4.txt",
+                    "preview": true,
+                    "dirty": false,
+                    "scheme": "file"
+                  }
+                ]
+              }
+            ]
+          }
+        ],
+        "saved": {
+          "orientation": 1,
+          "groups": [
+            {
+              "size": 400,
+              "groups": [
+                {
+                  "size": 541
+                },
+                {
+                  "size": 541
+                }
+              ]
+            },
+            {
+              "size": 400,
+              "groups": [
+                {
+                  "size": 541
+                },
+                {
+                  "size": 541
+                }
+              ]
+            }
+          ]
+        },
+        "restored": {
+          "orientation": 1,
+          "groups": [
+            {
+              "size": 400,
+              "groups": [
+                {
+                  "size": 541
+                },
+                {
+                  "size": 541
+                }
+              ]
+            },
+            {
+              "size": 400,
+              "groups": [
+                {
+                  "size": 541
+                },
+                {
+                  "size": 541
+                }
+              ]
+            }
+          ]
+        },
+        "note": "Geometry restoration does not prove restoration of tab membership or focus."
+      }
+    },
+    {
+      "name": "resize versus scroll event signals",
+      "status": "observed",
+      "observation": {
+        "resize": {
+          "groups": 0,
+          "ranges": 2,
+          "before": {
+            "orientation": 1,
+            "groups": [
+              {
+                "size": 400
+              },
+              {
+                "size": 400
+              }
+            ]
+          },
+          "after": {
+            "orientation": 1,
+            "groups": [
+              {
+                "size": 560
+              },
+              {
+                "size": 240
+              }
+            ]
+          }
+        },
+        "scroll": {
+          "groups": 0,
+          "ranges": 1,
+          "layout": {
+            "orientation": 1,
+            "groups": [
+              {
+                "size": 560
+              },
+              {
+                "size": 240
+              }
+            ]
+          }
+        },
+        "limitation": "Programmatic resizing; manual drag recorded separately."
+      }
+    },
+    {
+      "name": "short files and preview tab reuse",
+      "status": "observed",
+      "observation": {
+        "shortFile": {
+          "lineCount": 3,
+          "visible": [
+            {
+              "column": 1,
+              "file": "short.txt",
+              "scheme": "file",
+              "ranges": [
+                [
+                  0,
+                  2
+                ]
+              ]
+            }
+          ],
+          "layout": {
+            "orientation": 0,
+            "groups": [
+              {
+                "size": 1082
+              }
+            ]
+          }
+        },
+        "sameFileCopiesWhenExplicitlyOpeningInTwoGroups": 2,
+        "implication": "Opening with preview true does not enforce global deduplication. A short document is not proof of a short group."
+      }
+    },
+    {
+      "name": "language symbols on file and relay-rev",
+      "status": "observed",
+      "observation": [
+        {
+          "file": "service.ts",
+          "scheme": "file",
+          "languageId": "typescript",
+          "names": [
+            "relayProbe"
+          ]
+        },
+        {
+          "file": "service.ts",
+          "scheme": "relay-rev",
+          "languageId": "typescript",
+          "names": [
+            "relayProbe"
+          ]
+        },
+        {
+          "file": "evidence.go",
+          "scheme": "file",
+          "languageId": "go",
+          "names": [
+            "Evidence"
+          ]
+        },
+        {
+          "file": "evidence.go",
+          "scheme": "relay-rev",
+          "languageId": "go",
+          "names": []
+        }
+      ]
+    },
+    {
+      "name": "diff badge requests and URI identity",
+      "status": "observed",
+      "observation": {
+        "groups": [
+          {
+            "column": 1,
+            "active": false,
+            "tabs": [
+              {
+                "label": "slot-2.txt",
+                "preview": false,
+                "dirty": false,
+                "scheme": "file"
+              },
+              {
+                "label": "slot-3.txt",
+                "preview": false,
+                "dirty": false,
+                "scheme": "file"
+              },
+              {
+                "label": "slot-4.txt",
+                "preview": false,
+                "dirty": false,
+                "scheme": "file"
+              },
+              {
+                "label": "evidence.go",
+                "preview": false,
+                "dirty": false,
+                "scheme": "file"
+              },
+              {
+                "label": "service.ts (ca78ec ↔ e9e1ec)",
+                "preview": true,
+                "dirty": false,
+                "scheme": "file"
+              },
+              {
+                "label": "Go for VS Code",
+                "preview": false,
+                "dirty": false
+              }
+            ]
+          },
+          {
+            "column": 2,
+            "active": true,
+            "tabs": [
+              {
+                "label": "service.ts (ca78ec ↔ e9e1ec)",
+                "preview": true,
+                "dirty": false,
+                "scheme": "relay-rev"
+              }
+            ]
+          }
+        ],
+        "requests": [
+          {
+            "type": "badge-request",
+            "value": {
+              "scheme": "file",
+              "side": "head"
+            }
+          },
+          {
+            "type": "badge-request",
+            "value": {
+              "scheme": "relay-rev",
+              "side": "head"
+            }
+          }
+        ],
+        "limitation": "Provider callbacks are not proof that badges are painted; inspect tabs visually."
+      }
+    },
+    {
+      "name": "secondary sidebar contribution",
+      "status": "observed",
+      "observation": {
+        "resolved": true,
+        "limitation": "Check physical placement visually."
+      }
+    },
+    {
+      "name": "production removed-code companion and pause",
+      "status": "observed",
+      "observation": {
+        "before": [
+          {
+            "column": 1,
+            "active": false,
+            "tabs": [
+              {
+                "label": "slot-2.txt",
+                "preview": false,
+                "dirty": false,
+                "scheme": "file"
+              },
+              {
+                "label": "slot-3.txt",
+                "preview": false,
+                "dirty": false,
+                "scheme": "file"
+              },
+              {
+                "label": "slot-4.txt",
+                "preview": false,
+                "dirty": false,
+                "scheme": "file"
+              },
+              {
+                "label": "evidence.go",
+                "preview": false,
+                "dirty": false,
+                "scheme": "file"
+              },
+              {
+                "label": "slot-1.txt",
+                "preview": true,
+                "dirty": false,
+                "scheme": "file"
+              },
+              {
+                "label": "Go for VS Code",
+                "preview": false,
+                "dirty": false
+              }
+            ]
+          },
+          {
+            "column": 2,
+            "active": false,
+            "tabs": [
+              {
+                "label": "service.ts",
+                "preview": false,
+                "dirty": false,
+                "scheme": "git"
+              },
+              {
+                "label": "slot-2.txt",
+                "preview": true,
+                "dirty": false,
+                "scheme": "file"
+              }
+            ]
+          },
+          {
+            "column": 3,
+            "active": true,
+            "tabs": [
+              {
+                "label": "slot-3.txt",
+                "preview": true,
+                "dirty": false,
+                "scheme": "file"
+              }
+            ]
+          }
+        ],
+        "activated": [
+          {
+            "column": 1,
+            "active": false,
+            "tabs": [
+              {
+                "label": "slot-2.txt",
+                "preview": false,
+                "dirty": false,
+                "scheme": "file"
+              },
+              {
+                "label": "slot-3.txt",
+                "preview": false,
+                "dirty": false,
+                "scheme": "file"
+              },
+              {
+                "label": "slot-4.txt",
+                "preview": false,
+                "dirty": false,
+                "scheme": "file"
+              },
+              {
+                "label": "evidence.go",
+                "preview": false,
+                "dirty": false,
+                "scheme": "file"
+              },
+              {
+                "label": "slot-1.txt",
+                "preview": true,
+                "dirty": false,
+                "scheme": "file"
+              },
+              {
+                "label": "Go for VS Code",
+                "preview": false,
+                "dirty": false
+              }
+            ]
+          },
+          {
+            "column": 2,
+            "active": false,
+            "tabs": [
+              {
+                "label": "service.ts",
+                "preview": false,
+                "dirty": false,
+                "scheme": "git"
+              },
+              {
+                "label": "slot-2.txt",
+                "preview": true,
+                "dirty": false,
+                "scheme": "file"
+              }
+            ]
+          },
+          {
+            "column": 3,
+            "active": true,
+            "tabs": [
+              {
+                "label": "Spike",
+                "preview": true,
+                "dirty": false,
+                "scheme": "relay-rev"
+              }
+            ]
+          },
+          {
+            "column": 4,
+            "active": false,
+            "tabs": [
+              {
+                "label": "service.ts",
+                "preview": true,
+                "dirty": false,
+                "scheme": "relay-rev"
+              }
+            ]
+          }
+        ],
+        "paused": [
+          {
+            "column": 1,
+            "active": false,
+            "tabs": [
+              {
+                "label": "slot-2.txt",
+                "preview": false,
+                "dirty": false,
+                "scheme": "file"
+              },
+              {
+                "label": "slot-3.txt",
+                "preview": false,
+                "dirty": false,
+                "scheme": "file"
+              },
+              {
+                "label": "slot-4.txt",
+                "preview": false,
+                "dirty": false,
+                "scheme": "file"
+              },
+              {
+                "label": "evidence.go",
+                "preview": false,
+                "dirty": false,
+                "scheme": "file"
+              },
+              {
+                "label": "slot-1.txt",
+                "preview": true,
+                "dirty": false,
+                "scheme": "file"
+              },
+              {
+                "label": "Go for VS Code",
+                "preview": false,
+                "dirty": false
+              }
+            ]
+          },
+          {
+            "column": 2,
+            "active": false,
+            "tabs": [
+              {
+                "label": "service.ts",
+                "preview": false,
+                "dirty": false,
+                "scheme": "git"
+              },
+              {
+                "label": "slot-2.txt",
+                "preview": true,
+                "dirty": false,
+                "scheme": "file"
+              }
+            ]
+          },
+          {
+            "column": 3,
+            "active": true,
+            "tabs": [
+              {
+                "label": "Spike",
+                "preview": true,
+                "dirty": false,
+                "scheme": "relay-rev"
+              }
+            ]
+          },
+          {
+            "column": 4,
+            "active": false,
+            "tabs": [
+              {
+                "label": "service.ts",
+                "preview": true,
+                "dirty": false,
+                "scheme": "relay-rev"
+              }
+            ]
+          }
+        ],
+        "status": {
+          "state": "paused",
+          "stale": false,
+          "anchor": {
+            "path": "service.ts",
+            "side": "base",
+            "rev": "ca78ec02fb31683cd88f7cf0976a25ea522fad30",
+            "context": {
+              "startLine": 1,
+              "endLine": 3
+            },
+            "focus": [
+              {
+                "side": "base",
+                "range": {
+                  "startLine": 2,
+                  "endLine": 2
+                },
+                "contentHash": "sha256:d0ba347f6932bd34a0d1437fcc8d93de383eb93332bd1d347f28876b072c8b63",
+                "kind": "removed"
+              }
+            ],
+            "contentHash": "sha256:3999571d0fc4f97c7927dc25d5205c4d8d8c0c7047acda2dbed99f2f545519be"
+          }
+        }
+      }
+    }
+  ]
+}
