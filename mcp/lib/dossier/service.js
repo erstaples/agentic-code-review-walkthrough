@@ -5,7 +5,7 @@ const { FileDossierStore } = require("./file-store.js");
 const { resolveChange, repositoryIdentity, resolveCodeReference } = require("./git-adapter.js");
 const { eventForCommand, applyEvent, projectionOverview, findEntity, validateActor } = require("./domain.js");
 const { buildReceipt, renderMarkdown } = require("./receipt.js");
-const { id } = require("./canonical.js");
+const { id, canonicalize } = require("./canonical.js");
 const { DossierError, invariant } = require("./errors.js");
 
 const REVIEW_COMMANDS = new Set(["StartReviewSession", "StartStop", "SetClaimDisposition", "SetRiskDisposition", "SetStopReviewState", "RecordQuestion", "RecordConcern", "RecordAnswer", "PauseReviewSession", "ResumeReviewSession", "CompleteReviewSession"]);
@@ -211,7 +211,9 @@ function compareManifests(before, after) {
   return {
     added: [...afterMap.keys()].filter((key) => !beforeMap.has(key)).sort(),
     removed: [...beforeMap.keys()].filter((key) => !afterMap.has(key)).sort(),
-    modified: [...afterMap.keys()].filter((key) => beforeMap.has(key) && JSON.stringify(beforeMap.get(key)) !== JSON.stringify(afterMap.get(key))).sort(),
+    // The stored manifest was persisted canonically (sorted keys), so compare
+    // canonically; JSON.stringify would flag every file after a reload.
+    modified: [...afterMap.keys()].filter((key) => beforeMap.has(key) && canonicalize(beforeMap.get(key)) !== canonicalize(afterMap.get(key))).sort(),
   };
 }
 

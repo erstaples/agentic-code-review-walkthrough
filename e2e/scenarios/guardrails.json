@@ -1,0 +1,104 @@
+{
+  "name": "guardrails",
+  "description": "Calls a confused model might make: repinning mid-tour, out-of-range focus, impossible diff sides, stale writers, and unconfirmed deletes are all refused.",
+  "repo": {
+    "base": {
+      "lib/math.js": ["\"use strict\";", "", "const add = (a, b) => a + b;", "", "module.exports = { add };"]
+    },
+    "head": {
+      "lib/math.js": ["\"use strict\";", "", "const add = (a, b) => a + b;", "const sub = (a, b) => a - b;", "", "module.exports = { add, sub };"],
+      "lib/new.js": ["\"use strict\";", "", "module.exports = {};"]
+    }
+  },
+  "vars": {
+    "agent": { "kind": "agent", "id": "scripted-agent" },
+    "base": { "sha": "{{ repo.base }}", "name": "{{ repo.baseName }}" },
+    "head": { "sha": "{{ repo.head }}", "name": "{{ repo.headName }}" },
+    "inferred": [{ "kind": "model-inferred", "source": { "type": "code-inspection", "path": "lib/math.js" } }]
+  },
+  "steps": [
+    { "call": "tour_status", "args": { "workspace": "{{ repo.workspace }}" } },
+    {
+      "say": "Pinning the tour to base..head with a first stop.",
+      "call": "tour_stop",
+      "args": { "workspace": "{{ repo.workspace }}", "stopId": "s1", "label": "Add sub", "type": "implementation", "mode": "diff", "base": "{{ base }}", "head": "{{ head }}",
+        "files": [{ "path": "lib/math.js", "ranges": [{ "side": "head", "startLine": 4, "endLine": 4 }] }] }
+    },
+    {
+      "say": "A different head mid-tour must be refused rather than silently repointing the tour.",
+      "call": "tour_stop",
+      "args": { "workspace": "{{ repo.workspace }}", "stopId": "s2", "label": "Repinned", "type": "implementation", "mode": "diff", "base": "{{ base }}", "head": { "sha": "{{ repo.base }}", "name": "main" },
+        "files": [{ "path": "lib/math.js", "ranges": [{ "side": "head", "startLine": 1, "endLine": 1 }] }] },
+      "expectError": "diff_identity_mismatch"
+    },
+    {
+      "call": "tour_focus",
+      "args": { "workspace": "{{ repo.workspace }}", "path": "lib/math.js", "side": "head", "startLine": 40, "endLine": 41 },
+      "expectError": "range_out_of_bounds"
+    },
+    {
+      "say": "An added file has no base side.",
+      "call": "tour_focus",
+      "args": { "workspace": "{{ repo.workspace }}", "path": "lib/new.js", "side": "base", "startLine": 1, "endLine": 1 },
+      "expectError": "bad_request"
+    },
+    {
+      "say": "File mode only accepts working-tree ranges.",
+      "call": "tour_stop",
+      "args": { "workspace": "{{ repo.workspace }}", "stopId": "s3", "label": "Wrong side", "type": "implementation", "mode": "file", "base": "{{ base }}", "head": "{{ head }}",
+        "files": [{ "path": "lib/math.js", "ranges": [{ "side": "head", "startLine": 1, "endLine": 1 }] }] },
+      "expectError": "bad_request"
+    },
+    { "call": "tour_clear", "args": { "workspace": "{{ repo.workspace }}" } },
+    {
+      "say": "After clearing, base/head focus has no pinned diff to point into.",
+      "call": "tour_focus",
+      "args": { "workspace": "{{ repo.workspace }}", "path": "lib/math.js", "side": "head", "startLine": 1, "endLine": 1 },
+      "expectError": "bad_request"
+    },
+    {
+      "call": "tour_focus",
+      "args": { "workspace": "{{ repo.workspace }}", "path": "lib/missing.js", "side": "working", "startLine": 1, "endLine": 1 },
+      "expectError": "file_not_found"
+    },
+
+    {
+      "id": "open",
+      "call": "dossier_open",
+      "args": { "workspace": "{{ repo.workspace }}", "selection": { "kind": "committed", "base": "{{ repo.base }}", "head": "{{ repo.head }}" }, "actor": "{{ agent }}" }
+    },
+    {
+      "say": "Review cannot start before the dossier is prepared.",
+      "call": "dossier_apply",
+      "args": { "workspace": "{{ repo.workspace }}", "dossierId": "{{ dossierId }}", "expectedRevision": "{{ rev }}", "actor": "{{ agent }}", "commands": [{ "type": "StartReviewSession" }] },
+      "expectError": "not_prepared"
+    },
+    {
+      "call": "dossier_apply",
+      "args": { "workspace": "{{ repo.workspace }}", "dossierId": "{{ dossierId }}", "expectedRevision": "{{ rev }}", "actor": "{{ agent }}", "commands": [{ "type": "SetThesis", "thesis": { "summary": "Add sub.", "provenance": "{{ inferred }}" } }] }
+    },
+    {
+      "say": "A writer holding an old revision is rejected.",
+      "call": "dossier_apply",
+      "args": { "workspace": "{{ repo.workspace }}", "dossierId": "{{ dossierId }}", "expectedRevision": 1, "actor": "{{ agent }}", "commands": [{ "type": "SetThesis", "thesis": { "summary": "Clobber.", "provenance": "{{ inferred }}" } }] },
+      "expectError": "revision_conflict"
+    },
+    {
+      "say": "Statements without provenance are rejected.",
+      "call": "dossier_apply",
+      "args": { "workspace": "{{ repo.workspace }}", "dossierId": "{{ dossierId }}", "expectedRevision": "{{ rev }}", "actor": "{{ agent }}", "commands": [{ "type": "AddClaim", "claim": { "statement": "Unsourced.", "provenance": [] } }] },
+      "validateArgs": false,
+      "expectError": "invalid_provenance"
+    },
+    {
+      "call": "dossier_delete",
+      "args": { "workspace": "{{ repo.workspace }}", "dossierId": "{{ dossierId }}", "confirmDossierId": "dos_00000000-0000-0000-0000-000000000000", "actor": "{{ agent }}" },
+      "expectError": "confirmation_required"
+    },
+    {
+      "call": "dossier_delete",
+      "args": { "workspace": "{{ repo.workspace }}", "dossierId": "{{ dossierId }}", "confirmDossierId": "{{ dossierId }}", "actor": "{{ agent }}" },
+      "match": { "deleted": true, "recoverable": false }
+    }
+  ]
+}

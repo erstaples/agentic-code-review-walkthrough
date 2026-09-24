@@ -90,6 +90,16 @@ test("refresh preserves history while invalidating review and evidence conservat
   assert.strictEqual(tour.plan.stops[0].reviewState, "invalidated");
 });
 
+test("refresh reports only the files whose bytes changed", () => {
+  const f = fixture();
+  fs.writeFileSync(path.join(f.workspace, "feature.txt"), "dirty one\n");
+  fs.writeFileSync(path.join(f.workspace, "untouched.txt"), "same bytes\n");
+  const opened = f.service.open({ workspace: f.workspace, selection: { kind: "working-tree" }, actor, title: "Dirty change" });
+  fs.writeFileSync(path.join(f.workspace, "feature.txt"), "dirty two\n");
+  const refreshed = f.service.refresh({ workspace: f.workspace, dossierId: opened.dossierId, expectedRevision: opened.aggregateRevision, selection: { kind: "working-tree" }, actor });
+  assert.deepStrictEqual(refreshed.structuralDelta, { added: [], removed: [], modified: ["feature.txt"] });
+});
+
 test("completed review emits immutable JSON and Markdown receipts", () => {
   const f = fixture(); const opened = open(f); const prepared = prepare(f, opened);
   const result = f.service.apply({ workspace: f.workspace, dossierId: opened.dossierId, expectedRevision: prepared.result.aggregateRevision, actor, commands: [

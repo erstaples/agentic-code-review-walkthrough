@@ -1,0 +1,406 @@
+{
+  "name": "committed-review",
+  "description": "Full tour of a committed feature branch: dossier preparation, four driven stops, a reviewer question and concern, closeout, and an emitted receipt.",
+  "repo": {
+    "baseBranch": "main",
+    "headBranch": "feature/capped-backoff",
+    "baseMessage": "Add retry helper",
+    "headMessage": "Cap retry backoff and sleep between attempts",
+    "base": {
+      "src/retry.js": [
+        "\"use strict\";",
+        "",
+        "async function withRetry(fn, attempts = 3) {",
+        "  let lastError;",
+        "  for (let i = 0; i < attempts; i++) {",
+        "    try {",
+        "      return await fn();",
+        "    } catch (err) {",
+        "      lastError = err;",
+        "    }",
+        "  }",
+        "  throw lastError;",
+        "}",
+        "",
+        "module.exports = { withRetry };"
+      ],
+      "src/client.js": [
+        "\"use strict\";",
+        "",
+        "const { withRetry } = require(\"./retry.js\");",
+        "",
+        "async function fetchUser(http, id) {",
+        "  return withRetry(() => http.get(`/users/${id}`), 5);",
+        "}",
+        "",
+        "module.exports = { fetchUser };"
+      ],
+      "src/legacy-sleep.js": [
+        "\"use strict\";",
+        "",
+        "function sleep(ms) {",
+        "  const end = Date.now() + ms;",
+        "  while (Date.now() < end) {}",
+        "}",
+        "",
+        "module.exports = { sleep };"
+      ]
+    },
+    "head": {
+      "src/backoff.js": [
+        "\"use strict\";",
+        "",
+        "const DEFAULT_POLICY = { baseMs: 100, factor: 2, maxMs: 2000 };",
+        "",
+        "// Exponential backoff, capped so a long outage cannot stall callers for minutes.",
+        "function delayFor(attempt, policy = DEFAULT_POLICY) {",
+        "  const raw = policy.baseMs * policy.factor ** attempt;",
+        "  return Math.min(raw, policy.maxMs);",
+        "}",
+        "",
+        "module.exports = { DEFAULT_POLICY, delayFor };"
+      ],
+      "src/retry.js": [
+        "\"use strict\";",
+        "",
+        "const { DEFAULT_POLICY, delayFor } = require(\"./backoff.js\");",
+        "",
+        "const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));",
+        "",
+        "async function withRetry(fn, { attempts = 3, policy = DEFAULT_POLICY } = {}) {",
+        "  let lastError;",
+        "  for (let i = 0; i < attempts; i++) {",
+        "    try {",
+        "      return await fn();",
+        "    } catch (err) {",
+        "      lastError = err;",
+        "      if (i < attempts - 1) await sleep(delayFor(i, policy));",
+        "    }",
+        "  }",
+        "  throw lastError;",
+        "}",
+        "",
+        "module.exports = { withRetry };"
+      ],
+      "src/client.js": [
+        "\"use strict\";",
+        "",
+        "const { withRetry } = require(\"./retry.js\");",
+        "",
+        "async function fetchUser(http, id) {",
+        "  return withRetry(() => http.get(`/users/${id}`), { attempts: 5 });",
+        "}",
+        "",
+        "module.exports = { fetchUser };"
+      ],
+      "src/legacy-sleep.js": null,
+      "test/backoff.test.js": [
+        "\"use strict\";",
+        "",
+        "const assert = require(\"node:assert\");",
+        "const { test } = require(\"node:test\");",
+        "const { delayFor } = require(\"../src/backoff.js\");",
+        "",
+        "test(\"delay grows exponentially and is capped\", () => {",
+        "  assert.strictEqual(delayFor(0), 100);",
+        "  assert.strictEqual(delayFor(3), 800);",
+        "  assert.strictEqual(delayFor(10), 2000);",
+        "});"
+      ]
+    }
+  },
+  "vars": {
+    "agent": { "kind": "agent", "id": "scripted-agent", "displayName": "Scripted agent" },
+    "reviewer": { "kind": "reviewer", "id": "offline-reviewer", "displayName": "Offline reviewer" },
+    "base": { "sha": "{{ repo.base }}", "name": "{{ repo.baseName }}" },
+    "head": { "sha": "{{ repo.head }}", "name": "{{ repo.headName }}" },
+    "fromCommit": [{ "kind": "repository-observed", "source": { "type": "commit-message", "id": "{{ repo.head }}" } }],
+    "inferred": [{ "kind": "model-inferred", "source": { "type": "code-inspection", "path": "src/retry.js" }, "inferenceExplanation": "Reconstructed from the diff; the commit message states only the outcome." }]
+  },
+  "steps": [
+    {
+      "reviewer": "Tour the feature/capped-backoff branch against main.",
+      "say": "Resolving the range: git diff main...feature/capped-backoff. Pinning both ends and opening the change dossier."
+    },
+    {
+      "id": "open",
+      "call": "dossier_open",
+      "args": {
+        "workspace": "{{ repo.workspace }}",
+        "selection": { "kind": "committed", "base": "{{ repo.base }}", "head": "{{ repo.head }}" },
+        "actor": "{{ agent }}",
+        "title": "Cap retry backoff"
+      },
+      "match": { "phase": "draft", "requiredNextAction": "prepare", "freshness": "current" }
+    },
+    {
+      "say": "Preflighting the editor bridge.",
+      "call": "tour_status",
+      "args": { "workspace": "{{ repo.workspace }}" },
+      "match": { "ok": true, "protocolVersion": 1, "workspaceFolders": ["{{ repo.workspace }}"] }
+    },
+    {
+      "say": "Recording the thesis, claims, the one design decision, the open risk, and what evidence exists.",
+      "call": "dossier_apply",
+      "args": {
+        "workspace": "{{ repo.workspace }}",
+        "dossierId": "{{ dossierId }}",
+        "expectedRevision": "{{ rev }}",
+        "actor": "{{ agent }}",
+        "commands": [
+          { "type": "SetThesis", "thesis": { "summary": "Retries now back off exponentially with a cap instead of hammering the dependency in a tight loop.", "provenance": "{{ fromCommit }}" } },
+          { "type": "AddClaim", "claim": { "statement": "Backoff delay is capped at policy.maxMs.", "category": "behavior", "provenance": "{{ inferred }}" } },
+          { "type": "AddClaim", "claim": { "statement": "withRetry sleeps between attempts but not after the final one.", "category": "behavior", "provenance": "{{ inferred }}" } },
+          { "type": "AddClaim", "claim": { "statement": "The blocking busy-wait sleep helper is removed.", "category": "cleanup", "provenance": "{{ inferred }}" } },
+          { "type": "AddDecision", "decision": { "chosen": "Pass retry settings as an options object.", "alternatives": ["Keep the positional attempts argument"], "provenance": "{{ inferred }}" } },
+          { "type": "AddRisk", "risk": { "concern": "Callers passing a positional attempts count silently get the default of 3.", "severity": "medium", "provenance": "{{ inferred }}" } },
+          { "type": "AddEvidence", "evidence": { "observation": "test/backoff.test.js covers growth and the cap for delayFor.", "freshness": "current", "provenance": [{ "kind": "repository-observed", "source": { "type": "file", "path": "test/backoff.test.js" } }] } },
+          { "type": "AddEvidence", "evidence": { "observation": "No test exercises withRetry's sleep between attempts.", "freshness": "missing", "provenance": "{{ inferred }}" } },
+          { "type": "AddCodeReference", "codeReference": { "path": "src/backoff.js", "side": "head", "startLine": 6, "endLine": 9, "provenance": "{{ inferred }}" } }
+        ]
+      },
+      "match": { "changed": { "counts": { "claims": 3, "decisions": 1, "risks": 1, "evidence": 2 } }, "warnings": { "$len": 1 } }
+    },
+    {
+      "id": "claims",
+      "call": "dossier_get",
+      "args": { "workspace": "{{ repo.workspace }}", "dossierId": "{{ dossierId }}", "selector": { "kind": "entities", "type": "claims" } },
+      "match": { "entities": { "$len": 3 } }
+    },
+    {
+      "id": "decisions",
+      "call": "dossier_get",
+      "args": { "workspace": "{{ repo.workspace }}", "dossierId": "{{ dossierId }}", "selector": { "kind": "entities", "type": "decisions" } }
+    },
+    {
+      "id": "risks",
+      "call": "dossier_get",
+      "args": { "workspace": "{{ repo.workspace }}", "dossierId": "{{ dossierId }}", "selector": { "kind": "entities", "type": "risks" } }
+    },
+    {
+      "id": "evidence",
+      "call": "dossier_get",
+      "args": { "workspace": "{{ repo.workspace }}", "dossierId": "{{ dossierId }}", "selector": { "kind": "entities", "type": "evidence" } },
+      "match": { "entities": { "$len": 2 } }
+    },
+    {
+      "say": "Grouping the diff into four stops, dependencies first, and marking the dossier prepared.",
+      "call": "dossier_apply",
+      "args": {
+        "workspace": "{{ repo.workspace }}",
+        "dossierId": "{{ dossierId }}",
+        "expectedRevision": "{{ rev }}",
+        "actor": "{{ agent }}",
+        "commands": [
+          {
+            "type": "CreateTourPlan",
+            "title": "Cap retry backoff",
+            "stops": [
+              { "id": "backoff-policy", "title": "Introduce a capped backoff policy", "type": "implementation", "coveredEntityIds": ["{{ steps.claims.entities[statement~capped].id }}"] },
+              { "id": "retry-sleeps", "title": "withRetry sleeps between attempts", "type": "risk", "coveredEntityIds": ["{{ steps.claims.entities[statement~sleeps].id }}", "{{ steps.decisions.entities[0].id }}", "{{ steps.risks.entities[0].id }}"] },
+              { "id": "drop-busy-wait", "title": "Remove the busy-wait sleep", "type": "implementation", "coveredEntityIds": ["{{ steps.claims.entities[statement~busy-wait].id }}"] },
+              { "id": "tests", "title": "What the tests do and don't cover", "type": "evidence", "coveredEntityIds": ["{{ steps.evidence.entities[freshness=current].id }}", "{{ steps.evidence.entities[freshness=missing].id }}"] }
+            ]
+          },
+          { "type": "MarkPrepared" }
+        ]
+      },
+      "match": { "changed": { "phase": "prepared", "counts": { "stops": 4 } } }
+    },
+    {
+      "say": "Briefing: thesis, three unexamined claims, one open medium risk, one piece of evidence missing. Starting the review session.",
+      "call": "dossier_apply",
+      "args": {
+        "workspace": "{{ repo.workspace }}", "dossierId": "{{ dossierId }}", "expectedRevision": "{{ rev }}", "actor": "{{ agent }}",
+        "commands": [{ "type": "StartReviewSession", "reviewer": "{{ reviewer }}" }]
+      }
+    },
+    {
+      "id": "tour",
+      "call": "dossier_get",
+      "args": { "workspace": "{{ repo.workspace }}", "dossierId": "{{ dossierId }}", "selector": { "kind": "tour" } },
+      "capture": { "sessionId": "sessions[0].id" },
+      "match": { "plan": { "stops": { "$len": 4 } }, "sessions": [{ "state": "in_progress" }] }
+    },
+
+    { "say": "Stop 1 of 4 — Introduce a capped backoff policy." },
+    {
+      "call": "dossier_apply",
+      "args": { "workspace": "{{ repo.workspace }}", "dossierId": "{{ dossierId }}", "expectedRevision": "{{ rev }}", "actor": "{{ agent }}",
+        "commands": [{ "type": "StartStop", "sessionId": "{{ sessionId }}", "stopId": "backoff-policy" }] }
+    },
+    {
+      "call": "tour_stop",
+      "args": {
+        "workspace": "{{ repo.workspace }}", "stopId": "backoff-policy", "index": 1, "total": 4,
+        "label": "Introduce a capped backoff policy", "type": "implementation", "mode": "diff",
+        "base": "{{ base }}", "head": "{{ head }}",
+        "files": [{ "path": "src/backoff.js", "ranges": [{ "side": "head", "startLine": 3, "endLine": 11 }] }]
+      },
+      "match": { "ok": true, "opened": ["src/backoff.js"] }
+    },
+    {
+      "say": "The cap lives here, in the policy, rather than in each caller.",
+      "call": "tour_focus",
+      "args": { "workspace": "{{ repo.workspace }}", "path": "src/backoff.js", "side": "head", "startLine": 7, "endLine": 8, "note": "capped at maxMs" },
+      "match": { "revealed": true }
+    },
+    {
+      "reviewer": "Makes sense. Next.",
+      "call": "dossier_apply",
+      "args": { "workspace": "{{ repo.workspace }}", "dossierId": "{{ dossierId }}", "expectedRevision": "{{ rev }}", "actor": "{{ agent }}",
+        "commands": [
+          { "type": "SetClaimDisposition", "claimId": "{{ steps.claims.entities[statement~capped].id }}", "disposition": "supported", "rationale": "Math.min against policy.maxMs." },
+          { "type": "SetStopReviewState", "sessionId": "{{ sessionId }}", "stopId": "backoff-policy", "reviewState": "reviewed" }
+        ] }
+    },
+
+    { "say": "Stop 2 of 4 — withRetry sleeps between attempts. This one carries the signature-change risk." },
+    {
+      "call": "dossier_apply",
+      "args": { "workspace": "{{ repo.workspace }}", "dossierId": "{{ dossierId }}", "expectedRevision": "{{ rev }}", "actor": "{{ agent }}",
+        "commands": [{ "type": "StartStop", "sessionId": "{{ sessionId }}", "stopId": "retry-sleeps" }] }
+    },
+    {
+      "call": "tour_stop",
+      "args": {
+        "workspace": "{{ repo.workspace }}", "stopId": "retry-sleeps", "index": 2, "total": 4,
+        "label": "withRetry sleeps between attempts", "type": "risk", "mode": "diff",
+        "base": "{{ base }}", "head": "{{ head }}",
+        "files": [
+          { "path": "src/retry.js", "ranges": [{ "side": "base", "startLine": 3, "endLine": 3 }, { "side": "head", "startLine": 7, "endLine": 18 }] },
+          { "path": "src/client.js", "ranges": [{ "side": "head", "startLine": 6, "endLine": 6 }] }
+        ]
+      },
+      "match": { "opened": ["src/retry.js", "src/client.js"] }
+    },
+    {
+      "say": "The positional attempts argument became an options object.",
+      "call": "tour_focus",
+      "args": { "workspace": "{{ repo.workspace }}", "path": "src/retry.js", "side": "base", "startLine": 3, "endLine": 3, "note": "old positional signature" }
+    },
+    {
+      "say": "No sleep after the final attempt, so failure isn't delayed for nothing.",
+      "call": "tour_focus",
+      "args": { "workspace": "{{ repo.workspace }}", "path": "src/retry.js", "side": "head", "startLine": 14, "endLine": 14, "note": "skips the last sleep" }
+    },
+    {
+      "reviewer": "Is anything still calling withRetry with a positional count?",
+      "call": "dossier_apply",
+      "args": { "workspace": "{{ repo.workspace }}", "dossierId": "{{ dossierId }}", "expectedRevision": "{{ rev }}", "actor": "{{ agent }}",
+        "commands": [{ "type": "RecordQuestion", "question": { "question": "Is anything still calling withRetry with a positional attempts count?", "relatedEntityIds": ["{{ steps.risks.entities[0].id }}"], "provenance": [{ "kind": "reviewer-stated", "source": { "type": "review-session", "id": "{{ sessionId }}" } }] } }] }
+    },
+    {
+      "id": "questions",
+      "call": "dossier_get",
+      "args": { "workspace": "{{ repo.workspace }}", "dossierId": "{{ dossierId }}", "selector": { "kind": "open-items" } },
+      "match": { "questions": { "$len": 1 }, "risks": { "$len": 1 } }
+    },
+    {
+      "say": "Searched the repository: src/client.js:6 was the only caller and it was updated in this diff.",
+      "call": "dossier_apply",
+      "args": { "workspace": "{{ repo.workspace }}", "dossierId": "{{ dossierId }}", "expectedRevision": "{{ rev }}", "actor": "{{ agent }}",
+        "commands": [
+          { "type": "RecordAnswer", "questionId": "{{ steps.questions.questions[0].id }}", "answer": "src/client.js:6 is the only caller and now passes { attempts: 5 }.", "disposition": "resolved", "provenance": [{ "kind": "repository-observed", "source": { "type": "code-search", "query": "withRetry(" } }] },
+          { "type": "SetRiskDisposition", "riskId": "{{ steps.risks.entities[0].id }}", "disposition": "accepted", "rationale": "No remaining in-repo positional callers." },
+          { "type": "SetClaimDisposition", "claimId": "{{ steps.claims.entities[statement~sleeps].id }}", "disposition": "supported" },
+          { "type": "SetStopReviewState", "sessionId": "{{ sessionId }}", "stopId": "retry-sleeps", "reviewState": "reviewed" }
+        ] }
+    },
+
+    { "say": "Stop 3 of 4 — Remove the busy-wait sleep." },
+    {
+      "call": "dossier_apply",
+      "args": { "workspace": "{{ repo.workspace }}", "dossierId": "{{ dossierId }}", "expectedRevision": "{{ rev }}", "actor": "{{ agent }}",
+        "commands": [{ "type": "StartStop", "sessionId": "{{ sessionId }}", "stopId": "drop-busy-wait" }] }
+    },
+    {
+      "call": "tour_stop",
+      "args": {
+        "workspace": "{{ repo.workspace }}", "stopId": "drop-busy-wait", "index": 3, "total": 4,
+        "label": "Remove the busy-wait sleep", "type": "implementation", "mode": "diff",
+        "base": "{{ base }}", "head": "{{ head }}",
+        "files": [{ "path": "src/legacy-sleep.js", "ranges": [{ "side": "base", "startLine": 3, "endLine": 6 }] }]
+      }
+    },
+    {
+      "say": "This spun the CPU for the whole delay; the new sleep in retry.js yields instead.",
+      "call": "tour_focus",
+      "args": { "workspace": "{{ repo.workspace }}", "path": "src/legacy-sleep.js", "side": "base", "startLine": 5, "endLine": 5, "note": "busy-wait" }
+    },
+    {
+      "reviewer": "Next.",
+      "call": "dossier_apply",
+      "args": { "workspace": "{{ repo.workspace }}", "dossierId": "{{ dossierId }}", "expectedRevision": "{{ rev }}", "actor": "{{ agent }}",
+        "commands": [
+          { "type": "SetClaimDisposition", "claimId": "{{ steps.claims.entities[statement~busy-wait].id }}", "disposition": "supported" },
+          { "type": "SetStopReviewState", "sessionId": "{{ sessionId }}", "stopId": "drop-busy-wait", "reviewState": "reviewed" }
+        ] }
+    },
+
+    { "say": "Stop 4 of 4 — What the tests do and don't cover." },
+    {
+      "call": "dossier_apply",
+      "args": { "workspace": "{{ repo.workspace }}", "dossierId": "{{ dossierId }}", "expectedRevision": "{{ rev }}", "actor": "{{ agent }}",
+        "commands": [{ "type": "StartStop", "sessionId": "{{ sessionId }}", "stopId": "tests" }] }
+    },
+    {
+      "call": "tour_stop",
+      "args": {
+        "workspace": "{{ repo.workspace }}", "stopId": "tests", "index": 4, "total": 4,
+        "label": "What the tests do and don't cover", "type": "evidence", "mode": "diff",
+        "base": "{{ base }}", "head": "{{ head }}",
+        "files": [{ "path": "test/backoff.test.js", "ranges": [{ "side": "head", "startLine": 7, "endLine": 11 }] }]
+      }
+    },
+    {
+      "say": "The cap is asserted directly. Nothing asserts that withRetry actually waits.",
+      "call": "tour_focus",
+      "args": { "workspace": "{{ repo.workspace }}", "path": "test/backoff.test.js", "side": "head", "startLine": 10, "endLine": 10, "note": "cap asserted" }
+    },
+    {
+      "reviewer": "I want a test for the sleep before this merges.",
+      "call": "dossier_apply",
+      "args": { "workspace": "{{ repo.workspace }}", "dossierId": "{{ dossierId }}", "expectedRevision": "{{ rev }}", "actor": "{{ agent }}",
+        "commands": [
+          { "type": "RecordConcern", "concern": { "concern": "No test covers withRetry sleeping between attempts.", "relatedEntityIds": ["{{ steps.evidence.entities[freshness=missing].id }}"], "provenance": [{ "kind": "reviewer-stated", "source": { "type": "review-session", "id": "{{ sessionId }}" } }] } },
+          { "type": "SetStopReviewState", "sessionId": "{{ sessionId }}", "stopId": "tests", "reviewState": "reviewed-with-concern", "note": "Needs a withRetry timing test." }
+        ] }
+    },
+
+    {
+      "say": "Closing out. Roll-up from the dossier:",
+      "call": "dossier_get",
+      "args": { "workspace": "{{ repo.workspace }}", "dossierId": "{{ dossierId }}", "selector": { "kind": "recap", "sessionId": "{{ sessionId }}" } },
+      "match": { "completedStops": { "$len": 4 }, "remainingStops": { "$len": 0 }, "openItems": { "questions": { "$len": 0 }, "concerns": { "$len": 1 }, "risks": { "$len": 0 } }, "freshness": "current" }
+    },
+    {
+      "reviewer": "Changes requested — add the timing test.",
+      "call": "dossier_apply",
+      "args": { "workspace": "{{ repo.workspace }}", "dossierId": "{{ dossierId }}", "expectedRevision": "{{ rev }}", "actor": "{{ agent }}",
+        "commands": [{ "type": "CompleteReviewSession", "sessionId": "{{ sessionId }}", "outcome": "changes-requested" }] }
+    },
+    {
+      "call": "dossier_receipt",
+      "args": { "workspace": "{{ repo.workspace }}", "dossierId": "{{ dossierId }}", "sessionId": "{{ sessionId }}", "mode": "preview", "actor": "{{ agent }}" },
+      "match": { "mode": "preview", "markdown": { "$contains": "Outcome: **changes-requested**" } }
+    },
+    {
+      "reviewer": "Save the receipt.",
+      "call": "dossier_receipt",
+      "args": { "workspace": "{{ repo.workspace }}", "dossierId": "{{ dossierId }}", "sessionId": "{{ sessionId }}", "mode": "emit", "expectedRevision": "{{ rev }}", "actor": "{{ agent }}" },
+      "match": { "mode": "emit", "receiptId": { "$exists": true }, "jsonPath": { "$regex": "\\.json$" }, "markdownPath": { "$regex": "\\.md$" } }
+    },
+    {
+      "call": "dossier_check",
+      "args": { "workspace": "{{ repo.workspace }}", "dossierId": "{{ dossierId }}" },
+      "match": { "ok": true, "eventChainValid": true, "freshness": "current" }
+    },
+    {
+      "say": "Tour complete.",
+      "call": "tour_clear",
+      "args": { "workspace": "{{ repo.workspace }}" },
+      "match": { "ok": true }
+    }
+  ]
+}

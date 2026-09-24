@@ -264,6 +264,8 @@ mcp/               stdio MCP server — editor proxy and dossier service
 editor-extension/  VS Code extension — HTTP server, decorations, diff views
 schemas/           versioned dossier, event, receipt, and tool contracts
 skills/            implementation-capture and walkthrough procedures
+sim/               review simulator — talk to a scripted agent that drives kanko
+e2e/               offline review harness — scripted agent, headless editor, scenarios
 docs/              design spec
 ```
 
@@ -272,6 +274,19 @@ Run the full dependency-free suite with:
 ```sh
 node --test test/*.test.js mcp/test/*.test.js editor-extension/test/*.test.js
 ```
+
+To walk through a kanko review without a model, run the simulator. A
+scripted agent in your terminal drives the extension in VS Code through the
+real MCP server. You can talk to it the way you would the real agent, and a
+gallery jumps VS Code into specific presentation states:
+
+```sh
+node sim/agent.js --open
+```
+
+See [`sim/README.md`](sim/README.md). For CI, [`e2e/`](e2e/README.md) replays
+scripted scenarios against the same stack non-interactively
+(`node e2e/run.js`).
 
 ## Prior art
 

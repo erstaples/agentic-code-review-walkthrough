@@ -1,0 +1,71 @@
+{
+  "name": "timeout-config",
+  "title": "Raise the default timeout",
+  "description": "Uncommitted working-tree change in file mode. Edit a file in VS Code mid-review to see drift detection.",
+  "mode": "working-tree",
+  "repo": {
+    "baseBranch": "main",
+    "base": {
+      "src/config.js": [
+        "\"use strict\";",
+        "",
+        "module.exports = {",
+        "  timeoutMs: 1000,",
+        "  retries: 3,",
+        "};"
+      ]
+    },
+    "worktree": {
+      "src/config.js": [
+        "\"use strict\";",
+        "",
+        "module.exports = {",
+        "  timeoutMs: 5000,",
+        "  retries: 3,",
+        "};"
+      ],
+      "docs/config.md": [
+        "# Configuration",
+        "",
+        "`timeoutMs` defaults to 5 seconds.",
+        "`retries` defaults to 3."
+      ]
+    }
+  },
+  "thesis": "Raise the default request timeout to five seconds and document it.",
+  "entities": {
+    "claims": [
+      { "key": "raised", "statement": "The default timeout is raised to 5000 ms." },
+      { "key": "documented", "statement": "The documented default matches the code." }
+    ]
+  },
+  "stops": [
+    {
+      "id": "timeout",
+      "title": "Raise the default timeout",
+      "type": "implementation",
+      "covers": ["raised"],
+      "files": [{ "path": "src/config.js", "ranges": [{ "side": "working", "startLine": 3, "endLine": 6 }] }],
+      "intro": "An uncommitted edit, so this opens as a working-tree file rather than a pinned diff.",
+      "beats": [
+        { "say": "One second was too tight for the slow path. Five is the new default.", "focus": { "path": "src/config.js", "side": "working", "startLine": 4, "endLine": 4, "note": "1000 → 5000" } }
+      ],
+      "qa": [
+        { "keywords": ["why", "5", "five", "slow"], "answer": "Inferred from the change alone: one second was below the slow path's p99. There's no commit message yet, because this work is uncommitted." }
+      ]
+    },
+    {
+      "id": "docs",
+      "title": "Document the defaults",
+      "type": "implementation",
+      "covers": ["documented"],
+      "files": [{ "path": "docs/config.md", "ranges": [{ "side": "working", "startLine": 1, "endLine": 4 }] }],
+      "intro": "A new, untracked file. Working-tree tours include untracked files by default.",
+      "beats": [
+        { "say": "The doc states the new default. Try editing src/config.js in VS Code now, then say next: I'll detect the drift when I record the stop.", "focus": { "path": "docs/config.md", "side": "working", "startLine": 3, "endLine": 3, "note": "must match src/config.js:4" } }
+      ]
+    }
+  ],
+  "qa": [],
+  "closing": "A one-line default change plus its documentation."
+}
