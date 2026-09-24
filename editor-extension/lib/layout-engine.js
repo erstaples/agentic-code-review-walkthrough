@@ -11,7 +11,7 @@ function createLayoutEngine(vscode, opener) {
   // viewColumn is the current visual leaf order; tab identity survives moves.
   const groups = () => [...vscode.window.tabGroups.all].sort((a, b) => a.viewColumn - b.viewColumn);
   const config = () => vscode.workspace.getConfiguration("kanko.layout");
-  const cap = () => Math.max(2, Math.min(4, Number(config().get("maxGroups", 3)) || 3));
+  const cap = () => Math.max(2, Math.min(4, Math.floor(Number(config().get("maxGroups", 3)) || 3)));
   const recordForTab = tab => records.find(r => uriKey(tab?.input?.uri) === uriKey(r.target) && tab?.input?.uri ||
     (tab?.input?.modified && uriKey(tab.input.modified) === uriKey(r.target) && uriKey(tab.input.original) === uriKey(r.base)));
   const visible = r => groups().find(g => recordForTab(g.activeTab)?.target.toString() === r.target.toString());
@@ -72,7 +72,7 @@ function createLayoutEngine(vscode, opener) {
     activity.set(entry.tab, ++clock); return entry;
   }
   const unique = wanted => wanted.filter((r, i) => wanted.findIndex(other => token(other) === token(r)) === i);
-  function safeToReshape() { return !customized; }
+  function safeToReshape() { return !customized && pins.size === 0; }
   function safeToCollapse() { return !customized && pins.size === 0 && groups().every(g => g.tabs.every(t => opener.disposable(t))); }
   async function begin(state, nextRecords) {
     await observe();

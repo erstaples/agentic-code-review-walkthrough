@@ -262,6 +262,22 @@ module.exports = function register({ test, before }) {
     assert.equal(s.presentation.layout.shape,'columns');record('columns',s);
     await vscode.workspace.getConfiguration('workbench.editor').update('closeEmptyGroups',undefined,vscode.ConfigurationTarget.Workspace);
   });
+  test('customized companion groups survive native empty-group cleanup and pins block growth',async()=>{
+    await api('kanko_tour_clear');
+    await vscode.commands.executeCommand('workbench.action.closeAllEditors');
+    await vscode.commands.executeCommand('workbench.action.editorLayoutSingle');
+    await vscode.workspace.getConfiguration('workbench.editor').update('closeEmptyGroups',true,vscode.ConfigurationTarget.Workspace);
+    await load();
+    await vscode.commands.executeCommand('vscode.setEditorLayout',{orientation:1,groups:[{size:.6},{size:.4,groups:[{},{}]}]});
+    const before=await vscode.commands.executeCommand('vscode.getEditorLayout');
+    const r=await api('kanko_tour_navigate',{action:'nextBeat'});
+    assert.deepEqual(await vscode.commands.executeCommand('vscode.getEditorLayout'),before);
+    assert.equal(r.snapshot.presentation.layout.customized,true);record('custom-companion-retained',r.snapshot);
+    await layoutFixture({cap:4});await layoutCommand({action:'pin',anchor:1,pinned:true});
+    const pinned=await api('kanko_tour_navigate',{action:'goto',stopId:'layout',beatId:'four'});
+    assert.equal(vscode.window.tabGroups.all.length,2);assert.equal(pinned.snapshot.presentation.anchors.find(a=>a.n===1).status,'visible');record('pin-blocks-growth',pinned.snapshot);
+    await vscode.workspace.getConfiguration('workbench.editor').update('closeEmptyGroups',undefined,vscode.ConfigurationTarget.Workspace);
+  });
   test('cramped long sources use Sequence and the one-click override restores multiple groups',async()=>{
     await vscode.workspace.getConfiguration('editor').update('fontSize',38,vscode.ConfigurationTarget.Workspace);
     let s=await layoutFixture({beat:'long',sequence:true});

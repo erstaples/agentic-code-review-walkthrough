@@ -15,7 +15,7 @@ All-pinned layouts report missing anchors in `layout.unplaced` without opening t
 
 A reviewer move, split, close, active-tab change or splitter resize makes the
 arrangement customized. Following can fill or replace eligible slots but cannot
-reshape it. Scrolling does not count as customization. Exploring and Paused do
+reshape it. Tour pins also prevent automatic growth. Scrolling does not count as customization. Exploring and Paused do
 not automatically open, close or reshape editors; an explicit focus/placement
 request is still a reviewer action. Native pinned, dirty, kept and reviewer-owned
 preview tabs are protected. Tour pins survive automatic cleanup; ending a tour

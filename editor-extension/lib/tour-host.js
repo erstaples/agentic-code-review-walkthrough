@@ -108,7 +108,12 @@ function createTourHost(vscode, { changed = () => {}, explore = () => {} } = {})
       const active = [...new Set([state.selectedAnchor, ...beat.active].filter(Boolean))];
       if (state.mode === "following" || focus) {
         await layout.transaction(async () => {
+          // Closing the last preview can remove a native group. Do not change
+          // reviewer geometry as a side effect of cleanup; replacement will
+          // retire an eligible preview when that slot is actually needed.
+          if (layout.snapshot().customized) return;
           const targets = new Set(records.map(r => key(r.target)));
+          for (const record of records) if (record.companion && representative(record) === record && active.includes(record.anchor.n)) targets.add(key(record.base));
           await opener.closeExcept(tab => layout.isPinnedTab(tab) || targets.has(key(tab.input?.uri)) || targets.has(key(tab.input?.modified)));
         });
         const requested = (focus && state.mode !== "following" ? [state.selectedAnchor] : active).map(n => records.find(r => r.anchor.n === n));

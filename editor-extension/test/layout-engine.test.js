@@ -48,3 +48,7 @@ test('Sequence collapses only untouched engine arrangements and override prevent
   const f=fixture();f.vscode.window.visibleTextEditors=[{document:{lineCount:100},visibleRanges:[{start:{line:0},end:{line:10}}]}];await f.apply(1,2);assert.equal(f.engine.snapshot().sequence,true);assert.equal(f.groups.length,1);await f.engine.action({action:'overrideSequence'},f.state);await f.apply(1,2);assert.equal(f.groups.length,2);assert.equal(f.engine.snapshot().sequence,false);
   const pinned=fixture();await pinned.apply(1,2);await pinned.engine.action({action:'pin',anchor:1,pinned:true},pinned.state);pinned.vscode.window.visibleTextEditors=f.vscode.window.visibleTextEditors;await pinned.apply(2,3);assert.equal(pinned.engine.snapshot().sequence,false);
 });
+
+test('a pin prevents automatic shape growth even below the cap',async()=>{
+  const f=fixture({cap:4});await f.apply(1,2);await f.engine.action({action:'pin',anchor:1,pinned:true},f.state);await f.apply(1,2,3);assert.equal(f.groups.length,2);assert.deepEqual(f.engine.snapshot().unplaced,[3]);
+});
