@@ -1,9 +1,9 @@
 {
-  "tour_status": {
+  "kanko_tour_status": {
     "requests": [
       {
         "query": {
-          "protocolVersion": 2
+          "protocolVersion": 3
         },
         "body": {}
       }
@@ -11,7 +11,7 @@
     "responses": [
       {
         "ok": true,
-        "protocolVersion": 2,
+        "protocolVersion": 3,
         "extensionVersion": "0.1.0",
         "ideName": "Visual Studio Code",
         "workspaceFolders": [
@@ -31,11 +31,11 @@
       }
     ]
   },
-  "tour_clear": {
+  "kanko_tour_clear": {
     "requests": [
       {
         "body": {
-          "protocolVersion": 2
+          "protocolVersion": 3
         }
       }
     ],
@@ -45,15 +45,15 @@
       }
     ]
   },
-  "relay_load_tour": {
+  "kanko_tour_load": {
     "requests": [
       {
         "method": "POST",
         "path": "/tour/load",
         "body": {
-          "protocolVersion": 2,
+          "protocolVersion": 3,
           "workspace": "/repo",
-          "tourId": "dossier",
+          "tourId": "map",
           "plan": {
             "presentationVersion": 2,
             "stops": []
@@ -71,13 +71,13 @@
       }
     ]
   },
-  "relay_navigate": {
+  "kanko_tour_navigate": {
     "requests": [
       {
         "method": "POST",
         "path": "/tour/navigate",
         "body": {
-          "protocolVersion": 2,
+          "protocolVersion": 3,
           "workspace": "/repo",
           "action": "nextBeat"
         }
@@ -93,13 +93,13 @@
       }
     ]
   },
-  "relay_set_state": {
+  "kanko_tour_set_state": {
     "requests": [
       {
         "method": "POST",
         "path": "/tour/state",
         "body": {
-          "protocolVersion": 2,
+          "protocolVersion": 3,
           "workspace": "/repo",
           "mode": "exploring"
         }

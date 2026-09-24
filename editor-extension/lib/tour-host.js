@@ -14,7 +14,7 @@ function createTourHost(vscode, { changed = () => {}, explore = () => {} } = {})
   let current = null, records = [], navigating = 0, timer;
   const key = uri => uri?.toString();
   const opener = createAnchorOpener(vscode, schedule);
-  const settings = () => vscode.workspace.getConfiguration("relay.presentation");
+  const settings = () => vscode.workspace.getConfiguration("kanko.presentation");
   const inline = () => { const c = vscode.workspace.getConfiguration("diffEditor"); return !c.get("renderSideBySide", true) || c.get("useInlineViewWhenSpaceIsLimited", true); };
   function prepare(body) {
     try {
@@ -22,7 +22,7 @@ function createTourHost(vscode, { changed = () => {}, explore = () => {} } = {})
       const workspace = fs.realpathSync(body.workspace);
       if (!(vscode.workspace.workspaceFolders || []).some((f) => fs.realpathSync(f.uri.fsPath) === workspace)) throw new Error("The tour workspace is not open in this window.");
       const source = tourSources(workspace, body.change);
-      const checked = validateTourPlan(body.plan, { ...source, claims: body.claims, hardLimit: vscode.workspace.getConfiguration("relay.tour").get("anchorLimit", 24) });
+      const checked = validateTourPlan(body.plan, { ...source, claims: body.claims, hardLimit: vscode.workspace.getConfiguration("kanko.tour").get("anchorLimit", 24) });
       if (!checked.ok) throw Object.assign(new Error("Fix tour validation findings before loading."), { details: { findings: checked.findings } });
       const texts = new Map();
       for (const stop of checked.plan.stops) for (const anchor of stop.anchors) if (!texts.has(anchor.path)) texts.set(anchor.path, source.readSource(anchor));
@@ -69,8 +69,8 @@ function createTourHost(vscode, { changed = () => {}, explore = () => {} } = {})
           // Command links cross a JSON boundary. Resolve the current anchor in
           // the extension so showReferences receives actual API value objects.
           const args = [current.tourId, current.stopIndex, anchor.n, f.range.startLine, f.range.endLine];
-          hover.appendMarkdown(`[Peek removed code](command:relay.tour.peekRemoved?${encodeURIComponent(JSON.stringify(args))})`);
-          hover.isTrusted = { enabledCommands: ["relay.tour.peekRemoved"] };
+          hover.appendMarkdown(`[Peek removed code](command:kanko.tour.peekRemoved?${encodeURIComponent(JSON.stringify(args))})`);
+          hover.isTrusted = { enabledCommands: ["kanko.tour.peekRemoved"] };
           return [{ line, hover, label: `${anchorNumber(anchor.n)} ${f.range.endLine - f.range.startLine + 1} lines removed · ${record.companion ? "shown beside" : "peek"}` }];
         }) : [];
         registry.forAnchor(anchor.n).paint(editor, { context: [context], focus, seams, removedLines: side === "base" && record.companion ? removedBaseLines0(hunks) : [],
@@ -132,7 +132,7 @@ function createTourHost(vscode, { changed = () => {}, explore = () => {} } = {})
     } finally { navigating--; }
   }
   const subscriptions = [
-    vscode.commands.registerCommand("relay.tour.peekRemoved", async (tourId, stopIndex, n, startLine, endLine) => {
+    vscode.commands.registerCommand("kanko.tour.peekRemoved", async (tourId, stopIndex, n, startLine, endLine) => {
       if (!current || current.tourId !== tourId || current.stopIndex !== stopIndex || current.mode === "paused") return;
       const record = records.find(r => r.anchor.n === n);
       if (!record || stale(record) || !record.anchor.focus.some(f => f.side === "base" && f.range.startLine === startLine && f.range.endLine === endLine)) return;
@@ -148,11 +148,11 @@ function createTourHost(vscode, { changed = () => {}, explore = () => {} } = {})
       const record = orderedRecords().find(r => key(r.target) === key(uri) || (r.companion && key(r.base) === key(uri)));
       if (!record) return;
       const a = record.anchor;
-      return { badge: String(a.n), color: new vscode.ThemeColor(`relay.anchor${colorIndex(a.n)}`), tooltip: `Stop ${current.stopIndex + 1} · ${a.n} ${a.label}${stale(record) ? " · source changed" : ""}` };
+      return { badge: String(a.n), color: new vscode.ThemeColor(`kanko.anchor${colorIndex(a.n)}`), tooltip: `Stop ${current.stopIndex + 1} · ${a.n} ${a.label}${stale(record) ? " · source changed" : ""}` };
     } }),
     vscode.window.onDidChangeVisibleTextEditors(schedule),
     vscode.workspace.onDidChangeTextDocument(schedule),
-    vscode.workspace.onDidChangeConfiguration(e => { if (e.affectsConfiguration("relay.presentation") || e.affectsConfiguration("diffEditor")) schedule(); }),
+    vscode.workspace.onDidChangeConfiguration(e => { if (e.affectsConfiguration("kanko.presentation") || e.affectsConfiguration("diffEditor")) schedule(); }),
     vscode.window.onDidChangeTextEditorSelection(e => { if ([vscode.TextEditorSelectionChangeKind.Keyboard, vscode.TextEditorSelectionChangeKind.Mouse].includes(e.kind) && !navigating && current?.mode === "following") explore(); }),
     badgeEvents,
   ];

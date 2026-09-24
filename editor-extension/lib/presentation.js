@@ -10,7 +10,7 @@ function createPresentation(vscode, editor, store, sideResolver, git = require("
   let navigating = 0;
   let repaintTimer, driftTimer;
   const cache = new Map(), companions = new Map();
-  const config = () => vscode.workspace.getConfiguration("relay.presentation");
+  const config = () => vscode.workspace.getConfiguration("kanko.presentation");
   // VS Code 1.139 exposes original TextEditors (and visibleRanges) even in
   // inline mode. Presence alone cannot prove the original is on screen.
   // In automatic layout, conservatively provide the requested fallback.
@@ -23,7 +23,7 @@ function createPresentation(vscode, editor, store, sideResolver, git = require("
   const repaint = () => editor.applyAll(store, sideResolver);
   const tabs = () => vscode.window.tabGroups.all.flatMap((g) => g.tabs.map((tab) => ({ tab, group: g.viewColumn })));
 
-  const provider = vscode.workspace.registerTextDocumentContentProvider("relay-rev", {
+  const provider = vscode.workspace.registerTextDocumentContentProvider("kanko-rev", {
     provideTextDocumentContent(uri) {
       const q = JSON.parse(uri.query);
       const root = editor.workspaceRoot();
@@ -35,9 +35,9 @@ function createPresentation(vscode, editor, store, sideResolver, git = require("
 
   function revisionUri(source, ref, canonical, companion = false, empty = false) {
     const root = editor.workspaceRoot();
-    return vscode.Uri.file(path.join(root, source)).with({ scheme: "relay-rev", query: JSON.stringify({
+    return vscode.Uri.file(path.join(root, source)).with({ scheme: "kanko-rev", query: JSON.stringify({
       path: path.join(root, source), canonicalPath: path.join(root, canonical), ref,
-      ...(companion ? { relay: "companion" } : {}),
+      ...(companion ? { kanko: "companion" } : {}),
       ...(empty ? { empty: true } : {}),
     }) });
   }
@@ -161,9 +161,9 @@ function createPresentation(vscode, editor, store, sideResolver, git = require("
       const contextSide = ["worktree", "working"].includes(a.side) ? "head" : a.side;
       const narrationHover = hover(beat.label);
       for (const id of beat.claimIds) {
-        narrationHover.appendMarkdown(`\n\n[Open claim](command:relay.presentation.openClaim?${encodeURIComponent(JSON.stringify([id]))})`);
+        narrationHover.appendMarkdown(`\n\n[Open claim](command:kanko.presentation.openClaim?${encodeURIComponent(JSON.stringify([id]))})`);
       }
-      narrationHover.isTrusted = { enabledCommands: ["relay.presentation.openClaim"] };
+      narrationHover.isTrusted = { enabledCommands: ["kanko.presentation.openClaim"] };
       for (const side of ["base", "head"]) {
         const focus = a.focus.filter((f) => f.side === side).map((f) => f.range);
         const context = side === contextSide ? a.context : mapRange(a.context, hunks, contextSide);
@@ -208,7 +208,7 @@ function createPresentation(vscode, editor, store, sideResolver, git = require("
   const report = (err) => vscode.window.showWarningMessage(`Tour presentation: ${err.message}`);
   const subscriptions = [provider,
     vscode.window.onDidChangeVisibleTextEditors(schedule),
-    vscode.workspace.onDidChangeConfiguration((e) => { if (e.affectsConfiguration("diffEditor") || e.affectsConfiguration("relay.presentation")) schedule(); }),
+    vscode.workspace.onDidChangeConfiguration((e) => { if (e.affectsConfiguration("diffEditor") || e.affectsConfiguration("kanko.presentation")) schedule(); }),
     vscode.workspace.onDidChangeTextDocument((e) => {
       if (!active || !["worktree", "working"].includes(active.anchor.side) || editor.describe({ document: e.document })?.path !== active.anchor.path) return;
       const beat = active;

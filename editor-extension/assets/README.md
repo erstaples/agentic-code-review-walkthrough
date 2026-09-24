@@ -1,4 +1,4 @@
-# kanko — One in context
+# Kankō — One in context
 
 The selected identity combines a left guide rail and pointer, three code lines with the middle line emphasized, and open framing corners on the right.
 

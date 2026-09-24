@@ -74,7 +74,7 @@ test("inline focus opens a diff plus a marked companion with mapped rails and re
   await f.presentation.activate(f.anchor, f.stop, "removed claim");
   assert.ok(f.calls.includes("vscode.diff"));
   const shown = f.calls.find((c) => c.show);
-  assert.equal(JSON.parse(shown.show.query).relay, "companion");
+  assert.equal(JSON.parse(shown.show.query).kanko, "companion");
   assert.equal(JSON.parse(shown.show.query).path, "/repo/old.js");
   assert.equal(shown.options.preserveFocus, true);
   assert.deepEqual(f.store.paintFor("a.js", "base").context, [{ startLine: 1, endLine: 3 }]);
@@ -91,8 +91,8 @@ test("side-by-side layout paints both sides without opening a companion", async 
   assert.equal(f.calls.filter((c) => c.show).length, 0);
   assert.equal(f.store.paintFor("a.js", "head").seams.length, 0);
   assert.equal(f.store.paintFor("a.js", "base").focus.length, 1);
-  assert.match(f.store.paintFor("a.js", "base").hover.value, /command:relay.presentation.openClaim/);
-  assert.deepEqual(f.store.paintFor("a.js", "base").hover.isTrusted.enabledCommands, ["relay.presentation.openClaim"]);
+  assert.match(f.store.paintFor("a.js", "base").hover.value, /command:kanko.presentation.openClaim/);
+  assert.deepEqual(f.store.paintFor("a.js", "base").hover.isTrusted.enabledCommands, ["kanko.presentation.openClaim"]);
 });
 
 test("seam preference uses an allowlisted peek link and no companion", async (t) => {

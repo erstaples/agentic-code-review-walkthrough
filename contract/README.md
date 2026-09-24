@@ -14,11 +14,11 @@ after any change here. `test/contract.test.js` fails if the copy drifts.
 Changing anything in this directory is a protocol change: bump
 `PROTOCOL_VERSION` and update both sides.
 
-Protocol 2 exposes `/tour/load`, `/tour/navigate`, `/tour/state`, `/status`, and
+Protocol 3 exposes `/tour/load`, `/tour/navigate`, `/tour/state`, `/status`, and
 `/clear`. There are no compatibility routes for the former stop/focus workflow.
-The dossier MCP operation resolves the current plan and source manifest before
+The review map MCP operation resolves the current plan and source manifest before
 sending a load payload. The extension independently validates its sources.
 
-`tour.js`, `tour-sources.js`, and `narration.js` are shared by the dossier service
+`tour.js`, `tour-sources.js`, and `narration.js` are shared by the review map service
 and extension. The sync script copies them into the VSIX; tests compare the
 packaged source byte for byte (apart from the validator import name).

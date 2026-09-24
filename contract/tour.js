@@ -1,6 +1,6 @@
 "use strict";
 
-// Shared by dossier authoring and the future editor loader. No editor operations.
+// Shared by review map authoring and the future editor loader. No editor operations.
 const { createHash } = require("node:crypto");
 const ROLES = ["change", "evidence", "callee", "caller", "config", "schema", "context"];
 const LIMITS = { recommended: 7, hard: 24, maximum: 99, active: 3 };
@@ -64,7 +64,7 @@ function validateTourPlan(input, options = {}) {
       if (!["diff", "head", "base"].includes(anchor.view)) error("invalid_view", `${aloc}.view`, "View must be diff, head, or base.");
       if (!["modified", "added", "deleted", "unchanged"].includes(anchor.change)) error("invalid_change", `${aloc}.change`, "Change must be modified, added, deleted, or unchanged.");
       if (!object(anchor.rev) || !nonempty(anchor.rev.base) || !nonempty(anchor.rev.head)) error("invalid_revision", `${aloc}.rev`, "Provide both base and head revision identities.");
-      if (options.revisions && (anchor.rev?.base !== options.revisions.base || anchor.rev?.head !== options.revisions.head)) error("revision_mismatch", `${aloc}.rev`, "Use the dossier's pinned base and head revisions.");
+      if (options.revisions && (anchor.rev?.base !== options.revisions.base || anchor.rev?.head !== options.revisions.head)) error("revision_mismatch", `${aloc}.rev`, "Use the review map's pinned base and head revisions.");
       anchor.side ??= anchor.view === "base" || anchor.change === "deleted" ? "base" : "head";
       if (!["base", "head"].includes(anchor.side) || (anchor.view !== "diff" && anchor.view !== anchor.side)) error("invalid_side", `${aloc}.side`, "Context side must be base or head and agree with a single-side view.");
       if (!validRange(anchor.context)) error("invalid_range", `${aloc}.context`, "Context must be a 1-based inclusive line range.");

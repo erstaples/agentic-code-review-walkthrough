@@ -1,21 +1,34 @@
 {
-  "name": "code-review-walkthrough",
-  "owner": { "name": "erstaples", "url": "https://github.com/erstaples" },
+  "name": "kanko",
+  "owner": {
+    "name": "Kankō",
+    "url": "https://github.com/getkanko"
+  },
   "metadata": {
     "description": "Persistent, evidence-backed, editor-driven walkthroughs of a code diff",
-    "version": "0.2.0"
+    "version": "0.1.0"
   },
   "plugins": [
     {
-      "name": "tour-changes",
+      "name": "kanko",
       "source": "./",
-      "description": "Walks through a diff with editor navigation and a persistent, evidence-backed living change dossier.",
-      "version": "0.2.0",
-      "author": { "name": "erstaples", "url": "https://github.com/erstaples" },
-      "homepage": "https://github.com/erstaples/claude-code-review-walkthrough",
-      "repository": "https://github.com/erstaples/claude-code-review-walkthrough",
+      "description": "Build a review map of code changes, then walk through it with editor navigation and evidence.",
+      "version": "0.1.0",
+      "author": {
+        "name": "Kankō",
+        "url": "https://github.com/getkanko"
+      },
+      "homepage": "https://github.com/getkanko/kanko",
+      "repository": "https://github.com/getkanko/kanko",
       "license": "MIT",
-      "keywords": ["code-review", "walkthrough", "diff", "vscode", "tour", "dossier"],
+      "keywords": [
+        "code-review",
+        "walkthrough",
+        "diff",
+        "vscode",
+        "tour",
+        "review-map"
+      ],
       "category": "productivity"
     }
   ]

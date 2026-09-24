@@ -2,7 +2,7 @@
 
 // Decorations are owned by one activation, never by an individual editor.
 function createPresenter(vscode, color) {
-  const theme = name => color ? (name === "labelBackground" || name === "labelForeground" ? `relay.anchor${color}.${name}` : `relay.anchor${color}`) : `relay.presenter${name[0].toUpperCase()}${name.slice(1)}`;
+  const theme = name => color ? (name === "labelBackground" || name === "labelForeground" ? `kanko.anchor${color}.${name}` : `kanko.anchor${color}`) : `kanko.presenter${name[0].toUpperCase()}${name.slice(1)}`;
   const tc = (id) => new vscode.ThemeColor(id);
   const type = (options) => vscode.window.createTextEditorDecorationType(options);
   const border = (width, color = theme("focus"), style = "solid") => type({

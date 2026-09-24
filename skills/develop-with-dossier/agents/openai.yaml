@@ -1,4 +1,0 @@
-interface:
-  display_name: "Develop with Dossier"
-  short_description: "Build changes with a durable decision record"
-  default_prompt: "Use $develop-with-dossier to implement this change while preserving requirements, decisions, risks, and evidence."

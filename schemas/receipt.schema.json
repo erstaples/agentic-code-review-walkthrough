@@ -1,13 +1,13 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://erstaples.dev/tour-changes/schemas/receipt.schema.json",
-  "title": "Living change dossier review receipt",
+  "$id": "https://getkanko.dev/kanko/schemas/receipt.schema.json",
+  "title": "Review map review receipt",
   "type": "object",
-  "required": ["schemaVersion", "producerVersion", "id", "dossierId", "reviewSessionId", "changeRevisionId", "changeIdentity", "aggregateRevision", "eventHash", "createdAt", "outcome", "claims", "risks", "evidence", "stops", "questions", "digest"],
+  "required": ["schemaVersion", "producerVersion", "id", "mapId", "reviewSessionId", "changeRevisionId", "changeIdentity", "aggregateRevision", "eventHash", "createdAt", "outcome", "claims", "risks", "evidence", "stops", "questions", "digest"],
   "properties": {
-    "schemaVersion": { "const": 1 },
+    "schemaVersion": { "const": 2 },
     "id": { "type": "string", "pattern": "^rcp_[0-9a-f-]+$" },
-    "dossierId": { "type": "string", "pattern": "^dos_[0-9a-f-]+$" },
+    "mapId": { "type": "string", "pattern": "^map_[0-9a-f-]+$" },
     "reviewSessionId": { "type": "string", "pattern": "^ses_[0-9a-f-]+$" },
     "changeRevisionId": { "type": "string", "pattern": "^rev_[0-9a-f-]+$" },
     "producerVersion": { "type": "string" },

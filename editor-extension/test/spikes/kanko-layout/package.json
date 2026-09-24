@@ -1,0 +1,20 @@
+{
+  "name": "kanko-layout-spike",
+  "publisher": "kanko-test",
+  "version": "0.0.0",
+  "engines": { "vscode": "^1.90.0" },
+  "main": "./extension.js",
+  "activationEvents": ["onStartupFinished"],
+  "contributes": {
+    "viewsContainers": {
+      "secondarySidebar": [{ "id": "kankoSpike", "title": "Kankō API Spike", "icon": "icon.svg" }]
+    },
+    "views": { "kankoSpike": [{ "id": "kankoSpike.panel", "name": "Verification", "type": "webview" }] },
+    "commands": [{ "command": "kankoSpike.quickPick", "title": "Kankō Spike: Anchor Quick Pick" }],
+    "keybindings": [
+      { "command": "kankoSpike.quickPick", "key": "alt+0", "when": "!inQuickOpen" },
+      { "command": "kankoSpike.peek", "key": "alt+enter", "when": "inQuickOpen && kankoSpike.quickPickOpen" },
+      { "command": "kankoSpike.replace", "key": "shift+enter", "when": "inQuickOpen && kankoSpike.quickPickOpen" }
+    ]
+  }
+}

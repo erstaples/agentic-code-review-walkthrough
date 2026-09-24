@@ -3,11 +3,11 @@ const fs = require('node:fs');
 const os = require('node:os');
 const path = require('node:path');
 const cp = require('node:child_process');
-const { DossierService } = require('../../../mcp/lib/dossier/service.js');
+const { ReviewMapService } = require('../../../mcp/lib/review-map/service.js');
 const { tourSources } = require('../../../contract/tour-sources.js');
 const { hashText, rangeText } = require('../../../contract/tour.js');
 function createFixture() {
-  const root = fs.realpathSync(fs.mkdtempSync(path.join(os.tmpdir(), 'relay-tour-')));
+  const root = fs.realpathSync(fs.mkdtempSync(path.join(os.tmpdir(), 'kanko-tour-')));
   const workspace = path.join(root, 'workspace'); fs.mkdirSync(workspace);
   const git = (...args) => cp.execFileSync('git', ['-C', workspace, ...args], { encoding: 'utf8' }).trim();
   const write = (file, text) => fs.writeFileSync(path.join(workspace, file), text);
@@ -15,12 +15,12 @@ function createFixture() {
   const serviceText = `export function loadTour(candidate, current) {\n  const findings = validateTour(candidate);\n\n  // Preserve the current display when validation fails.\n  if (findings.some(item => item.severity === 'error')) {\n    return { ok: false, findings, current };\n  }\n\n  const tour = normalizeAnchors(candidate);\n  return { ok: true, findings, current: tour };\n}\n\nfunction validateTour(tour) {\n  return tour.validationFindings ?? [];\n}\n\nfunction normalizeAnchors(tour) {\n  return { ...tour, validated: true };\n}\n`;
   write('service.js', serviceText.replace('return { ok: false, findings, current };', 'return { ok: false, findings, current: null };'));
   write('retired.js', 'export function openBeforeValidation(tour) {\n  openEditors(tour);\n  return validateTour(tour);\n}\n');
-  git('add', '.'); git('-c', 'user.name=Relay Fixture', '-c', 'user.email=fixture@example.invalid', 'commit', '-qm', 'base'); const base = git('rev-parse', 'HEAD');
+  git('add', '.'); git('-c', 'user.name=Kankō Fixture', '-c', 'user.email=fixture@example.invalid', 'commit', '-qm', 'base'); const base = git('rev-parse', 'HEAD');
   write('service.js', serviceText);
   write('service.test.js', `import assert from 'node:assert/strict';\nimport { loadTour } from './service.js';\n\nconst current = { id: 'review-in-progress' };\nconst invalid = { validationFindings: [\n  { severity: 'error', code: 'missing_anchor' },\n] };\n\nconst result = loadTour(invalid, current);\nassert.equal(result.ok, false);\nassert.equal(result.current, current);\nassert.equal(result.findings[0].code, 'missing_anchor');\n\n// A valid candidate can replace the presentation.\nconst next = loadTour({ id: 'validated-tour' }, current);\nassert.equal(next.ok, true);\nassert.equal(next.current.validated, true);\n`);
   write('navigation.js', `export function nextBeat(state) {\n  const next = state.beatIndex + 1;\n  if (next >= state.stop.beats.length) {\n    return nextStop(state);\n  }\n  return { ...state, beatIndex: next };\n}\n\nexport function pause(state) {\n  return { ...state, mode: 'paused' };\n}\n`);
-  fs.unlinkSync(path.join(workspace, 'retired.js')); git('add', '-A'); git('-c', 'user.name=Relay Fixture', '-c', 'user.email=fixture@example.invalid', 'commit', '-qm', 'head'); const head = git('rev-parse', 'HEAD');
-  const stateRoot = path.join(root, 'dossiers'), service = new DossierService({ root: stateRoot });
+  fs.unlinkSync(path.join(workspace, 'retired.js')); git('add', '-A'); git('-c', 'user.name=Kankō Fixture', '-c', 'user.email=fixture@example.invalid', 'commit', '-qm', 'head'); const head = git('rev-parse', 'HEAD');
+  const stateRoot = path.join(root, 'maps'), service = new ReviewMapService({ root: stateRoot });
   const actor = { kind: 'agent', id: 'fixture' }, provenance = [{ kind: 'execution-observed', source: { type: 'fixture' } }];
   const opened = service.open({ workspace, selection: { kind: 'committed', base, head }, actor, title: 'A review that stays on track' });
   const sources = tourSources(workspace, opened.changeRevision);
@@ -30,7 +30,7 @@ function createFixture() {
     if (file === 'service.js' && startLine === 1) a.focus = [{ side: 'head', range: {startLine:5,endLine:7} }, { side:'base', range:{startLine:6,endLine:6}, kind:'removed' }];
     return a;
   }
-  service.apply({ workspace, dossierId: opened.dossierId, expectedRevision: 1, actor, commands: [
+  service.apply({ workspace, mapId: opened.mapId, expectedRevision: 1, actor, commands: [
     { type: 'SetThesis', thesis: { summary: 'Reject invalid tours before changing the editor.', provenance } },
     { type: 'AddClaim', entity: { id: 'claim_guard', statement: 'Rejected candidates leave the current review intact.', truthStatus: 'observed', provenance } },
     { type: 'CreateTourPlan', presentationVersion: 2, title: 'A review that stays on track', stops: [
@@ -46,7 +46,7 @@ function createFixture() {
       ] }
     ] }, { type: 'MarkPrepared' }
   ] });
-  const result = { root, workspace, stateRoot, dossierId: opened.dossierId, base, head };
+  const result = { root, workspace, stateRoot, mapId: opened.mapId, base, head };
   fs.writeFileSync(path.join(root, 'fixture.json'), JSON.stringify(result)); return result;
 }
 module.exports = { createFixture };

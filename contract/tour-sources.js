@@ -77,7 +77,7 @@ function tourSources(workspace, change) {
       const stat = fs.lstatSync(absolute);
       invariant(stat.isFile() || stat.isSymbolicLink(), "invalid_source", "anchor source is not a file");
       const bytes = stat.isSymbolicLink() ? Buffer.from(fs.readlinkSync(absolute)) : fs.readFileSync(absolute);
-      invariant(digest(bytes) === file.working.digest, "stale_change", "working source changed; refresh the dossier");
+      invariant(digest(bytes) === file.working.digest, "stale_change", "working source changed; refresh the review map");
       return bytes;
     }
     if (file.staged) {
@@ -91,7 +91,7 @@ function tourSources(workspace, change) {
     repositoryPaths: [...new Set([...baseTree.keys(), ...headTree.keys(), ...selected.keys()])],
     readSource(anchor) {
       invariant(validPath(anchor.path), "invalid_path", "anchor path must stay inside the repository");
-      invariant(anchor.rev.base === revisions.base && anchor.rev.head === revisions.head, "revision_mismatch", "anchor revisions do not match this dossier");
+      invariant(anchor.rev.base === revisions.base && anchor.rev.head === revisions.head, "revision_mismatch", "anchor revisions do not match this review map");
       const basePath = renames.get(anchor.path) || anchor.path;
       const entry = selected.get(anchor.path);
       return {

@@ -1,0 +1,40 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://getkanko.dev/kanko/schemas/review-map.schema.json",
+  "title": "Review map snapshot",
+  "type": "object",
+  "required": ["schemaVersion", "producerVersion", "id", "phase", "aggregateRevision", "repository", "changeRevisions", "currentChangeRevisionId", "entities", "relationships", "tourPlans", "reviewSessions", "receipts"],
+  "properties": {
+    "schemaVersion": { "const": 2 },
+    "producerVersion": { "type": "string" },
+    "id": { "type": "string", "pattern": "^map_[0-9a-f-]+$" },
+    "title": { "type": "string" },
+    "phase": { "enum": ["draft", "prepared", "archived"] },
+    "aggregateRevision": { "type": "integer", "minimum": 1 },
+    "repository": { "type": "object", "required": ["key", "workspace", "commonDir"] },
+    "changeRevisions": { "type": "array", "minItems": 1, "items": { "$ref": "#/$defs/changeRevision" } },
+    "currentChangeRevisionId": { "type": "string", "pattern": "^rev_[0-9a-f-]+$" },
+    "thesis": { "type": ["object", "null"] },
+    "entities": { "type": "object" },
+    "relationships": { "type": "object" },
+    "tourPlans": {
+      "type": "object",
+      "additionalProperties": { "$ref": "tour-plan.schema.json" }
+    },
+    "reviewSessions": { "type": "object" },
+    "receipts": { "type": "array" }
+  },
+  "$defs": {
+    "changeRevision": {
+      "type": "object",
+      "required": ["id", "state", "kind", "manifest", "manifestDigest"],
+      "properties": {
+        "id": { "type": "string", "pattern": "^rev_[0-9a-f-]+$" },
+        "state": { "enum": ["current", "stale", "superseded", "unresolvable"] },
+        "kind": { "enum": ["committed", "working-tree"] },
+        "manifest": { "type": "object" },
+        "manifestDigest": { "type": "string", "pattern": "^sha256:[0-9a-f]{64}$" }
+      }
+    }
+  }
+}

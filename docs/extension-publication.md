@@ -1,9 +1,9 @@
 # Publishing the VS Code extension
 
-The extension identity is `erstaples.kanko`. Its version comes from
+The extension identity is `getkankodev.kanko`. Its version comes from
 `editor-extension/package.json`; the agent plugin has its own version lifecycle.
 The Marketplace package name is `kanko` and the display name is
-`kanko`. The supplied kanko logo assets are used for branding.
+**Kankō**. The supplied Kankō logo assets are used for branding.
 
 ## Branding assets
 
@@ -40,13 +40,13 @@ Actions are pinned to commits and Dependabot proposes updates weekly.
 ## One-time Marketplace setup
 
 1. In [Marketplace publisher management](https://marketplace.visualstudio.com/manage/publishers/),
-   confirm that you control the `erstaples` publisher. This is the registered
+   confirm that you control the `getkankodev` publisher. This is the registered
    publisher ID, and the extension package name is `kanko`.
 2. Create an Azure DevOps Personal Access Token using the Microsoft account
    that controls the publisher. Select **All accessible organizations** and
    **Marketplace → Manage** under custom scopes. See Microsoft's
    [PAT instructions](https://code.visualstudio.com/api/working-with-extensions/publishing-extension#get-a-personal-access-token).
-3. In [GitHub environment settings](https://github.com/erstaples/codewalk/settings/environments),
+3. In [GitHub environment settings](https://github.com/getkanko/kanko/settings/environments),
    create or open `vscode-marketplace`. Restrict deployment tags to `extension-v*`
    and add the PAT as an **environment secret** named `VSCE_PAT`. Add required
    reviewers if your release process needs manual approval. Never commit the token.
@@ -76,7 +76,7 @@ npm version patch --no-git-tag-version
 npm run check:release
 ```
 
-The kanko asset update is version `0.1.1`. Before tagging any release, confirm
+The current Kankō extension version is `0.1.0`. Before tagging any release, confirm
 that its version has not already been published through the Marketplace UI.
 If it has, bump the version and add release notes before tagging.
 
@@ -139,6 +139,6 @@ Run host tests with
 cover stable VS Code on Linux in CI; they do not certify every supported VS Code
 version or platform.
 
-On macOS, if dossier tests report `workspace_mismatch` under `/var/folders`,
-use `TMPDIR=/private/tmp` for the unit-test command. The existing dossier tests
+On macOS, if review map tests report `workspace_mismatch` under `/var/folders`,
+use `TMPDIR=/private/tmp` for the unit-test command. The existing review map tests
 compare Git's canonical repository path with the temporary directory path.

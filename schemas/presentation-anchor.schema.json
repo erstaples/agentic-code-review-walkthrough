@@ -1,7 +1,7 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://erstaples.dev/tour-changes/schemas/presentation-anchor.schema.json",
-  "title": "Relay presentation anchor",
+  "$id": "https://getkanko.dev/kanko/schemas/presentation-anchor.schema.json",
+  "title": "Kankō presentation anchor",
   "type": "object",
   "required": ["path", "side", "rev", "contentHash"],
   "anyOf": [{ "required": ["context"] }, { "required": ["range"] }],

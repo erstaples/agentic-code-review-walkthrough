@@ -11,7 +11,7 @@ const { formatCitation } = require("./lib/citation.js");
 const { createTourController } = require("./lib/tour-controller.js");
 const { createTourHost } = require("./lib/tour-host.js");
 const { createTourView } = require("./lib/tour-view.js");
-const LOCK_DIR = path.join(os.homedir(), ".claude", "tour");
+const LOCK_DIR = path.join(os.homedir(), ".kanko", "tour");
 let server, lockPath;
 
 async function activate(context) {
@@ -19,7 +19,7 @@ async function activate(context) {
   const report = error => vscode.window.showWarningMessage(`Tour presentation: ${error.message}`);
   const host = createTourHost(vscode, { changed: () => controller?.updatePresentation(host.snapshot).catch(report), explore: () => controller?.setState({ mode: "exploring" }).catch(report) });
   const status = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Right, 100);
-  status.command = "relay.tour.focus";
+  status.command = "kanko.tour.focus";
   const view = createTourView(vscode, context.extensionUri, () => controller);
   controller = createTourController({ prepare: host.prepare, present: host.present, clear: host.clear,
     publish(snapshot) {
@@ -37,7 +37,7 @@ async function activate(context) {
   server = await startServer({ authToken, protocolVersion: PROTOCOL_VERSION, handlers: {
     "GET /status": async () => ({ protocolVersion: PROTOCOL_VERSION, extensionVersion: context.extension.packageJSON.version, ideName: vscode.env.appName,
       workspaceFolders: (vscode.workspace.workspaceFolders || []).map((f) => f.uri.fsPath), snapshot: controller.snapshot() }),
-    "POST /tour/load": async (body) => { scope(body); const snapshot = await controller.load(body); await vscode.commands.executeCommand("relay.tour.focus"); return { snapshot, findings: snapshot.findings }; },
+    "POST /tour/load": async (body) => { scope(body); const snapshot = await controller.load(body); await vscode.commands.executeCommand("kanko.tour.focus"); return { snapshot, findings: snapshot.findings }; },
     "POST /tour/navigate": async (body) => { scope(body); return { snapshot: await controller.navigate(body) }; },
     "POST /tour/state": async (body) => { scope(body); return { snapshot: await controller.setState(body) }; },
     "POST /clear": async (body) => { scope(body); return { snapshot: await controller.clear() }; },
@@ -45,13 +45,13 @@ async function activate(context) {
   lockPath = writeLock(LOCK_DIR, { protocolVersion: PROTOCOL_VERSION, port: server.port, authToken, pid: process.pid,
     ideName: vscode.env.appName, extensionVersion: context.extension.packageJSON.version, workspaceFolders: (vscode.workspace.workspaceFolders || []).map((f) => f.uri.fsPath) });
   context.subscriptions.push(
-    vscode.window.registerWebviewViewProvider("relay.tour", view, { webviewOptions: { retainContextWhenHidden: true } }),
-    vscode.commands.registerCommand("tourChanges.copyCitation", async () => {
+    vscode.window.registerWebviewViewProvider("kanko.tour", view, { webviewOptions: { retainContextWhenHidden: true } }),
+    vscode.commands.registerCommand("kanko.copyCitation", async () => {
       const editor = vscode.window.activeTextEditor; if (!editor) return;
       try {
         const uri = editor.document.uri;
         let relative, side, ref;
-        if (uri.scheme === "relay-rev") { const q = JSON.parse(uri.query); relative = uri.path.slice(1); side = q.side; ref = q.ref; }
+        if (uri.scheme === "kanko-rev") { const q = JSON.parse(uri.query); relative = uri.path.slice(1); side = q.side; ref = q.ref; }
         else if (uri.scheme === "file") {
           const folder = vscode.workspace.getWorkspaceFolder(uri);
           if (!folder) throw new Error("Select a file in the workspace.");

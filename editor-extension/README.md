@@ -1,19 +1,19 @@
-<img src="https://raw.githubusercontent.com/erstaples/agentic-code-review-walkthrough/main/editor-extension/assets/kanko-icon-256.png" alt="kanko icon" width="96" height="96">
+<img src="https://raw.githubusercontent.com/getkanko/kanko/main/editor-extension/assets/kanko-icon-256.png" alt="Kankō icon" width="96" height="96">
 
-# kanko
+# Kankō
 
 Let your coding agent walk you through a diff in VS Code: open the relevant
 files, highlight the lines being discussed, and pause for questions.
 
 This is the editor companion for
-[tour-changes](https://github.com/erstaples/agentic-code-review-walkthrough).
+[Kankō](https://github.com/getkanko/kanko).
 Install and configure that project's agent plugin or MCP server to drive a tour.
 The extension alone does not provide an AI assistant.
 
 ## Getting started
 
 1. Install this extension in VS Code 1.139 or newer.
-2. Follow the [agent setup instructions](https://github.com/erstaples/agentic-code-review-walkthrough#step-2--your-agent).
+2. Follow the [agent setup instructions](https://github.com/getkanko/kanko#step-2--your-agent).
    The MCP server requires Node.js 22 or newer and Git on its PATH.
 3. Open your repository and ask your agent to “tour the changes”.
 
@@ -31,14 +31,14 @@ It shows stop and beat progress, risk, pinned revisions, and narration.
 - **Exploring** advances narration without moving your editor.
 - **Paused** removes tour decorations; **Following** resumes at the current beat.
 - **End tour** clears presentation without marking anything reviewed.
-- **kanko: Copy Citation** copies the selected code location and source revision.
+- **Kankō: Copy Citation** copies the selected code location and source revision.
 
-`relay.presentation.dimOpacity` and `relay.presentation.showLabels` control
-context opacity and inline labels. `relay.tour.anchorLimit` limits anchors per
+`kanko.presentation.dimOpacity` and `kanko.presentation.showLabels` control
+context opacity and inline labels. `kanko.tour.anchorLimit` limits anchors per
 stop (24 by default). Up to three active anchors share numbered colors, inline labels, and tab badges.
 The status bar names their files. Removed base focus opens a companion when
 there is room, otherwise a seam offers **Peek removed code**. Set
-`relay.presentation.removedCode` to `seam` to always use that fallback.
+`kanko.presentation.removedCode` to `seam` to always use that fallback.
 
 The tour reuses matching tabs and closes only untouched previews that it opened.
 Pinning, editing, or moving a tab makes it yours. Selecting code switches to
@@ -48,8 +48,8 @@ Exploring. Layout placement and restoration remain later phases.
 
 The extension starts a loopback HTTP server with a per-session authentication
 token. The local MCP server discovers it through a lockfile under
-`~/.claude/tour`. It lets the agent open files, navigate authored beats, and change presentation mode within your workspace.
-Bridge protocol 2 is required on both sides.
+`~/.kanko/tour`. It lets the agent open files, navigate authored beats, and change presentation mode within your workspace.
+Bridge protocol 3 is required on both sides.
 
-[Report an issue](https://github.com/erstaples/agentic-code-review-walkthrough/issues)
+[Report an issue](https://github.com/getkanko/kanko/issues)
 with your VS Code version and whether you use a local or remote workspace.

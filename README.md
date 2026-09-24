@@ -1,6 +1,6 @@
-# kanko
+# Kankō diff tours: Over-the-shoulder code reviews in the age of AI
 
-Your agent walks you through a diff the way its author would — opening files,
+Kankō walks you through a diff the way a human author would — opening files,
 highlighting the lines it's talking about, and pausing for questions.
 
 Reviewing a large diff cold is hard. The usual fix is to ask the author to
@@ -9,13 +9,14 @@ work, then go unit by unit, jumping to real code and pointing at it while they
 explain. This plugin gives an agentic coding tool the same ability — a
 companion VS Code extension lets it drive your editor while it narrates.
 
-The walkthrough is backed by a private, local **living change dossier**. It
-preserves the change thesis, claims, decisions, risks, evidence, questions,
-and explicit review coverage across process restarts. Each dossier is tied to
+The walkthrough is backed by a private, local **review map**. It connects
+requirements, code, decisions, evidence, and review progress. Change notes hold
+the explanations and decisions; an event log preserves their history across
+process restarts. Each review map is tied to
 an exact committed diff or byte-level working-tree manifest, so changed code
 cannot silently inherit old review state.
 
-## What a tour looks like
+## What a diff tour looks like
 
 You ask for a tour of a diff. The agent reads the full changed files rather
 than just the hunks, groups the change into *stops* — one logical,
@@ -40,7 +41,7 @@ operations. Invalid plans return findings before changing the current display.
 Up to three active anchors are presented with matching numbered colors, labels,
 and tab badges. Layout placement and the complete anchor list are subsequent phases.
 
-Questions, concerns, and decisions become sourced dossier entries when they
+Questions, concerns, and decisions become sourced review map entries when they
 matter beyond the current conversation. At closeout you can save an immutable
 JSON and Markdown receipt covering what was reviewed, what evidence was
 inspected, what risk was accepted, and what remains unresolved.
@@ -61,8 +62,8 @@ that aren't VS Code.
 ### Step 1 — the VS Code extension (all agents)
 
 ```sh
-git clone https://github.com/erstaples/agentic-code-review-walkthrough.git
-cd agentic-code-review-walkthrough
+git clone https://github.com/getkanko/kanko.git
+cd kanko
 ./install.sh
 ```
 
@@ -78,20 +79,20 @@ To rebuild the VSIX from the repository root:
 This requires Node.js 22 or newer, npm, and Python 3.9 or newer. It installs
 locked dependencies, checks release metadata, rebuilds and validates the VSIX,
 and prints its absolute path. The filename follows the package name and version
-in `editor-extension/package.json`, currently `editor-extension/kanko-0.1.1.vsix`.
+in `editor-extension/package.json`, currently `editor-extension/kanko-0.1.0.vsix`.
 It replaces that version's existing package without publishing or installing it.
 From `editor-extension`, the same command is available as `npm run rebuild:vsix`.
 
 To install the rebuilt extension locally, run `./install.sh`.
 
 Published VSIX files and checksums are attached to
-[extension releases](https://github.com/erstaples/agentic-code-review-walkthrough/releases).
+[extension releases](https://github.com/getkanko/kanko/releases).
 See [the publication guide](docs/extension-publication.md) for CI, Marketplace
 setup, and the release procedure.
 
 **On WSL or a remote workspace**, the extension must be installed on the same
 side as your code. Run `install.sh` from inside the remote environment, not
-from the Windows or local host. The `tour_status` tool reports which workspace
+from the Windows or local host. The `kanko_tour_status` tool reports which workspace
 it resolved, which makes a mismatch obvious immediately.
 
 ### Step 2 — your agent
@@ -100,8 +101,8 @@ it resolved, which makes a mismatch obvious immediately.
 <summary><strong>Claude Code</strong></summary>
 
 ```sh
-/plugin marketplace add erstaples/claude-code-review-walkthrough
-/plugin install tour-changes@code-review-walkthrough
+/plugin marketplace add getkanko/kanko
+/plugin install kanko@kanko
 ```
 
 </details>
@@ -113,8 +114,8 @@ Codex uses the portable Agent Plugins manifest and MCP configuration included
 at the repository root:
 
 ```sh
-codex plugin marketplace add erstaples/claude-code-review-walkthrough
-codex plugin add tour-changes@code-review-walkthrough
+codex plugin marketplace add getkanko/kanko
+codex plugin add kanko@kanko
 ```
 
 Start a new Codex thread after installation so it loads the plugin's skill and
@@ -131,22 +132,22 @@ codex plugin list
 
 These tools have no plugin manifest, so registration is manual. Two steps:
 
-**Register the MCP server.** Add a stdio server named `tour-bridge` running
+**Register the MCP server.** Add a stdio server named `kanko` running
 `node /absolute/path/to/mcp/server.js`. For a JSON-configured client:
 
 ```json
 {
   "mcpServers": {
-    "tour-bridge": {
+    "kanko": {
       "command": "node",
-      "args": ["/absolute/path/to/claude-code-review-walkthrough/mcp/server.js"]
+      "args": ["/absolute/path/to/kanko/mcp/server.js"]
     }
   }
 }
 ```
 
 **Give the agent the procedure.** Point the tool's rules or instructions file
-at [`skills/tour-changes/SKILL.md`](skills/tour-changes/SKILL.md). Reference
+at [`skills/kanko-tour/SKILL.md`](skills/kanko-tour/SKILL.md). Reference
 the file rather than copying its contents — it's the single source of truth,
 and a copy will drift.
 
@@ -154,13 +155,13 @@ and a copy will drift.
 
 ## Usage
 
-For implementation with continuous dossier capture, ask in plain language:
+To implement a change and keep its decisions and evidence, ask in plain language:
 
 - "Read `path/to/spec.md` and implement it"
-- "Implement this change and maintain a living dossier"
-- "Use `$develop-with-dossier` to build this feature"
+- "Implement this change and maintain change notes"
+- "Use `$kanko-build` to build this feature"
 
-The `develop-with-dossier` skill activates for substantial implementation,
+The `kanko-build` skill activates for substantial implementation,
 fix, refactor, and migration work. It records sourced requirements and material
 decisions during development, then binds final claims, code references, and
 evidence to the stable working-tree candidate. It never marks its own work as
@@ -173,11 +174,11 @@ For the later ownership walkthrough, ask:
 - "tour the branch head diff against main"
 - "guide me through what changed in the last three commits"
 
-The `tour-changes` skill opens the prepared dossier when one exists. If coding
-happened without dossier capture, it reconstructs a draft from the selected
+The `kanko-tour` skill opens the prepared review map when one exists. If coding
+happened without change notes, it reconstructs a draft from the selected
 diff and labels inferred rationale accordingly.
 
-While reviewing, select one or more lines and use **kanko: Copy
+While reviewing, select one or more lines and use **Kankō: Copy
 Citation** from the editor context menu. It copies an agent-neutral,
 repository-relative marker such as `editor-extension/lib/editor.js:56-70` for
 pasting into Claude Code, Codex, another agent, or a review comment. Citations
@@ -190,41 +191,43 @@ is never copied.
 Three processes, two hops — the agent talks to a small MCP server, which
 proxies to the VS Code extension over an authenticated loopback HTTP channel.
 The two find each other through a lockfile the extension writes on activation.
-See [the loading guide](docs/relay-v2-tour-loading.md) for the flow.
+See [the loading guide](docs/kanko-v2-tour-loading.md) for the flow.
 
 The MCP server has two boundaries. Editor navigation remains a thin proxy to
-the extension. The dossier application service owns durable review state in a
+the extension. The review map application service owns durable review state in a
 per-user application-state directory outside the repository. Set
-`TOUR_CHANGES_STATE_DIR` to override that location.
+`KANKO_STATE_DIR` to override that location. The default directory is
+`~/Library/Application Support/kanko` on macOS, `%LOCALAPPDATA%/kanko`
+on Windows, and `$XDG_STATE_HOME/kanko` (or `~/.local/state/kanko`) on Linux.
 
 ### Tools
 
 | Tool | What it does |
 |---|---|
-| `tour_status` | Preflight — confirms the extension is reachable and reports the resolved workspace |
-| `relay_load_tour` | Validates and loads the current dossier plan into the sidebar |
-| `relay_navigate` | Moves by beat, by stop, or to an explicit stop and beat |
-| `relay_set_state` | Sets Following, Exploring, or Paused |
-| `tour_clear` | Ends the presentation and removes highlights |
-| `dossier_open` | Opens or creates the dossier for an exact committed or working-tree change |
-| `dossier_get` | Reads a bounded overview, entity set, tour, evidence matrix, or resume recap |
-| `dossier_apply` | Atomically applies typed, provenance-bearing domain commands |
-| `dossier_check` | Verifies event integrity, exact change freshness, and v2 tour anchors without mutation |
-| `dossier_refresh` | Adds a change revision and conservatively invalidates stale review state |
-| `dossier_receipt` | Previews or emits immutable local JSON and Markdown receipts |
-| `dossier_delete` | Permanently deletes one explicitly confirmed local dossier |
+| `kanko_tour_status` | Preflight — confirms the extension is reachable and reports the resolved workspace |
+| `kanko_tour_load` | Validates and loads the current review map plan into the sidebar |
+| `kanko_tour_navigate` | Moves by beat, by stop, or to an explicit stop and beat |
+| `kanko_tour_set_state` | Sets Following, Exploring, or Paused |
+| `kanko_tour_clear` | Ends the presentation and removes highlights |
+| `kanko_map_open` | Opens or creates the review map for an exact committed or working-tree change |
+| `kanko_map_get` | Reads a bounded overview, entity set, tour, evidence matrix, or resume recap |
+| `kanko_map_apply` | Atomically applies typed, provenance-bearing domain commands |
+| `kanko_map_check` | Verifies event integrity, exact change freshness, and v2 tour anchors without mutation |
+| `kanko_map_refresh` | Adds a change revision and conservatively invalidates stale review state |
+| `kanko_map_receipt` | Previews or emits immutable local JSON and Markdown receipts |
+| `kanko_map_delete` | Permanently deletes one explicitly confirmed local review map |
 
-Relay v2's stop, anchor, and beat authoring contract is documented in
-[the tour model guide](docs/relay-v2-tour-model.md). It validates plans before
-storage. [Multi-anchor presentation](docs/relay-v2-multi-anchor.md) describes source
-identity and tab ownership. [Loading and navigation](docs/relay-v2-tour-loading.md) use bridge
-protocol 2; the old stop/focus tools and routes have been removed.
+Kankō v2's stop, anchor, and beat authoring contract is documented in
+[the tour model guide](docs/kanko-v2-tour-model.md). It validates plans before
+storage. [Multi-anchor presentation](docs/kanko-v2-multi-anchor.md) describes source
+identity and tab ownership. [Loading and navigation](docs/kanko-v2-tour-loading.md) use bridge
+protocol 3; the old stop/focus tools and routes have been removed.
 
 **The bridge has no write verb.** No endpoint modifies a file, so "installing
 this extension cannot alter your repository" is a property of the software
 rather than a promise in a prompt.
 
-The bridge has no repository write verb. Dossier tools write only to local
+The bridge has no repository write verb. Review map tools write only to local
 application state, and receipt publication is intentionally absent. The
 service uses immutable hash-chained event files, a single-writer lock, and an
 `expectedRevision` check on every mutation. Secret-shaped values are redacted
@@ -245,7 +248,7 @@ under review stays still while you annotate it.
   restoration is a later phase.
 - Changed working trees conservatively invalidate review state and stale evidence.
   A loaded tour retains its captured source until it is reloaded.
-- Dossier claims and review decisions remain in the agent conversation; this
+- Review map claims and review decisions remain in the agent conversation; this
   sidebar displays the authored tour and does not record human acceptance.
 
 ## Development
@@ -255,9 +258,9 @@ run `npm install`, so depending on an SDK would mean vendoring `node_modules`
 into the repository.
 
 ```
-mcp/               stdio MCP server — editor proxy and dossier service
+mcp/               stdio MCP server — editor proxy and review map service
 editor-extension/  VS Code extension — HTTP server, decorations, diff views
-schemas/           versioned dossier, event, receipt, and tool contracts
+schemas/           versioned review map, event, receipt, and tool contracts
 skills/            implementation-capture and walkthrough procedures
 docs/              design spec
 ```
@@ -279,3 +282,5 @@ selection back.
 ## License
 
 MIT
+
+See [naming conventions](docs/branding.md) for product names and identifiers.
