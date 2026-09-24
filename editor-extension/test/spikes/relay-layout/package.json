@@ -1,0 +1,20 @@
+{
+  "name": "relay-layout-spike",
+  "publisher": "kanko-test",
+  "version": "0.0.0",
+  "engines": { "vscode": "^1.90.0" },
+  "main": "./extension.js",
+  "activationEvents": ["onStartupFinished"],
+  "contributes": {
+    "viewsContainers": {
+      "secondarySidebar": [{ "id": "relaySpike", "title": "Relay API Spike", "icon": "icon.svg" }]
+    },
+    "views": { "relaySpike": [{ "id": "relaySpike.panel", "name": "Verification", "type": "webview" }] },
+    "commands": [{ "command": "relaySpike.quickPick", "title": "Relay Spike: Anchor Quick Pick" }],
+    "keybindings": [
+      { "command": "relaySpike.quickPick", "key": "alt+0", "when": "!inQuickOpen" },
+      { "command": "relaySpike.peek", "key": "alt+enter", "when": "inQuickOpen && relaySpike.quickPickOpen" },
+      { "command": "relaySpike.replace", "key": "shift+enter", "when": "inQuickOpen && relaySpike.quickPickOpen" }
+    ]
+  }
+}
