@@ -128,8 +128,12 @@ review outcomes. The reviewer can use the same controls in the Tour sidebar.
 Narrate from the returned snapshot. It renders `{{a:N}}` references as numbered
 terminal citations; the sidebar renders focusable chips, and receipt narration
 includes full paths, line spans, and source revisions. A chip opens that anchor.
-The current phase displays one selected anchor at a time; do not claim that all
-active anchors are visible. Keep authored focus spans tight and revision-correct.
+The host opens up to three active anchors and returns `presentation.anchors`
+with visible/open/not-open/stale states. Do not claim to be pointing at an anchor
+that is not visible, or at source marked stale. A matching head uses a real file;
+other source uses a pinned revision document. Keep focus spans tight and
+revision-correct. Removed-code companions respect the same three-group bound
+and fall back to a seam with Peek removed code at capacity.
 
 Never call removed `tour_stop` or `tour_focus` tools or private editor commands.
 If the current bridge is unavailable, use a text tour with explicit citations.

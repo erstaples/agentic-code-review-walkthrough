@@ -26,15 +26,19 @@ function createFixture() {
   const sources = tourSources(workspace, opened.changeRevision);
   function anchor(n, file, role, label, startLine, endLine, view = 'head', claimRefs = []) {
     const a = { n, path: file, role, label, context: { startLine, endLine }, rev: sources.revisions, side: view === 'base' ? 'base' : 'head', view, claimRefs };
-    const text = sources.readSource(a); a.change = text.base === null ? 'added' : text.head === null ? 'deleted' : text.base === text.head ? 'unchanged' : 'modified'; a.contentHash = hashText(rangeText(text[a.side], a.context)); return a;
+    const text = sources.readSource(a); a.change = text.base === null ? 'added' : text.head === null ? 'deleted' : text.base === text.head ? 'unchanged' : 'modified'; a.contentHash = hashText(rangeText(text[a.side], a.context));
+    if (file === 'service.js' && startLine === 1) a.focus = [{ side: 'head', range: {startLine:5,endLine:7} }, { side:'base', range:{startLine:6,endLine:6}, kind:'removed' }];
+    return a;
   }
   service.apply({ workspace, dossierId: opened.dossierId, expectedRevision: 1, actor, commands: [
     { type: 'SetThesis', thesis: { summary: 'Reject invalid tours before changing the editor.', provenance } },
     { type: 'AddClaim', entity: { id: 'claim_guard', statement: 'Rejected candidates leave the current review intact.', truthStatus: 'observed', provenance } },
     { type: 'CreateTourPlan', presentationVersion: 2, title: 'A review that stays on track', stops: [
-      { id: 'validation', title: 'Validate before opening editors', risk: 'medium', type: 'implementation', coveredEntityIds: ['claim_guard'], anchors: [anchor(1, 'service.js', 'change', 'Keep the active review', 1, 11, 'diff'), anchor(2, 'service.test.js', 'evidence', 'Prove rejected loads are safe', 3, 12, 'head', ['claim_guard'])], beats: [
+      { id: 'validation', title: 'Validate before opening editors', risk: 'medium', type: 'implementation', coveredEntityIds: ['claim_guard'], anchors: [anchor(1, 'service.js', 'change', 'Keep the active review', 1, 11, 'diff'), anchor(2, 'service.test.js', 'evidence', 'Prove rejected loads are safe', 3, 12, 'head', ['claim_guard']), anchor(3, 'navigation.js', 'caller', 'Advance the review', 1, 11), anchor(4, 'service.js', 'callee', 'Normalize the valid candidate', 13, 19, 'diff')], beats: [
         { id: 'guard', narration: '**Keep the current review intact.**\n\n{{a:1}} checks the incoming tour before it can replace what the reviewer sees.\n\nThe regression in {{a:2}} proves a failed load leaves the active stop unchanged.', active: [1, 2] },
-        { id: 'proof', narration: '**The failure path is observable.**\n\n{{a:2}} checks both the validation finding and the retained review.\n\nReturn to {{a:1}} to trace the guard.', active: [2, 1] }
+        { id: 'proof', narration: '**The failure path is observable.**\n\n{{a:2}} checks both the validation finding and the retained review.\n\nReturn to {{a:1}} to trace the guard.', active: [2, 1] },
+        { id: 'capacity', narration: '**All three sources.** {{a:1}} rejects invalid input, {{a:2}} checks the result, and {{a:3}} advances the review.', active: [1, 2, 3] },
+        { id: 'same-source', narration: '**Two ranges, one source.** {{a:4}} normalizes the candidate that {{a:1}} checked.', active: [4, 1] }
       ] },
       { id: 'navigation', title: 'Keep navigation explicit', risk: 'low', type: 'context', anchors: [anchor(1, 'navigation.js', 'change', 'Advance one beat', 1, 11), anchor(2, 'retired.js', 'context', 'The removed opening path', 1, 4, 'base')], beats: [
         { id: 'next', narration: '**One beat at a time.**\n\n{{a:1}} advances the cursor. Following reveals the current source; Exploring keeps your editor in place.\n\nThe removed approach is still inspectable in {{a:2}}.', active: [1] },

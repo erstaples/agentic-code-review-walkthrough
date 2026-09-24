@@ -29,7 +29,11 @@ module.exports = function register({ test, before }) {
     assert.equal(result.ok, true); assert.equal(result.snapshot.stop.id, 'validation'); assert.equal(result.snapshot.beat.id, 'guard');
     assert.match(result.snapshot.narrationHtml, /data-anchor="2"/); assert.match(result.snapshot.narration, /② service.test.js:3/);
     assert.match(result.snapshot.receiptNarration, /@\w{7}/);
-    assert.ok(tabs().some(t => t.label.includes('service.js'))); record('load', result.snapshot);
+    assert.ok(tabs().some(t => t.label.includes('service.js')));
+    assert.equal(result.snapshot.presentation.anchors.filter(a => a.status === 'visible').length, 2);
+    assert.equal(result.snapshot.presentation.anchors[0].removedCode, 'companion');
+    assert.equal(result.snapshot.presentation.anchors[1].source, 'file');
+    assert.ok(vscode.window.tabGroups.all.length <= 3); record('load', result.snapshot);
   });
   test('public navigation advances beats and stops and can return to an explicit cursor', async () => {
     let r = await api('relay_navigate', { action: 'nextBeat' }); assert.equal(r.snapshot.beat.id, 'proof');
@@ -60,11 +64,114 @@ module.exports = function register({ test, before }) {
     assert.deepEqual((await api('tour_status')).snapshot, before);
   });
   test('copy citation identifies the selected immutable source revision', async () => {
-    const editor = vscode.window.visibleTextEditors.find(e => e.document.uri.path.endsWith('service.test.js'));
-    await vscode.window.showTextDocument(editor.document, { preview: true });
-    editor.selection = new vscode.Selection(2, 0, 4, 0);
-    const copied = await vscode.commands.executeCommand('tourChanges.copyCitation');
-    assert.match(copied, /service.test.js:3-4 \[head@/); assert.equal(await vscode.env.clipboard.readText(), copied);
+    const visible = vscode.window.visibleTextEditors.find(e => e.document.uri.path.endsWith('service.test.js'));
+    const editor = await vscode.window.showTextDocument(visible.document, { preview: true, viewColumn: visible.viewColumn });
+    const previousClipboard = await vscode.env.clipboard.readText();
+    try {
+      editor.selection = new vscode.Selection(2, 0, 4, 0);
+      const copied = await vscode.commands.executeCommand('tourChanges.copyCitation');
+      assert.match(copied, /service.test.js:3-4 \[head@/); assert.equal(await vscode.env.clipboard.readText(), copied);
+    } finally { await vscode.env.clipboard.writeText(previousClipboard); }
+  });
+  test('three active anchors share the cap and removed code falls back to peek', async () => {
+    await api('relay_set_state', {mode:'following'});
+    let r = await api('relay_navigate', {action:'goto',stopId:'validation',beatId:'capacity'});
+    assert.equal(r.snapshot.presentation.anchors.filter(a=>a.status==='visible').length,3);
+    assert.equal(r.snapshot.presentation.anchors[0].removedCode,'peek');
+    assert.equal(vscode.window.tabGroups.all.length,3);
+    for (const file of ['service.js','service.test.js','navigation.js']) assert.equal(tabs().filter(t=>t.uri && decodeURIComponent(t.uri).split('?')[0].endsWith('/'+file)).length,1);
+    record('three-anchors-peek',r.snapshot);
+    r = await api('relay_set_state', {mode:'exploring'});
+    assert.equal(r.snapshot.presentation.anchors[0].removedCode,'peek');
+    const focus = r.snapshot.stop.anchors[0].focus.find(f=>f.side==='base');
+    const args = JSON.parse(JSON.stringify([r.snapshot.tourId,r.snapshot.stopIndex,1,focus.range.startLine,focus.range.endLine]));
+    await vscode.commands.executeCommand('relay.tour.peekRemoved',...args);
+    assert.equal(vscode.window.tabGroups.all.length,3);
+    await vscode.commands.executeCommand('closeReferenceSearch');
+    record('peek-command-json-boundary',{arguments:args,retainedWhileExploring:true});
+    // Native peek opens a plain source tab in place of a diff. End this
+    // scenario with a fresh editor set so later ownership checks are isolated.
+    await api('tour_clear');
+    await vscode.commands.executeCommand('workbench.action.closeAllEditors');
+    await load();
+    await api('relay_set_state', {mode:'following'});
+    r = await api('relay_navigate',{action:'goto',stopId:'validation',beatId:'proof'});
+  });
+  test('disjoint anchors in one file reuse a tab and present the selected identity', async () => {
+    const r = await api('relay_navigate',{action:'goto',stopId:'validation',beatId:'same-source'});
+    assert.equal(r.snapshot.presentation.anchors.find(a=>a.n===4).status,'visible');
+    assert.equal(r.snapshot.presentation.anchors.find(a=>a.n===1).status,'open');
+    assert.equal(tabs().filter(t=>t.uri && decodeURIComponent(t.uri).split('?')[0].endsWith('/service.js')).length,1);
+    record('same-source-identity',r.snapshot);
+    await api('relay_navigate',{action:'goto',stopId:'validation',beatId:'proof'});
+  });
+  test('dirty matching head becomes immutable on the next presentation and survives cleanup', async () => {
+    const original = vscode.window.visibleTextEditors.find(e=>e.document.uri.scheme==='file' && e.document.uri.path.endsWith('service.test.js'));
+    const editor = await vscode.window.showTextDocument(original.document,{viewColumn:original.viewColumn});
+    await editor.edit(edit=>edit.insert(new vscode.Position(0,0),'// reviewer edit\n'));
+    await sleep(100);
+    const changed = (await api('tour_status')).snapshot;
+    assert.equal(changed.presentation.anchors.find(a=>a.n===2).status,'stale');
+    const next = await api('relay_set_state',{mode:'following'});
+    assert.equal(next.snapshot.presentation.anchors.find(a=>a.n===2).source,'relay-rev');
+    await api('tour_clear');
+    assert.ok(tabs().some(t=>t.uri===editor.document.uri.toString()));
+    assert.equal(editor.document.isDirty,true);
+    record('dirty-head-protected',{stale:changed.presentation,immutable:next.snapshot.presentation});
+    await vscode.window.showTextDocument(editor.document,{viewColumn:editor.viewColumn});
+    await vscode.commands.executeCommand('workbench.action.files.revert');
+    await vscode.commands.executeCommand('workbench.action.closeActiveEditor');
+    await load();
+  });
+  test('pinned tour tabs survive stop changes while ordinary owned previews close', async () => {
+    const tab = vscode.window.tabGroups.all.flatMap(g=>g.tabs).find(t=>t.input?.modified?.path.endsWith('/service.js'));
+    assert.ok(tab);
+    const group = vscode.window.tabGroups.all.find(g=>g.tabs.includes(tab));
+    await vscode.commands.executeCommand('vscode.diff',tab.input.original,tab.input.modified,tab.label,{viewColumn:group.viewColumn,preview:false});
+    await api('relay_navigate',{action:'nextStop'});
+    assert.ok(vscode.window.tabGroups.all.some(g=>g.tabs.includes(tab)));
+    assert.ok(!tabs().some(t=>t.uri && decodeURIComponent(t.uri).split('?')[0].endsWith('/service.test.js')));
+    record('pinned-tab-protected',{labels:tabs().map(t=>t.label)});
+    await api('tour_clear');
+    await vscode.window.tabGroups.close(tab,true);
+    await load();
+  });
+  test('a reviewer-owned preview survives loading and ending a tour', async () => {
+    await api('tour_clear');
+    const note = vscode.Uri.file(path.join(fixture.workspace,'reviewer-notes.txt'));
+    fs.writeFileSync(note.fsPath,'Reviewer notes outside the authored tour.\n');
+    const editor = await vscode.window.showTextDocument(await vscode.workspace.openTextDocument(note),{preview:true,viewColumn:1});
+    const userTab = vscode.window.tabGroups.all.flatMap(g=>g.tabs).find(t=>t.input?.uri?.toString()===note.toString());
+    assert.ok(userTab.isPreview);
+    await load();
+    assert.ok(vscode.window.tabGroups.all.some(g=>g.tabs.includes(userTab)));
+    await api('tour_clear');
+    assert.ok(vscode.window.tabGroups.all.some(g=>g.tabs.includes(userTab)));
+    record('reviewer-preview-protected',{uri:'reviewer-notes.txt',preserved:true});
+    await vscode.window.tabGroups.close(userTab,true);
+    fs.unlinkSync(note.fsPath);
+    await load();
+  });
+  test('reusing a real file retains the pinned base source for seam peek', async () => {
+    await api('tour_clear');
+    const config = vscode.workspace.getConfiguration('relay.presentation');
+    await config.update('removedCode','seam',vscode.ConfigurationTarget.Workspace);
+    const real = vscode.Uri.file(path.join(fixture.workspace,'service.js'));
+    await vscode.window.showTextDocument(await vscode.workspace.openTextDocument(real),{preview:false,viewColumn:1});
+    const r = await load();
+    assert.equal(r.snapshot.presentation.anchors[0].removedCode,'peek');
+    assert.equal(tabs().filter(t=>t.uri===real.toString()).length,1);
+    const payload = service.loadTour({workspace:fixture.workspace,dossierId:fixture.dossierId});
+    const a = payload.plan.stops[0].anchors[0];
+    const base = vscode.Uri.from({scheme:'relay-rev',path:'/'+a.path,query:JSON.stringify({path:path.join(fixture.workspace,a.path),ref:a.rev.base,side:'base',relay:'tour',identity:payload.change.manifestDigest})});
+    const document = await vscode.workspace.openTextDocument(base);
+    assert.match(document.getText(),/current: null/);
+    record('retained-peek-source',{reusedRealFile:true,pinnedBaseAvailable:true});
+    await api('tour_clear');
+    const user = vscode.window.tabGroups.all.flatMap(g=>g.tabs).find(t=>t.input?.uri?.toString()===real.toString());
+    await vscode.window.tabGroups.close(user,true);
+    await config.update('removedCode',undefined,vscode.ConfigurationTarget.Workspace);
+    await load();
   });
   test('clear ends presentation without recording review acceptance, then reload begins at the first beat', async () => {
     let r = await api('tour_clear'); assert.equal(r.snapshot.loaded, false);

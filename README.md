@@ -37,8 +37,8 @@ presentation without recording review acceptance.
 
 An agent loads the complete authored plan and advances it through public MCP
 operations. Invalid plans return findings before changing the current display.
-For now, one selected anchor is presented at a time. Multi-anchor presentation,
-layout placement, and the complete anchor list are subsequent phases.
+Up to three active anchors are presented with matching numbered colors, labels,
+and tab badges. Layout placement and the complete anchor list are subsequent phases.
 
 Questions, concerns, and decisions become sourced dossier entries when they
 matter beyond the current conversation. At closeout you can save an immutable
@@ -216,7 +216,8 @@ per-user application-state directory outside the repository. Set
 
 Relay v2's stop, anchor, and beat authoring contract is documented in
 [the tour model guide](docs/relay-v2-tour-model.md). It validates plans before
-storage. [Loading and navigation](docs/relay-v2-tour-loading.md) use bridge
+storage. [Multi-anchor presentation](docs/relay-v2-multi-anchor.md) describes source
+identity and tab ownership. [Loading and navigation](docs/relay-v2-tour-loading.md) use bridge
 protocol 2; the old stop/focus tools and routes have been removed.
 
 **The bridge has no write verb.** No endpoint modifies a file, so "installing
@@ -234,13 +235,14 @@ under review stays still while you annotate it.
 
 ## Current boundaries
 
-- Presentation currently opens one selected anchor in a read-only revision view
-  or native diff. Multi-anchor colors, badges, layout placement, and tab ownership
-  are later phases.
-- Explicit Exploring and Paused controls are available. Automatic changes of
-  mode after editor interaction are not implemented yet.
-- Ending a tour removes highlights and the sidebar snapshot; revision tabs stay
-  open. Automatic tab cleanup is a later phase.
+- Presentation opens up to three active anchors in native diffs or source views.
+  Matching head content uses a real file; other revisions use read-only documents.
+  Layout placement and the complete anchor list are later phases.
+- Selecting code with the mouse or keyboard switches to Exploring. Paused
+  removes decorations while leaving the editor arrangement in place.
+- Ending a tour removes highlights, the sidebar snapshot, and untouched tour
+  previews. Reviewer-owned, pinned, dirty, or moved tabs stay open. Exact layout
+  restoration is a later phase.
 - Changed working trees conservatively invalidate review state and stale evidence.
   A loaded tour retains its captured source until it is reloaded.
 - Dossier claims and review decisions remain in the agent conversation; this

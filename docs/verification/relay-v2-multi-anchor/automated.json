@@ -1,0 +1,1997 @@
+{
+  "vscode": "1.139.0",
+  "results": [
+    {
+      "name": "load",
+      "value": {
+        "revision": 1,
+        "loaded": true,
+        "tourId": "dos_10061ad5-09e3-4b9f-901d-1097e4a62b33",
+        "planId": "pln_09c91f6d-fbe6-45e1-8fd8-f25ec4423103",
+        "title": "A review that stays on track",
+        "mode": "following",
+        "stopIndex": 0,
+        "beatIndex": 0,
+        "stopCount": 2,
+        "beatCount": 4,
+        "stop": {
+          "anchors": [
+            {
+              "change": "modified",
+              "claimRefs": [],
+              "contentHash": "sha256:3deb012916d895ba2c177c04994b7f1fe4bf039b512f652500492148ec55edba",
+              "context": {
+                "endLine": 11,
+                "startLine": 1
+              },
+              "focus": [
+                {
+                  "range": {
+                    "endLine": 7,
+                    "startLine": 5
+                  },
+                  "side": "head"
+                },
+                {
+                  "kind": "removed",
+                  "range": {
+                    "endLine": 6,
+                    "startLine": 6
+                  },
+                  "side": "base"
+                }
+              ],
+              "label": "Keep the active review",
+              "n": 1,
+              "path": "service.js",
+              "rev": {
+                "base": "69ea916235afc712f25a998578bf45a2df6bb061",
+                "head": "119bf8c99b298d8a8694698432b5062c30646a25"
+              },
+              "role": "change",
+              "side": "head",
+              "view": "diff"
+            },
+            {
+              "change": "added",
+              "claimRefs": [
+                "claim_guard"
+              ],
+              "contentHash": "sha256:6330f722f18a2e8b58fb3d393b210928fd5009f40a4f44540871532a8887e92b",
+              "context": {
+                "endLine": 12,
+                "startLine": 3
+              },
+              "focus": [],
+              "label": "Prove rejected loads are safe",
+              "n": 2,
+              "path": "service.test.js",
+              "rev": {
+                "base": "69ea916235afc712f25a998578bf45a2df6bb061",
+                "head": "119bf8c99b298d8a8694698432b5062c30646a25"
+              },
+              "role": "evidence",
+              "side": "head",
+              "view": "head"
+            },
+            {
+              "change": "added",
+              "claimRefs": [],
+              "contentHash": "sha256:14db37ee679bc906872c761bd2b582ecb77ed3be2fa7c2bff36df42919b168f2",
+              "context": {
+                "endLine": 11,
+                "startLine": 1
+              },
+              "focus": [],
+              "label": "Advance the review",
+              "n": 3,
+              "path": "navigation.js",
+              "rev": {
+                "base": "69ea916235afc712f25a998578bf45a2df6bb061",
+                "head": "119bf8c99b298d8a8694698432b5062c30646a25"
+              },
+              "role": "caller",
+              "side": "head",
+              "view": "head"
+            },
+            {
+              "change": "modified",
+              "claimRefs": [],
+              "contentHash": "sha256:8dd33e3e44eb1622b74e6706f98becf136e7221b6c78f0b73e49259c7275614c",
+              "context": {
+                "endLine": 19,
+                "startLine": 13
+              },
+              "focus": [],
+              "label": "Normalize the valid candidate",
+              "n": 4,
+              "path": "service.js",
+              "rev": {
+                "base": "69ea916235afc712f25a998578bf45a2df6bb061",
+                "head": "119bf8c99b298d8a8694698432b5062c30646a25"
+              },
+              "role": "callee",
+              "side": "head",
+              "view": "diff"
+            }
+          ],
+          "beats": [
+            {
+              "active": [
+                1,
+                2
+              ],
+              "id": "guard",
+              "narration": "**Keep the current review intact.**\n\n{{a:1}} checks the incoming tour before it can replace what the reviewer sees.\n\nThe regression in {{a:2}} proves a failed load leaves the active stop unchanged."
+            },
+            {
+              "active": [
+                2,
+                1
+              ],
+              "id": "proof",
+              "narration": "**The failure path is observable.**\n\n{{a:2}} checks both the validation finding and the retained review.\n\nReturn to {{a:1}} to trace the guard."
+            },
+            {
+              "active": [
+                1,
+                2,
+                3
+              ],
+              "id": "capacity",
+              "narration": "**All three sources.** {{a:1}} rejects invalid input, {{a:2}} checks the result, and {{a:3}} advances the review."
+            },
+            {
+              "active": [
+                4,
+                1
+              ],
+              "id": "same-source",
+              "narration": "**Two ranges, one source.** {{a:4}} normalizes the candidate that {{a:1}} checked."
+            }
+          ],
+          "coveredEntityIds": [
+            "claim_guard"
+          ],
+          "id": "validation",
+          "index": 1,
+          "reviewState": "not-visited",
+          "reviewedAtChangeRevisionId": null,
+          "risk": "medium",
+          "title": "Validate before opening editors",
+          "type": "implementation"
+        },
+        "beat": {
+          "active": [
+            1,
+            2
+          ],
+          "id": "guard",
+          "narration": "**Keep the current review intact.**\n\n{{a:1}} checks the incoming tour before it can replace what the reviewer sees.\n\nThe regression in {{a:2}} proves a failed load leaves the active stop unchanged."
+        },
+        "selectedAnchor": 1,
+        "findings": [],
+        "presentation": {
+          "anchors": [
+            {
+              "n": 1,
+              "path": "service.js",
+              "status": "visible",
+              "column": 1,
+              "source": "file",
+              "companionColumn": 3,
+              "removedCode": "companion"
+            },
+            {
+              "n": 2,
+              "path": "service.test.js",
+              "status": "visible",
+              "column": 2,
+              "source": "file",
+              "companionColumn": null,
+              "removedCode": null
+            },
+            {
+              "n": 3,
+              "path": "navigation.js",
+              "status": "not-open",
+              "column": null,
+              "source": "file",
+              "companionColumn": null,
+              "removedCode": null
+            },
+            {
+              "n": 4,
+              "path": "service.js",
+              "status": "open",
+              "column": 1,
+              "source": "file",
+              "companionColumn": null,
+              "removedCode": null
+            }
+          ]
+        },
+        "narrationHtml": "<strong>Keep the current review intact.</strong>\n\n<button class=\"chip color-1\" data-anchor=\"1\" title=\"service.js:1–11 · Keep the active review\" aria-label=\"Open anchor 1: service.js:1–11 · Keep the active review\">1</button> checks the incoming tour before it can replace what the reviewer sees.\n\nThe regression in <button class=\"chip color-2\" data-anchor=\"2\" title=\"service.test.js:3–12 · Prove rejected loads are safe\" aria-label=\"Open anchor 2: service.test.js:3–12 · Prove rejected loads are safe\">2</button> proves a failed load leaves the active stop unchanged.",
+        "narration": "**Keep the current review intact.**\n\n① service.js:1 checks the incoming tour before it can replace what the reviewer sees.\n\nThe regression in ② service.test.js:3 proves a failed load leaves the active stop unchanged.",
+        "receiptNarration": "**Keep the current review intact.**\n\n① service.js:1–11 @119bf8c checks the incoming tour before it can replace what the reviewer sees.\n\nThe regression in ② service.test.js:3–12 @119bf8c proves a failed load leaves the active stop unchanged."
+      }
+    },
+    {
+      "name": "next-beat",
+      "value": {
+        "revision": 2,
+        "loaded": true,
+        "tourId": "dos_10061ad5-09e3-4b9f-901d-1097e4a62b33",
+        "planId": "pln_09c91f6d-fbe6-45e1-8fd8-f25ec4423103",
+        "title": "A review that stays on track",
+        "mode": "following",
+        "stopIndex": 0,
+        "beatIndex": 1,
+        "stopCount": 2,
+        "beatCount": 4,
+        "stop": {
+          "anchors": [
+            {
+              "change": "modified",
+              "claimRefs": [],
+              "contentHash": "sha256:3deb012916d895ba2c177c04994b7f1fe4bf039b512f652500492148ec55edba",
+              "context": {
+                "endLine": 11,
+                "startLine": 1
+              },
+              "focus": [
+                {
+                  "range": {
+                    "endLine": 7,
+                    "startLine": 5
+                  },
+                  "side": "head"
+                },
+                {
+                  "kind": "removed",
+                  "range": {
+                    "endLine": 6,
+                    "startLine": 6
+                  },
+                  "side": "base"
+                }
+              ],
+              "label": "Keep the active review",
+              "n": 1,
+              "path": "service.js",
+              "rev": {
+                "base": "69ea916235afc712f25a998578bf45a2df6bb061",
+                "head": "119bf8c99b298d8a8694698432b5062c30646a25"
+              },
+              "role": "change",
+              "side": "head",
+              "view": "diff"
+            },
+            {
+              "change": "added",
+              "claimRefs": [
+                "claim_guard"
+              ],
+              "contentHash": "sha256:6330f722f18a2e8b58fb3d393b210928fd5009f40a4f44540871532a8887e92b",
+              "context": {
+                "endLine": 12,
+                "startLine": 3
+              },
+              "focus": [],
+              "label": "Prove rejected loads are safe",
+              "n": 2,
+              "path": "service.test.js",
+              "rev": {
+                "base": "69ea916235afc712f25a998578bf45a2df6bb061",
+                "head": "119bf8c99b298d8a8694698432b5062c30646a25"
+              },
+              "role": "evidence",
+              "side": "head",
+              "view": "head"
+            },
+            {
+              "change": "added",
+              "claimRefs": [],
+              "contentHash": "sha256:14db37ee679bc906872c761bd2b582ecb77ed3be2fa7c2bff36df42919b168f2",
+              "context": {
+                "endLine": 11,
+                "startLine": 1
+              },
+              "focus": [],
+              "label": "Advance the review",
+              "n": 3,
+              "path": "navigation.js",
+              "rev": {
+                "base": "69ea916235afc712f25a998578bf45a2df6bb061",
+                "head": "119bf8c99b298d8a8694698432b5062c30646a25"
+              },
+              "role": "caller",
+              "side": "head",
+              "view": "head"
+            },
+            {
+              "change": "modified",
+              "claimRefs": [],
+              "contentHash": "sha256:8dd33e3e44eb1622b74e6706f98becf136e7221b6c78f0b73e49259c7275614c",
+              "context": {
+                "endLine": 19,
+                "startLine": 13
+              },
+              "focus": [],
+              "label": "Normalize the valid candidate",
+              "n": 4,
+              "path": "service.js",
+              "rev": {
+                "base": "69ea916235afc712f25a998578bf45a2df6bb061",
+                "head": "119bf8c99b298d8a8694698432b5062c30646a25"
+              },
+              "role": "callee",
+              "side": "head",
+              "view": "diff"
+            }
+          ],
+          "beats": [
+            {
+              "active": [
+                1,
+                2
+              ],
+              "id": "guard",
+              "narration": "**Keep the current review intact.**\n\n{{a:1}} checks the incoming tour before it can replace what the reviewer sees.\n\nThe regression in {{a:2}} proves a failed load leaves the active stop unchanged."
+            },
+            {
+              "active": [
+                2,
+                1
+              ],
+              "id": "proof",
+              "narration": "**The failure path is observable.**\n\n{{a:2}} checks both the validation finding and the retained review.\n\nReturn to {{a:1}} to trace the guard."
+            },
+            {
+              "active": [
+                1,
+                2,
+                3
+              ],
+              "id": "capacity",
+              "narration": "**All three sources.** {{a:1}} rejects invalid input, {{a:2}} checks the result, and {{a:3}} advances the review."
+            },
+            {
+              "active": [
+                4,
+                1
+              ],
+              "id": "same-source",
+              "narration": "**Two ranges, one source.** {{a:4}} normalizes the candidate that {{a:1}} checked."
+            }
+          ],
+          "coveredEntityIds": [
+            "claim_guard"
+          ],
+          "id": "validation",
+          "index": 1,
+          "reviewState": "not-visited",
+          "reviewedAtChangeRevisionId": null,
+          "risk": "medium",
+          "title": "Validate before opening editors",
+          "type": "implementation"
+        },
+        "beat": {
+          "active": [
+            2,
+            1
+          ],
+          "id": "proof",
+          "narration": "**The failure path is observable.**\n\n{{a:2}} checks both the validation finding and the retained review.\n\nReturn to {{a:1}} to trace the guard."
+        },
+        "selectedAnchor": 2,
+        "findings": [],
+        "presentation": {
+          "anchors": [
+            {
+              "n": 1,
+              "path": "service.js",
+              "status": "visible",
+              "column": 1,
+              "source": "file",
+              "companionColumn": 3,
+              "removedCode": "companion"
+            },
+            {
+              "n": 2,
+              "path": "service.test.js",
+              "status": "visible",
+              "column": 2,
+              "source": "file",
+              "companionColumn": null,
+              "removedCode": null
+            },
+            {
+              "n": 3,
+              "path": "navigation.js",
+              "status": "not-open",
+              "column": null,
+              "source": "file",
+              "companionColumn": null,
+              "removedCode": null
+            },
+            {
+              "n": 4,
+              "path": "service.js",
+              "status": "open",
+              "column": 1,
+              "source": "file",
+              "companionColumn": null,
+              "removedCode": null
+            }
+          ]
+        },
+        "narrationHtml": "<strong>The failure path is observable.</strong>\n\n<button class=\"chip color-2\" data-anchor=\"2\" title=\"service.test.js:3–12 · Prove rejected loads are safe\" aria-label=\"Open anchor 2: service.test.js:3–12 · Prove rejected loads are safe\">2</button> checks both the validation finding and the retained review.\n\nReturn to <button class=\"chip color-1\" data-anchor=\"1\" title=\"service.js:1–11 · Keep the active review\" aria-label=\"Open anchor 1: service.js:1–11 · Keep the active review\">1</button> to trace the guard.",
+        "narration": "**The failure path is observable.**\n\n② service.test.js:3 checks both the validation finding and the retained review.\n\nReturn to ① service.js:1 to trace the guard.",
+        "receiptNarration": "**The failure path is observable.**\n\n② service.test.js:3–12 @119bf8c checks both the validation finding and the retained review.\n\nReturn to ① service.js:1–11 @119bf8c to trace the guard."
+      }
+    },
+    {
+      "name": "deleted-base",
+      "value": {
+        "revision": 4,
+        "loaded": true,
+        "tourId": "dos_10061ad5-09e3-4b9f-901d-1097e4a62b33",
+        "planId": "pln_09c91f6d-fbe6-45e1-8fd8-f25ec4423103",
+        "title": "A review that stays on track",
+        "mode": "following",
+        "stopIndex": 1,
+        "beatIndex": 1,
+        "stopCount": 2,
+        "beatCount": 2,
+        "stop": {
+          "anchors": [
+            {
+              "change": "added",
+              "claimRefs": [],
+              "contentHash": "sha256:14db37ee679bc906872c761bd2b582ecb77ed3be2fa7c2bff36df42919b168f2",
+              "context": {
+                "endLine": 11,
+                "startLine": 1
+              },
+              "focus": [],
+              "label": "Advance one beat",
+              "n": 1,
+              "path": "navigation.js",
+              "rev": {
+                "base": "69ea916235afc712f25a998578bf45a2df6bb061",
+                "head": "119bf8c99b298d8a8694698432b5062c30646a25"
+              },
+              "role": "change",
+              "side": "head",
+              "view": "head"
+            },
+            {
+              "change": "deleted",
+              "claimRefs": [],
+              "contentHash": "sha256:7770067fbcb4ba588aca3b7df2bb2d6a1bd6f410d33d9aafd6b884d682540b7f",
+              "context": {
+                "endLine": 4,
+                "startLine": 1
+              },
+              "focus": [],
+              "label": "The removed opening path",
+              "n": 2,
+              "path": "retired.js",
+              "rev": {
+                "base": "69ea916235afc712f25a998578bf45a2df6bb061",
+                "head": "119bf8c99b298d8a8694698432b5062c30646a25"
+              },
+              "role": "context",
+              "side": "base",
+              "view": "base"
+            }
+          ],
+          "beats": [
+            {
+              "active": [
+                1
+              ],
+              "id": "next",
+              "narration": "**One beat at a time.**\n\n{{a:1}} advances the cursor. Following reveals the current source; Exploring keeps your editor in place.\n\nThe removed approach is still inspectable in {{a:2}}."
+            },
+            {
+              "active": [
+                2
+              ],
+              "id": "removed",
+              "narration": "**Inspect the removed path.**\n\n{{a:2}} comes from the base revision, even though the file no longer exists at the head."
+            }
+          ],
+          "coveredEntityIds": [],
+          "id": "navigation",
+          "index": 2,
+          "reviewState": "not-visited",
+          "reviewedAtChangeRevisionId": null,
+          "risk": "low",
+          "title": "Keep navigation explicit",
+          "type": "context"
+        },
+        "beat": {
+          "active": [
+            2
+          ],
+          "id": "removed",
+          "narration": "**Inspect the removed path.**\n\n{{a:2}} comes from the base revision, even though the file no longer exists at the head."
+        },
+        "selectedAnchor": 2,
+        "findings": [],
+        "presentation": {
+          "anchors": [
+            {
+              "n": 1,
+              "path": "navigation.js",
+              "status": "not-open",
+              "column": null,
+              "source": "file",
+              "companionColumn": null,
+              "removedCode": null
+            },
+            {
+              "n": 2,
+              "path": "retired.js",
+              "status": "visible",
+              "column": 1,
+              "source": "relay-rev",
+              "companionColumn": null,
+              "removedCode": null
+            }
+          ]
+        },
+        "narrationHtml": "<strong>Inspect the removed path.</strong>\n\n<button class=\"chip color-2\" data-anchor=\"2\" title=\"retired.js:1–4 · The removed opening path\" aria-label=\"Open anchor 2: retired.js:1–4 · The removed opening path\">2</button> comes from the base revision, even though the file no longer exists at the head.",
+        "narration": "**Inspect the removed path.**\n\n② retired.js:1 comes from the base revision, even though the file no longer exists at the head.",
+        "receiptNarration": "**Inspect the removed path.**\n\n② retired.js:1–4 @69ea916 comes from the base revision, even though the file no longer exists at the head."
+      }
+    },
+    {
+      "name": "exploring",
+      "value": {
+        "revision": 7,
+        "loaded": true,
+        "tourId": "dos_10061ad5-09e3-4b9f-901d-1097e4a62b33",
+        "planId": "pln_09c91f6d-fbe6-45e1-8fd8-f25ec4423103",
+        "title": "A review that stays on track",
+        "mode": "exploring",
+        "stopIndex": 0,
+        "beatIndex": 1,
+        "stopCount": 2,
+        "beatCount": 4,
+        "stop": {
+          "anchors": [
+            {
+              "change": "modified",
+              "claimRefs": [],
+              "contentHash": "sha256:3deb012916d895ba2c177c04994b7f1fe4bf039b512f652500492148ec55edba",
+              "context": {
+                "endLine": 11,
+                "startLine": 1
+              },
+              "focus": [
+                {
+                  "range": {
+                    "endLine": 7,
+                    "startLine": 5
+                  },
+                  "side": "head"
+                },
+                {
+                  "kind": "removed",
+                  "range": {
+                    "endLine": 6,
+                    "startLine": 6
+                  },
+                  "side": "base"
+                }
+              ],
+              "label": "Keep the active review",
+              "n": 1,
+              "path": "service.js",
+              "rev": {
+                "base": "69ea916235afc712f25a998578bf45a2df6bb061",
+                "head": "119bf8c99b298d8a8694698432b5062c30646a25"
+              },
+              "role": "change",
+              "side": "head",
+              "view": "diff"
+            },
+            {
+              "change": "added",
+              "claimRefs": [
+                "claim_guard"
+              ],
+              "contentHash": "sha256:6330f722f18a2e8b58fb3d393b210928fd5009f40a4f44540871532a8887e92b",
+              "context": {
+                "endLine": 12,
+                "startLine": 3
+              },
+              "focus": [],
+              "label": "Prove rejected loads are safe",
+              "n": 2,
+              "path": "service.test.js",
+              "rev": {
+                "base": "69ea916235afc712f25a998578bf45a2df6bb061",
+                "head": "119bf8c99b298d8a8694698432b5062c30646a25"
+              },
+              "role": "evidence",
+              "side": "head",
+              "view": "head"
+            },
+            {
+              "change": "added",
+              "claimRefs": [],
+              "contentHash": "sha256:14db37ee679bc906872c761bd2b582ecb77ed3be2fa7c2bff36df42919b168f2",
+              "context": {
+                "endLine": 11,
+                "startLine": 1
+              },
+              "focus": [],
+              "label": "Advance the review",
+              "n": 3,
+              "path": "navigation.js",
+              "rev": {
+                "base": "69ea916235afc712f25a998578bf45a2df6bb061",
+                "head": "119bf8c99b298d8a8694698432b5062c30646a25"
+              },
+              "role": "caller",
+              "side": "head",
+              "view": "head"
+            },
+            {
+              "change": "modified",
+              "claimRefs": [],
+              "contentHash": "sha256:8dd33e3e44eb1622b74e6706f98becf136e7221b6c78f0b73e49259c7275614c",
+              "context": {
+                "endLine": 19,
+                "startLine": 13
+              },
+              "focus": [],
+              "label": "Normalize the valid candidate",
+              "n": 4,
+              "path": "service.js",
+              "rev": {
+                "base": "69ea916235afc712f25a998578bf45a2df6bb061",
+                "head": "119bf8c99b298d8a8694698432b5062c30646a25"
+              },
+              "role": "callee",
+              "side": "head",
+              "view": "diff"
+            }
+          ],
+          "beats": [
+            {
+              "active": [
+                1,
+                2
+              ],
+              "id": "guard",
+              "narration": "**Keep the current review intact.**\n\n{{a:1}} checks the incoming tour before it can replace what the reviewer sees.\n\nThe regression in {{a:2}} proves a failed load leaves the active stop unchanged."
+            },
+            {
+              "active": [
+                2,
+                1
+              ],
+              "id": "proof",
+              "narration": "**The failure path is observable.**\n\n{{a:2}} checks both the validation finding and the retained review.\n\nReturn to {{a:1}} to trace the guard."
+            },
+            {
+              "active": [
+                1,
+                2,
+                3
+              ],
+              "id": "capacity",
+              "narration": "**All three sources.** {{a:1}} rejects invalid input, {{a:2}} checks the result, and {{a:3}} advances the review."
+            },
+            {
+              "active": [
+                4,
+                1
+              ],
+              "id": "same-source",
+              "narration": "**Two ranges, one source.** {{a:4}} normalizes the candidate that {{a:1}} checked."
+            }
+          ],
+          "coveredEntityIds": [
+            "claim_guard"
+          ],
+          "id": "validation",
+          "index": 1,
+          "reviewState": "not-visited",
+          "reviewedAtChangeRevisionId": null,
+          "risk": "medium",
+          "title": "Validate before opening editors",
+          "type": "implementation"
+        },
+        "beat": {
+          "active": [
+            2,
+            1
+          ],
+          "id": "proof",
+          "narration": "**The failure path is observable.**\n\n{{a:2}} checks both the validation finding and the retained review.\n\nReturn to {{a:1}} to trace the guard."
+        },
+        "selectedAnchor": 2,
+        "findings": [],
+        "presentation": {
+          "anchors": [
+            {
+              "n": 1,
+              "path": "service.js",
+              "status": "visible",
+              "column": 1,
+              "source": "file",
+              "companionColumn": 3,
+              "removedCode": "companion"
+            },
+            {
+              "n": 2,
+              "path": "service.test.js",
+              "status": "visible",
+              "column": 2,
+              "source": "file",
+              "companionColumn": null,
+              "removedCode": null
+            },
+            {
+              "n": 3,
+              "path": "navigation.js",
+              "status": "not-open",
+              "column": null,
+              "source": "file",
+              "companionColumn": null,
+              "removedCode": null
+            },
+            {
+              "n": 4,
+              "path": "service.js",
+              "status": "open",
+              "column": 1,
+              "source": "file",
+              "companionColumn": null,
+              "removedCode": null
+            }
+          ]
+        },
+        "narrationHtml": "<strong>The failure path is observable.</strong>\n\n<button class=\"chip color-2\" data-anchor=\"2\" title=\"service.test.js:3–12 · Prove rejected loads are safe\" aria-label=\"Open anchor 2: service.test.js:3–12 · Prove rejected loads are safe\">2</button> checks both the validation finding and the retained review.\n\nReturn to <button class=\"chip color-1\" data-anchor=\"1\" title=\"service.js:1–11 · Keep the active review\" aria-label=\"Open anchor 1: service.js:1–11 · Keep the active review\">1</button> to trace the guard.",
+        "narration": "**The failure path is observable.**\n\n② service.test.js:3 checks both the validation finding and the retained review.\n\nReturn to ① service.js:1 to trace the guard.",
+        "receiptNarration": "**The failure path is observable.**\n\n② service.test.js:3–12 @119bf8c checks both the validation finding and the retained review.\n\nReturn to ① service.js:1–11 @119bf8c to trace the guard."
+      }
+    },
+    {
+      "name": "paused",
+      "value": {
+        "revision": 8,
+        "loaded": true,
+        "tourId": "dos_10061ad5-09e3-4b9f-901d-1097e4a62b33",
+        "planId": "pln_09c91f6d-fbe6-45e1-8fd8-f25ec4423103",
+        "title": "A review that stays on track",
+        "mode": "paused",
+        "stopIndex": 0,
+        "beatIndex": 1,
+        "stopCount": 2,
+        "beatCount": 4,
+        "stop": {
+          "anchors": [
+            {
+              "change": "modified",
+              "claimRefs": [],
+              "contentHash": "sha256:3deb012916d895ba2c177c04994b7f1fe4bf039b512f652500492148ec55edba",
+              "context": {
+                "endLine": 11,
+                "startLine": 1
+              },
+              "focus": [
+                {
+                  "range": {
+                    "endLine": 7,
+                    "startLine": 5
+                  },
+                  "side": "head"
+                },
+                {
+                  "kind": "removed",
+                  "range": {
+                    "endLine": 6,
+                    "startLine": 6
+                  },
+                  "side": "base"
+                }
+              ],
+              "label": "Keep the active review",
+              "n": 1,
+              "path": "service.js",
+              "rev": {
+                "base": "69ea916235afc712f25a998578bf45a2df6bb061",
+                "head": "119bf8c99b298d8a8694698432b5062c30646a25"
+              },
+              "role": "change",
+              "side": "head",
+              "view": "diff"
+            },
+            {
+              "change": "added",
+              "claimRefs": [
+                "claim_guard"
+              ],
+              "contentHash": "sha256:6330f722f18a2e8b58fb3d393b210928fd5009f40a4f44540871532a8887e92b",
+              "context": {
+                "endLine": 12,
+                "startLine": 3
+              },
+              "focus": [],
+              "label": "Prove rejected loads are safe",
+              "n": 2,
+              "path": "service.test.js",
+              "rev": {
+                "base": "69ea916235afc712f25a998578bf45a2df6bb061",
+                "head": "119bf8c99b298d8a8694698432b5062c30646a25"
+              },
+              "role": "evidence",
+              "side": "head",
+              "view": "head"
+            },
+            {
+              "change": "added",
+              "claimRefs": [],
+              "contentHash": "sha256:14db37ee679bc906872c761bd2b582ecb77ed3be2fa7c2bff36df42919b168f2",
+              "context": {
+                "endLine": 11,
+                "startLine": 1
+              },
+              "focus": [],
+              "label": "Advance the review",
+              "n": 3,
+              "path": "navigation.js",
+              "rev": {
+                "base": "69ea916235afc712f25a998578bf45a2df6bb061",
+                "head": "119bf8c99b298d8a8694698432b5062c30646a25"
+              },
+              "role": "caller",
+              "side": "head",
+              "view": "head"
+            },
+            {
+              "change": "modified",
+              "claimRefs": [],
+              "contentHash": "sha256:8dd33e3e44eb1622b74e6706f98becf136e7221b6c78f0b73e49259c7275614c",
+              "context": {
+                "endLine": 19,
+                "startLine": 13
+              },
+              "focus": [],
+              "label": "Normalize the valid candidate",
+              "n": 4,
+              "path": "service.js",
+              "rev": {
+                "base": "69ea916235afc712f25a998578bf45a2df6bb061",
+                "head": "119bf8c99b298d8a8694698432b5062c30646a25"
+              },
+              "role": "callee",
+              "side": "head",
+              "view": "diff"
+            }
+          ],
+          "beats": [
+            {
+              "active": [
+                1,
+                2
+              ],
+              "id": "guard",
+              "narration": "**Keep the current review intact.**\n\n{{a:1}} checks the incoming tour before it can replace what the reviewer sees.\n\nThe regression in {{a:2}} proves a failed load leaves the active stop unchanged."
+            },
+            {
+              "active": [
+                2,
+                1
+              ],
+              "id": "proof",
+              "narration": "**The failure path is observable.**\n\n{{a:2}} checks both the validation finding and the retained review.\n\nReturn to {{a:1}} to trace the guard."
+            },
+            {
+              "active": [
+                1,
+                2,
+                3
+              ],
+              "id": "capacity",
+              "narration": "**All three sources.** {{a:1}} rejects invalid input, {{a:2}} checks the result, and {{a:3}} advances the review."
+            },
+            {
+              "active": [
+                4,
+                1
+              ],
+              "id": "same-source",
+              "narration": "**Two ranges, one source.** {{a:4}} normalizes the candidate that {{a:1}} checked."
+            }
+          ],
+          "coveredEntityIds": [
+            "claim_guard"
+          ],
+          "id": "validation",
+          "index": 1,
+          "reviewState": "not-visited",
+          "reviewedAtChangeRevisionId": null,
+          "risk": "medium",
+          "title": "Validate before opening editors",
+          "type": "implementation"
+        },
+        "beat": {
+          "active": [
+            2,
+            1
+          ],
+          "id": "proof",
+          "narration": "**The failure path is observable.**\n\n{{a:2}} checks both the validation finding and the retained review.\n\nReturn to {{a:1}} to trace the guard."
+        },
+        "selectedAnchor": 2,
+        "findings": [],
+        "presentation": {
+          "anchors": [
+            {
+              "n": 1,
+              "path": "service.js",
+              "status": "visible",
+              "column": 1,
+              "source": "file",
+              "companionColumn": 3,
+              "removedCode": "companion"
+            },
+            {
+              "n": 2,
+              "path": "service.test.js",
+              "status": "visible",
+              "column": 2,
+              "source": "file",
+              "companionColumn": null,
+              "removedCode": null
+            },
+            {
+              "n": 3,
+              "path": "navigation.js",
+              "status": "not-open",
+              "column": null,
+              "source": "file",
+              "companionColumn": null,
+              "removedCode": null
+            },
+            {
+              "n": 4,
+              "path": "service.js",
+              "status": "open",
+              "column": 1,
+              "source": "file",
+              "companionColumn": null,
+              "removedCode": null
+            }
+          ]
+        },
+        "narrationHtml": "<strong>The failure path is observable.</strong>\n\n<button class=\"chip color-2\" data-anchor=\"2\" title=\"service.test.js:3–12 · Prove rejected loads are safe\" aria-label=\"Open anchor 2: service.test.js:3–12 · Prove rejected loads are safe\">2</button> checks both the validation finding and the retained review.\n\nReturn to <button class=\"chip color-1\" data-anchor=\"1\" title=\"service.js:1–11 · Keep the active review\" aria-label=\"Open anchor 1: service.js:1–11 · Keep the active review\">1</button> to trace the guard.",
+        "narration": "**The failure path is observable.**\n\n② service.test.js:3 checks both the validation finding and the retained review.\n\nReturn to ① service.js:1 to trace the guard.",
+        "receiptNarration": "**The failure path is observable.**\n\n② service.test.js:3–12 @119bf8c checks both the validation finding and the retained review.\n\nReturn to ① service.js:1–11 @119bf8c to trace the guard."
+      }
+    },
+    {
+      "name": "rejected-load",
+      "value": {
+        "result": {
+          "ok": false,
+          "error": {
+            "code": "invalid_tour_plan",
+            "message": "Fix tour validation findings before loading.",
+            "details": {
+              "findings": [
+                {
+                  "severity": "error",
+                  "code": "invalid_active",
+                  "location": "stops[0].beats[0].active",
+                  "message": "Active must contain unique anchor numbers from this stop, in priority order."
+                }
+              ]
+            }
+          }
+        },
+        "unchangedSnapshot": {
+          "revision": 9,
+          "loaded": true,
+          "tourId": "dos_10061ad5-09e3-4b9f-901d-1097e4a62b33",
+          "planId": "pln_09c91f6d-fbe6-45e1-8fd8-f25ec4423103",
+          "title": "A review that stays on track",
+          "mode": "following",
+          "stopIndex": 0,
+          "beatIndex": 1,
+          "stopCount": 2,
+          "beatCount": 4,
+          "stop": {
+            "anchors": [
+              {
+                "change": "modified",
+                "claimRefs": [],
+                "contentHash": "sha256:3deb012916d895ba2c177c04994b7f1fe4bf039b512f652500492148ec55edba",
+                "context": {
+                  "endLine": 11,
+                  "startLine": 1
+                },
+                "focus": [
+                  {
+                    "range": {
+                      "endLine": 7,
+                      "startLine": 5
+                    },
+                    "side": "head"
+                  },
+                  {
+                    "kind": "removed",
+                    "range": {
+                      "endLine": 6,
+                      "startLine": 6
+                    },
+                    "side": "base"
+                  }
+                ],
+                "label": "Keep the active review",
+                "n": 1,
+                "path": "service.js",
+                "rev": {
+                  "base": "69ea916235afc712f25a998578bf45a2df6bb061",
+                  "head": "119bf8c99b298d8a8694698432b5062c30646a25"
+                },
+                "role": "change",
+                "side": "head",
+                "view": "diff"
+              },
+              {
+                "change": "added",
+                "claimRefs": [
+                  "claim_guard"
+                ],
+                "contentHash": "sha256:6330f722f18a2e8b58fb3d393b210928fd5009f40a4f44540871532a8887e92b",
+                "context": {
+                  "endLine": 12,
+                  "startLine": 3
+                },
+                "focus": [],
+                "label": "Prove rejected loads are safe",
+                "n": 2,
+                "path": "service.test.js",
+                "rev": {
+                  "base": "69ea916235afc712f25a998578bf45a2df6bb061",
+                  "head": "119bf8c99b298d8a8694698432b5062c30646a25"
+                },
+                "role": "evidence",
+                "side": "head",
+                "view": "head"
+              },
+              {
+                "change": "added",
+                "claimRefs": [],
+                "contentHash": "sha256:14db37ee679bc906872c761bd2b582ecb77ed3be2fa7c2bff36df42919b168f2",
+                "context": {
+                  "endLine": 11,
+                  "startLine": 1
+                },
+                "focus": [],
+                "label": "Advance the review",
+                "n": 3,
+                "path": "navigation.js",
+                "rev": {
+                  "base": "69ea916235afc712f25a998578bf45a2df6bb061",
+                  "head": "119bf8c99b298d8a8694698432b5062c30646a25"
+                },
+                "role": "caller",
+                "side": "head",
+                "view": "head"
+              },
+              {
+                "change": "modified",
+                "claimRefs": [],
+                "contentHash": "sha256:8dd33e3e44eb1622b74e6706f98becf136e7221b6c78f0b73e49259c7275614c",
+                "context": {
+                  "endLine": 19,
+                  "startLine": 13
+                },
+                "focus": [],
+                "label": "Normalize the valid candidate",
+                "n": 4,
+                "path": "service.js",
+                "rev": {
+                  "base": "69ea916235afc712f25a998578bf45a2df6bb061",
+                  "head": "119bf8c99b298d8a8694698432b5062c30646a25"
+                },
+                "role": "callee",
+                "side": "head",
+                "view": "diff"
+              }
+            ],
+            "beats": [
+              {
+                "active": [
+                  1,
+                  2
+                ],
+                "id": "guard",
+                "narration": "**Keep the current review intact.**\n\n{{a:1}} checks the incoming tour before it can replace what the reviewer sees.\n\nThe regression in {{a:2}} proves a failed load leaves the active stop unchanged."
+              },
+              {
+                "active": [
+                  2,
+                  1
+                ],
+                "id": "proof",
+                "narration": "**The failure path is observable.**\n\n{{a:2}} checks both the validation finding and the retained review.\n\nReturn to {{a:1}} to trace the guard."
+              },
+              {
+                "active": [
+                  1,
+                  2,
+                  3
+                ],
+                "id": "capacity",
+                "narration": "**All three sources.** {{a:1}} rejects invalid input, {{a:2}} checks the result, and {{a:3}} advances the review."
+              },
+              {
+                "active": [
+                  4,
+                  1
+                ],
+                "id": "same-source",
+                "narration": "**Two ranges, one source.** {{a:4}} normalizes the candidate that {{a:1}} checked."
+              }
+            ],
+            "coveredEntityIds": [
+              "claim_guard"
+            ],
+            "id": "validation",
+            "index": 1,
+            "reviewState": "not-visited",
+            "reviewedAtChangeRevisionId": null,
+            "risk": "medium",
+            "title": "Validate before opening editors",
+            "type": "implementation"
+          },
+          "beat": {
+            "active": [
+              2,
+              1
+            ],
+            "id": "proof",
+            "narration": "**The failure path is observable.**\n\n{{a:2}} checks both the validation finding and the retained review.\n\nReturn to {{a:1}} to trace the guard."
+          },
+          "selectedAnchor": 2,
+          "findings": [],
+          "presentation": {
+            "anchors": [
+              {
+                "n": 1,
+                "path": "service.js",
+                "status": "visible",
+                "column": 1,
+                "source": "file",
+                "companionColumn": 3,
+                "removedCode": "companion"
+              },
+              {
+                "n": 2,
+                "path": "service.test.js",
+                "status": "visible",
+                "column": 2,
+                "source": "file",
+                "companionColumn": null,
+                "removedCode": null
+              },
+              {
+                "n": 3,
+                "path": "navigation.js",
+                "status": "not-open",
+                "column": null,
+                "source": "file",
+                "companionColumn": null,
+                "removedCode": null
+              },
+              {
+                "n": 4,
+                "path": "service.js",
+                "status": "open",
+                "column": 1,
+                "source": "file",
+                "companionColumn": null,
+                "removedCode": null
+              }
+            ]
+          },
+          "narrationHtml": "<strong>The failure path is observable.</strong>\n\n<button class=\"chip color-2\" data-anchor=\"2\" title=\"service.test.js:3–12 · Prove rejected loads are safe\" aria-label=\"Open anchor 2: service.test.js:3–12 · Prove rejected loads are safe\">2</button> checks both the validation finding and the retained review.\n\nReturn to <button class=\"chip color-1\" data-anchor=\"1\" title=\"service.js:1–11 · Keep the active review\" aria-label=\"Open anchor 1: service.js:1–11 · Keep the active review\">1</button> to trace the guard.",
+          "narration": "**The failure path is observable.**\n\n② service.test.js:3 checks both the validation finding and the retained review.\n\nReturn to ① service.js:1 to trace the guard.",
+          "receiptNarration": "**The failure path is observable.**\n\n② service.test.js:3–12 @119bf8c checks both the validation finding and the retained review.\n\nReturn to ① service.js:1–11 @119bf8c to trace the guard."
+        },
+        "unchangedTabs": [
+          {
+            "label": "service.js (69ea916 ↔ 119bf8c)",
+            "uri": "file:///private/tmp/relay-tour-KY3YCC/workspace/service.js"
+          },
+          {
+            "label": "service.test.js",
+            "uri": "file:///private/tmp/relay-tour-KY3YCC/workspace/service.test.js"
+          },
+          {
+            "label": "service.js",
+            "uri": "relay-rev:/service.js?%7B%22path%22%3A%22%2Fprivate%2Ftmp%2Frelay-tour-KY3YCC%2Fworkspace%2Fservice.js%22%2C%22ref%22%3A%2269ea916235afc712f25a998578bf45a2df6bb061%22%2C%22side%22%3A%22base%22%2C%22relay%22%3A%22tour%22%2C%22identity%22%3A%22sha256%3A2beed5afcf838234b87c9008c0cf8b765a93fef8cf7e6a8a40309c96b190a912%22%7D"
+          }
+        ]
+      }
+    },
+    {
+      "name": "three-anchors-peek",
+      "value": {
+        "revision": 11,
+        "loaded": true,
+        "tourId": "dos_10061ad5-09e3-4b9f-901d-1097e4a62b33",
+        "planId": "pln_09c91f6d-fbe6-45e1-8fd8-f25ec4423103",
+        "title": "A review that stays on track",
+        "mode": "following",
+        "stopIndex": 0,
+        "beatIndex": 2,
+        "stopCount": 2,
+        "beatCount": 4,
+        "stop": {
+          "anchors": [
+            {
+              "change": "modified",
+              "claimRefs": [],
+              "contentHash": "sha256:3deb012916d895ba2c177c04994b7f1fe4bf039b512f652500492148ec55edba",
+              "context": {
+                "endLine": 11,
+                "startLine": 1
+              },
+              "focus": [
+                {
+                  "range": {
+                    "endLine": 7,
+                    "startLine": 5
+                  },
+                  "side": "head"
+                },
+                {
+                  "kind": "removed",
+                  "range": {
+                    "endLine": 6,
+                    "startLine": 6
+                  },
+                  "side": "base"
+                }
+              ],
+              "label": "Keep the active review",
+              "n": 1,
+              "path": "service.js",
+              "rev": {
+                "base": "69ea916235afc712f25a998578bf45a2df6bb061",
+                "head": "119bf8c99b298d8a8694698432b5062c30646a25"
+              },
+              "role": "change",
+              "side": "head",
+              "view": "diff"
+            },
+            {
+              "change": "added",
+              "claimRefs": [
+                "claim_guard"
+              ],
+              "contentHash": "sha256:6330f722f18a2e8b58fb3d393b210928fd5009f40a4f44540871532a8887e92b",
+              "context": {
+                "endLine": 12,
+                "startLine": 3
+              },
+              "focus": [],
+              "label": "Prove rejected loads are safe",
+              "n": 2,
+              "path": "service.test.js",
+              "rev": {
+                "base": "69ea916235afc712f25a998578bf45a2df6bb061",
+                "head": "119bf8c99b298d8a8694698432b5062c30646a25"
+              },
+              "role": "evidence",
+              "side": "head",
+              "view": "head"
+            },
+            {
+              "change": "added",
+              "claimRefs": [],
+              "contentHash": "sha256:14db37ee679bc906872c761bd2b582ecb77ed3be2fa7c2bff36df42919b168f2",
+              "context": {
+                "endLine": 11,
+                "startLine": 1
+              },
+              "focus": [],
+              "label": "Advance the review",
+              "n": 3,
+              "path": "navigation.js",
+              "rev": {
+                "base": "69ea916235afc712f25a998578bf45a2df6bb061",
+                "head": "119bf8c99b298d8a8694698432b5062c30646a25"
+              },
+              "role": "caller",
+              "side": "head",
+              "view": "head"
+            },
+            {
+              "change": "modified",
+              "claimRefs": [],
+              "contentHash": "sha256:8dd33e3e44eb1622b74e6706f98becf136e7221b6c78f0b73e49259c7275614c",
+              "context": {
+                "endLine": 19,
+                "startLine": 13
+              },
+              "focus": [],
+              "label": "Normalize the valid candidate",
+              "n": 4,
+              "path": "service.js",
+              "rev": {
+                "base": "69ea916235afc712f25a998578bf45a2df6bb061",
+                "head": "119bf8c99b298d8a8694698432b5062c30646a25"
+              },
+              "role": "callee",
+              "side": "head",
+              "view": "diff"
+            }
+          ],
+          "beats": [
+            {
+              "active": [
+                1,
+                2
+              ],
+              "id": "guard",
+              "narration": "**Keep the current review intact.**\n\n{{a:1}} checks the incoming tour before it can replace what the reviewer sees.\n\nThe regression in {{a:2}} proves a failed load leaves the active stop unchanged."
+            },
+            {
+              "active": [
+                2,
+                1
+              ],
+              "id": "proof",
+              "narration": "**The failure path is observable.**\n\n{{a:2}} checks both the validation finding and the retained review.\n\nReturn to {{a:1}} to trace the guard."
+            },
+            {
+              "active": [
+                1,
+                2,
+                3
+              ],
+              "id": "capacity",
+              "narration": "**All three sources.** {{a:1}} rejects invalid input, {{a:2}} checks the result, and {{a:3}} advances the review."
+            },
+            {
+              "active": [
+                4,
+                1
+              ],
+              "id": "same-source",
+              "narration": "**Two ranges, one source.** {{a:4}} normalizes the candidate that {{a:1}} checked."
+            }
+          ],
+          "coveredEntityIds": [
+            "claim_guard"
+          ],
+          "id": "validation",
+          "index": 1,
+          "reviewState": "not-visited",
+          "reviewedAtChangeRevisionId": null,
+          "risk": "medium",
+          "title": "Validate before opening editors",
+          "type": "implementation"
+        },
+        "beat": {
+          "active": [
+            1,
+            2,
+            3
+          ],
+          "id": "capacity",
+          "narration": "**All three sources.** {{a:1}} rejects invalid input, {{a:2}} checks the result, and {{a:3}} advances the review."
+        },
+        "selectedAnchor": 1,
+        "findings": [],
+        "presentation": {
+          "anchors": [
+            {
+              "n": 1,
+              "path": "service.js",
+              "status": "visible",
+              "column": 1,
+              "source": "file",
+              "companionColumn": null,
+              "removedCode": "peek"
+            },
+            {
+              "n": 2,
+              "path": "service.test.js",
+              "status": "visible",
+              "column": 2,
+              "source": "file",
+              "companionColumn": null,
+              "removedCode": null
+            },
+            {
+              "n": 3,
+              "path": "navigation.js",
+              "status": "visible",
+              "column": 3,
+              "source": "file",
+              "companionColumn": null,
+              "removedCode": null
+            },
+            {
+              "n": 4,
+              "path": "service.js",
+              "status": "open",
+              "column": 1,
+              "source": "file",
+              "companionColumn": null,
+              "removedCode": null
+            }
+          ]
+        },
+        "narrationHtml": "<strong>All three sources.</strong> <button class=\"chip color-1\" data-anchor=\"1\" title=\"service.js:1–11 · Keep the active review\" aria-label=\"Open anchor 1: service.js:1–11 · Keep the active review\">1</button> rejects invalid input, <button class=\"chip color-2\" data-anchor=\"2\" title=\"service.test.js:3–12 · Prove rejected loads are safe\" aria-label=\"Open anchor 2: service.test.js:3–12 · Prove rejected loads are safe\">2</button> checks the result, and <button class=\"chip color-3\" data-anchor=\"3\" title=\"navigation.js:1–11 · Advance the review\" aria-label=\"Open anchor 3: navigation.js:1–11 · Advance the review\">3</button> advances the review.",
+        "narration": "**All three sources.** ① service.js:1 rejects invalid input, ② service.test.js:3 checks the result, and ③ navigation.js:1 advances the review.",
+        "receiptNarration": "**All three sources.** ① service.js:1–11 @119bf8c rejects invalid input, ② service.test.js:3–12 @119bf8c checks the result, and ③ navigation.js:1–11 @119bf8c advances the review."
+      }
+    },
+    {
+      "name": "peek-command-json-boundary",
+      "value": {
+        "arguments": [
+          "dos_10061ad5-09e3-4b9f-901d-1097e4a62b33",
+          0,
+          1,
+          6,
+          6
+        ],
+        "retainedWhileExploring": true
+      }
+    },
+    {
+      "name": "same-source-identity",
+      "value": {
+        "revision": 17,
+        "loaded": true,
+        "tourId": "dos_10061ad5-09e3-4b9f-901d-1097e4a62b33",
+        "planId": "pln_09c91f6d-fbe6-45e1-8fd8-f25ec4423103",
+        "title": "A review that stays on track",
+        "mode": "following",
+        "stopIndex": 0,
+        "beatIndex": 3,
+        "stopCount": 2,
+        "beatCount": 4,
+        "stop": {
+          "anchors": [
+            {
+              "change": "modified",
+              "claimRefs": [],
+              "contentHash": "sha256:3deb012916d895ba2c177c04994b7f1fe4bf039b512f652500492148ec55edba",
+              "context": {
+                "endLine": 11,
+                "startLine": 1
+              },
+              "focus": [
+                {
+                  "range": {
+                    "endLine": 7,
+                    "startLine": 5
+                  },
+                  "side": "head"
+                },
+                {
+                  "kind": "removed",
+                  "range": {
+                    "endLine": 6,
+                    "startLine": 6
+                  },
+                  "side": "base"
+                }
+              ],
+              "label": "Keep the active review",
+              "n": 1,
+              "path": "service.js",
+              "rev": {
+                "base": "69ea916235afc712f25a998578bf45a2df6bb061",
+                "head": "119bf8c99b298d8a8694698432b5062c30646a25"
+              },
+              "role": "change",
+              "side": "head",
+              "view": "diff"
+            },
+            {
+              "change": "added",
+              "claimRefs": [
+                "claim_guard"
+              ],
+              "contentHash": "sha256:6330f722f18a2e8b58fb3d393b210928fd5009f40a4f44540871532a8887e92b",
+              "context": {
+                "endLine": 12,
+                "startLine": 3
+              },
+              "focus": [],
+              "label": "Prove rejected loads are safe",
+              "n": 2,
+              "path": "service.test.js",
+              "rev": {
+                "base": "69ea916235afc712f25a998578bf45a2df6bb061",
+                "head": "119bf8c99b298d8a8694698432b5062c30646a25"
+              },
+              "role": "evidence",
+              "side": "head",
+              "view": "head"
+            },
+            {
+              "change": "added",
+              "claimRefs": [],
+              "contentHash": "sha256:14db37ee679bc906872c761bd2b582ecb77ed3be2fa7c2bff36df42919b168f2",
+              "context": {
+                "endLine": 11,
+                "startLine": 1
+              },
+              "focus": [],
+              "label": "Advance the review",
+              "n": 3,
+              "path": "navigation.js",
+              "rev": {
+                "base": "69ea916235afc712f25a998578bf45a2df6bb061",
+                "head": "119bf8c99b298d8a8694698432b5062c30646a25"
+              },
+              "role": "caller",
+              "side": "head",
+              "view": "head"
+            },
+            {
+              "change": "modified",
+              "claimRefs": [],
+              "contentHash": "sha256:8dd33e3e44eb1622b74e6706f98becf136e7221b6c78f0b73e49259c7275614c",
+              "context": {
+                "endLine": 19,
+                "startLine": 13
+              },
+              "focus": [],
+              "label": "Normalize the valid candidate",
+              "n": 4,
+              "path": "service.js",
+              "rev": {
+                "base": "69ea916235afc712f25a998578bf45a2df6bb061",
+                "head": "119bf8c99b298d8a8694698432b5062c30646a25"
+              },
+              "role": "callee",
+              "side": "head",
+              "view": "diff"
+            }
+          ],
+          "beats": [
+            {
+              "active": [
+                1,
+                2
+              ],
+              "id": "guard",
+              "narration": "**Keep the current review intact.**\n\n{{a:1}} checks the incoming tour before it can replace what the reviewer sees.\n\nThe regression in {{a:2}} proves a failed load leaves the active stop unchanged."
+            },
+            {
+              "active": [
+                2,
+                1
+              ],
+              "id": "proof",
+              "narration": "**The failure path is observable.**\n\n{{a:2}} checks both the validation finding and the retained review.\n\nReturn to {{a:1}} to trace the guard."
+            },
+            {
+              "active": [
+                1,
+                2,
+                3
+              ],
+              "id": "capacity",
+              "narration": "**All three sources.** {{a:1}} rejects invalid input, {{a:2}} checks the result, and {{a:3}} advances the review."
+            },
+            {
+              "active": [
+                4,
+                1
+              ],
+              "id": "same-source",
+              "narration": "**Two ranges, one source.** {{a:4}} normalizes the candidate that {{a:1}} checked."
+            }
+          ],
+          "coveredEntityIds": [
+            "claim_guard"
+          ],
+          "id": "validation",
+          "index": 1,
+          "reviewState": "not-visited",
+          "reviewedAtChangeRevisionId": null,
+          "risk": "medium",
+          "title": "Validate before opening editors",
+          "type": "implementation"
+        },
+        "beat": {
+          "active": [
+            4,
+            1
+          ],
+          "id": "same-source",
+          "narration": "**Two ranges, one source.** {{a:4}} normalizes the candidate that {{a:1}} checked."
+        },
+        "selectedAnchor": 4,
+        "findings": [],
+        "presentation": {
+          "anchors": [
+            {
+              "n": 1,
+              "path": "service.js",
+              "status": "open",
+              "column": 1,
+              "source": "file",
+              "companionColumn": null,
+              "removedCode": "companion"
+            },
+            {
+              "n": 2,
+              "path": "service.test.js",
+              "status": "visible",
+              "column": 2,
+              "source": "file",
+              "companionColumn": null,
+              "removedCode": null
+            },
+            {
+              "n": 3,
+              "path": "navigation.js",
+              "status": "not-open",
+              "column": null,
+              "source": "file",
+              "companionColumn": null,
+              "removedCode": null
+            },
+            {
+              "n": 4,
+              "path": "service.js",
+              "status": "visible",
+              "column": 1,
+              "source": "file",
+              "companionColumn": null,
+              "removedCode": null
+            }
+          ]
+        },
+        "narrationHtml": "<strong>Two ranges, one source.</strong> <button class=\"chip color-4\" data-anchor=\"4\" title=\"service.js:13–19 · Normalize the valid candidate\" aria-label=\"Open anchor 4: service.js:13–19 · Normalize the valid candidate\">4</button> normalizes the candidate that <button class=\"chip color-1\" data-anchor=\"1\" title=\"service.js:1–11 · Keep the active review\" aria-label=\"Open anchor 1: service.js:1–11 · Keep the active review\">1</button> checked.",
+        "narration": "**Two ranges, one source.** ④ service.js:13 normalizes the candidate that ① service.js:1 checked.",
+        "receiptNarration": "**Two ranges, one source.** ④ service.js:13–19 @119bf8c normalizes the candidate that ① service.js:1–11 @119bf8c checked."
+      }
+    },
+    {
+      "name": "dirty-head-protected",
+      "value": {
+        "stale": {
+          "anchors": [
+            {
+              "n": 1,
+              "path": "service.js",
+              "status": "visible",
+              "column": 1,
+              "source": "file",
+              "companionColumn": 3,
+              "removedCode": "companion"
+            },
+            {
+              "n": 2,
+              "path": "service.test.js",
+              "status": "stale",
+              "column": 2,
+              "source": "file",
+              "companionColumn": null,
+              "removedCode": null
+            },
+            {
+              "n": 3,
+              "path": "navigation.js",
+              "status": "not-open",
+              "column": null,
+              "source": "file",
+              "companionColumn": null,
+              "removedCode": null
+            },
+            {
+              "n": 4,
+              "path": "service.js",
+              "status": "open",
+              "column": 1,
+              "source": "file",
+              "companionColumn": null,
+              "removedCode": null
+            }
+          ]
+        },
+        "immutable": {
+          "anchors": [
+            {
+              "n": 1,
+              "path": "service.js",
+              "status": "visible",
+              "column": 1,
+              "source": "file",
+              "companionColumn": 3,
+              "removedCode": "companion"
+            },
+            {
+              "n": 2,
+              "path": "service.test.js",
+              "status": "visible",
+              "column": 2,
+              "source": "relay-rev",
+              "companionColumn": null,
+              "removedCode": null
+            },
+            {
+              "n": 3,
+              "path": "navigation.js",
+              "status": "not-open",
+              "column": null,
+              "source": "file",
+              "companionColumn": null,
+              "removedCode": null
+            },
+            {
+              "n": 4,
+              "path": "service.js",
+              "status": "open",
+              "column": 1,
+              "source": "file",
+              "companionColumn": null,
+              "removedCode": null
+            }
+          ]
+        }
+      }
+    },
+    {
+      "name": "pinned-tab-protected",
+      "value": {
+        "labels": [
+          "service.js (69ea916 ↔ 119bf8c)",
+          "navigation.js"
+        ]
+      }
+    },
+    {
+      "name": "reviewer-preview-protected",
+      "value": {
+        "uri": "reviewer-notes.txt",
+        "preserved": true
+      }
+    },
+    {
+      "name": "retained-peek-source",
+      "value": {
+        "reusedRealFile": true,
+        "pinnedBaseAvailable": true
+      }
+    },
+    {
+      "name": "reloaded",
+      "value": {
+        "revision": 35,
+        "loaded": true,
+        "tourId": "dos_10061ad5-09e3-4b9f-901d-1097e4a62b33",
+        "planId": "pln_09c91f6d-fbe6-45e1-8fd8-f25ec4423103",
+        "title": "A review that stays on track",
+        "mode": "following",
+        "stopIndex": 0,
+        "beatIndex": 0,
+        "stopCount": 2,
+        "beatCount": 4,
+        "stop": {
+          "anchors": [
+            {
+              "change": "modified",
+              "claimRefs": [],
+              "contentHash": "sha256:3deb012916d895ba2c177c04994b7f1fe4bf039b512f652500492148ec55edba",
+              "context": {
+                "endLine": 11,
+                "startLine": 1
+              },
+              "focus": [
+                {
+                  "range": {
+                    "endLine": 7,
+                    "startLine": 5
+                  },
+                  "side": "head"
+                },
+                {
+                  "kind": "removed",
+                  "range": {
+                    "endLine": 6,
+                    "startLine": 6
+                  },
+                  "side": "base"
+                }
+              ],
+              "label": "Keep the active review",
+              "n": 1,
+              "path": "service.js",
+              "rev": {
+                "base": "69ea916235afc712f25a998578bf45a2df6bb061",
+                "head": "119bf8c99b298d8a8694698432b5062c30646a25"
+              },
+              "role": "change",
+              "side": "head",
+              "view": "diff"
+            },
+            {
+              "change": "added",
+              "claimRefs": [
+                "claim_guard"
+              ],
+              "contentHash": "sha256:6330f722f18a2e8b58fb3d393b210928fd5009f40a4f44540871532a8887e92b",
+              "context": {
+                "endLine": 12,
+                "startLine": 3
+              },
+              "focus": [],
+              "label": "Prove rejected loads are safe",
+              "n": 2,
+              "path": "service.test.js",
+              "rev": {
+                "base": "69ea916235afc712f25a998578bf45a2df6bb061",
+                "head": "119bf8c99b298d8a8694698432b5062c30646a25"
+              },
+              "role": "evidence",
+              "side": "head",
+              "view": "head"
+            },
+            {
+              "change": "added",
+              "claimRefs": [],
+              "contentHash": "sha256:14db37ee679bc906872c761bd2b582ecb77ed3be2fa7c2bff36df42919b168f2",
+              "context": {
+                "endLine": 11,
+                "startLine": 1
+              },
+              "focus": [],
+              "label": "Advance the review",
+              "n": 3,
+              "path": "navigation.js",
+              "rev": {
+                "base": "69ea916235afc712f25a998578bf45a2df6bb061",
+                "head": "119bf8c99b298d8a8694698432b5062c30646a25"
+              },
+              "role": "caller",
+              "side": "head",
+              "view": "head"
+            },
+            {
+              "change": "modified",
+              "claimRefs": [],
+              "contentHash": "sha256:8dd33e3e44eb1622b74e6706f98becf136e7221b6c78f0b73e49259c7275614c",
+              "context": {
+                "endLine": 19,
+                "startLine": 13
+              },
+              "focus": [],
+              "label": "Normalize the valid candidate",
+              "n": 4,
+              "path": "service.js",
+              "rev": {
+                "base": "69ea916235afc712f25a998578bf45a2df6bb061",
+                "head": "119bf8c99b298d8a8694698432b5062c30646a25"
+              },
+              "role": "callee",
+              "side": "head",
+              "view": "diff"
+            }
+          ],
+          "beats": [
+            {
+              "active": [
+                1,
+                2
+              ],
+              "id": "guard",
+              "narration": "**Keep the current review intact.**\n\n{{a:1}} checks the incoming tour before it can replace what the reviewer sees.\n\nThe regression in {{a:2}} proves a failed load leaves the active stop unchanged."
+            },
+            {
+              "active": [
+                2,
+                1
+              ],
+              "id": "proof",
+              "narration": "**The failure path is observable.**\n\n{{a:2}} checks both the validation finding and the retained review.\n\nReturn to {{a:1}} to trace the guard."
+            },
+            {
+              "active": [
+                1,
+                2,
+                3
+              ],
+              "id": "capacity",
+              "narration": "**All three sources.** {{a:1}} rejects invalid input, {{a:2}} checks the result, and {{a:3}} advances the review."
+            },
+            {
+              "active": [
+                4,
+                1
+              ],
+              "id": "same-source",
+              "narration": "**Two ranges, one source.** {{a:4}} normalizes the candidate that {{a:1}} checked."
+            }
+          ],
+          "coveredEntityIds": [
+            "claim_guard"
+          ],
+          "id": "validation",
+          "index": 1,
+          "reviewState": "not-visited",
+          "reviewedAtChangeRevisionId": null,
+          "risk": "medium",
+          "title": "Validate before opening editors",
+          "type": "implementation"
+        },
+        "beat": {
+          "active": [
+            1,
+            2
+          ],
+          "id": "guard",
+          "narration": "**Keep the current review intact.**\n\n{{a:1}} checks the incoming tour before it can replace what the reviewer sees.\n\nThe regression in {{a:2}} proves a failed load leaves the active stop unchanged."
+        },
+        "selectedAnchor": 1,
+        "findings": [],
+        "presentation": {
+          "anchors": [
+            {
+              "n": 1,
+              "path": "service.js",
+              "status": "visible",
+              "column": 1,
+              "source": "file",
+              "companionColumn": 3,
+              "removedCode": "companion"
+            },
+            {
+              "n": 2,
+              "path": "service.test.js",
+              "status": "visible",
+              "column": 2,
+              "source": "file",
+              "companionColumn": null,
+              "removedCode": null
+            },
+            {
+              "n": 3,
+              "path": "navigation.js",
+              "status": "not-open",
+              "column": null,
+              "source": "file",
+              "companionColumn": null,
+              "removedCode": null
+            },
+            {
+              "n": 4,
+              "path": "service.js",
+              "status": "open",
+              "column": 1,
+              "source": "file",
+              "companionColumn": null,
+              "removedCode": null
+            }
+          ]
+        },
+        "narrationHtml": "<strong>Keep the current review intact.</strong>\n\n<button class=\"chip color-1\" data-anchor=\"1\" title=\"service.js:1–11 · Keep the active review\" aria-label=\"Open anchor 1: service.js:1–11 · Keep the active review\">1</button> checks the incoming tour before it can replace what the reviewer sees.\n\nThe regression in <button class=\"chip color-2\" data-anchor=\"2\" title=\"service.test.js:3–12 · Prove rejected loads are safe\" aria-label=\"Open anchor 2: service.test.js:3–12 · Prove rejected loads are safe\">2</button> proves a failed load leaves the active stop unchanged.",
+        "narration": "**Keep the current review intact.**\n\n① service.js:1 checks the incoming tour before it can replace what the reviewer sees.\n\nThe regression in ② service.test.js:3 proves a failed load leaves the active stop unchanged.",
+        "receiptNarration": "**Keep the current review intact.**\n\n① service.js:1–11 @119bf8c checks the incoming tour before it can replace what the reviewer sees.\n\nThe regression in ② service.test.js:3–12 @119bf8c proves a failed load leaves the active stop unchanged."
+      }
+    }
+  ]
+}

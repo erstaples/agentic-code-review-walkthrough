@@ -20,7 +20,12 @@ window.addEventListener("message", ({ data }) => {
   // Only extension-generated, escaped Markdown and numbered buttons enter here.
   byId("narration").innerHTML = s.narrationHtml;
   for (const chip of document.querySelectorAll("[data-anchor]")) chip.classList.toggle("active", s.beat.active.includes(Number(chip.dataset.anchor)));
-  byId("warnings").textContent = s.stop.anchors.length > 7 ? "Above the 7-file guideline." : "";
+  const notes = s.stop.anchors.length > 7 ? ["Above the 7-file guideline."] : [];
+  const states = s.presentation?.anchors || [];
+  if (states.some(a => a.status === "stale")) notes.push("A source has changed. Reload the tour before relying on its highlights.");
+  const hidden = states.filter(a => s.beat.active.includes(a.n) && a.status === "not-open");
+  if (hidden.length) notes.push(`${hidden.length} cited source${hidden.length === 1 ? " is" : "s are"} not open. Select a numbered citation to inspect it.`);
+  byId("warnings").textContent = notes.join(" ");
   byId("previous-beat").disabled = s.stopIndex === 0 && s.beatIndex === 0;
   byId("next-beat").disabled = s.stopIndex === s.stopCount - 1 && s.beatIndex === s.beatCount - 1;
   byId("previous-stop").disabled = s.stopIndex === 0;

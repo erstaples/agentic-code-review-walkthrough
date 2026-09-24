@@ -63,17 +63,17 @@ line breaks). Raw HTML and authored links are inert. Only escaped narration
 and extension-generated citation buttons enter the webview. A nonce-based
 content security policy prevents authored scripts and external resources.
 
-The current host opens one selected source as a native diff or read-only base/
-head document. It uses captured, pinned text and existing context/focus
-presentation. `relay.presentation.dimOpacity` and `showLabels` are applied when
+Phase 3 introduced single-anchor presentation. Phase 4 now opens multiple
+active anchors, reuses matching real head files, and tracks tab ownership; see
+[the multi-anchor guide](relay-v2-multi-anchor.md). `relay.presentation.dimOpacity` and `showLabels` are applied when
 painting; `relay.tour.anchorLimit` bounds validation (default 24, maximum 99).
 
 ## Phase boundary and verification
 
-Multi-anchor editor presentation, independent anchor colors in editors, removed
-code companions, badges, layout capacity/pinning, the full anchor list,
-automatic Exploring detection, persistence, and tab cleanup remain later phases.
-The sidebar currently provides narration, citations, and navigation only.
+Phase 4 implements multi-anchor presentation, colors, badges, removed-code
+companions, automatic Exploring, and owned-preview cleanup. Layout placement,
+the full anchor list, persistence, and restoration remain later phases.
+The sidebar currently provides narration, citations, and navigation.
 
 Run the dependency-free suite from the repository root:
 
