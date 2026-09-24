@@ -15,7 +15,9 @@ function createFixture() {
   const serviceText = `export function loadTour(candidate, current) {\n  const findings = validateTour(candidate);\n\n  // Preserve the current display when validation fails.\n  if (findings.some(item => item.severity === 'error')) {\n    return { ok: false, findings, current };\n  }\n\n  const tour = normalizeAnchors(candidate);\n  return { ok: true, findings, current: tour };\n}\n\nfunction validateTour(tour) {\n  return tour.validationFindings ?? [];\n}\n\nfunction normalizeAnchors(tour) {\n  return { ...tour, validated: true };\n}\n`;
   write('service.js', serviceText.replace('return { ok: false, findings, current };', 'return { ok: false, findings, current: null };'));
   write('retired.js', 'export function openBeforeValidation(tour) {\n  openEditors(tour);\n  return validateTour(tour);\n}\n');
+  write('before-rename.js', 'export const renamed = true;\n');
   git('add', '.'); git('-c', 'user.name=Kankō Fixture', '-c', 'user.email=fixture@example.invalid', 'commit', '-qm', 'base'); const base = git('rev-parse', 'HEAD');
+  fs.renameSync(path.join(workspace,'before-rename.js'),path.join(workspace,'renamed.js'));
   write('service.js', serviceText);
   write('service.test.js', `import assert from 'node:assert/strict';\nimport { loadTour } from './service.js';\n\nconst current = { id: 'review-in-progress' };\nconst invalid = { validationFindings: [\n  { severity: 'error', code: 'missing_anchor' },\n] };\n\nconst result = loadTour(invalid, current);\nassert.equal(result.ok, false);\nassert.equal(result.current, current);\nassert.equal(result.findings[0].code, 'missing_anchor');\n\n// A valid candidate can replace the presentation.\nconst next = loadTour({ id: 'validated-tour' }, current);\nassert.equal(next.ok, true);\nassert.equal(next.current.validated, true);\n`);
   write('navigation.js', `export function nextBeat(state) {\n  const next = state.beatIndex + 1;\n  if (next >= state.stop.beats.length) {\n    return nextStop(state);\n  }\n  return { ...state, beatIndex: next };\n}\n\nexport function pause(state) {\n  return { ...state, mode: 'paused' };\n}\n`);
@@ -30,6 +32,7 @@ function createFixture() {
     const a = { n, path: file, role, label, context: { startLine, endLine }, rev: sources.revisions, side: view === 'base' ? 'base' : 'head', view, claimRefs };
     const text = sources.readSource(a); a.change = text.base === null ? 'added' : text.head === null ? 'deleted' : text.base === text.head ? 'unchanged' : 'modified'; a.contentHash = hashText(rangeText(text[a.side], a.context));
     if (file === 'service.js' && startLine === 1) a.focus = [{ side: 'head', range: {startLine:5,endLine:7} }, { side:'base', range:{startLine:6,endLine:6}, kind:'removed' }];
+    if(file==='service.test.js')a.focus=[{side:'head',range:{startLine:9,endLine:12}}];
     return a;
   }
   service.apply({ workspace, mapId: opened.mapId, expectedRevision: 1, actor, commands: [

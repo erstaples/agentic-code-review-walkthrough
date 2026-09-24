@@ -68,8 +68,13 @@ function createLayoutEngine(vscode, opener, storage = createLayoutState()) {
     return slots().find(s => s.slot === pref.slot && eligible(s, reserved));
   }
   function choose(record, reserved) {
-    const available = slots().filter(s => eligible(s, reserved));
-    return available.find(s => !s.group.activeTab) || preferred(record.anchor.role, reserved) || available.sort((a, b) => a.lastActive - b.lastActive || a.column - b.column)[0];
+    const currentSlots = slots(), available = currentSlots.filter(s => eligible(s, reserved));
+    // A grid has diagonal alternatives. In the smaller supported shapes every
+    // pair shares an edge, so repeating colors cannot always be separated.
+    const collisions = slot => shape !== "grid" ? 0 : currentSlots.filter(other => other.record && other.column !== slot.column &&
+      other.column + slot.column !== 5 && (other.anchor - 1) % 6 === (record.anchor.n - 1) % 6).length;
+    return available.filter(s => !s.group.activeTab).sort((a, b) => collisions(a) - collisions(b) || a.column - b.column)[0] ||
+      preferred(record.anchor.role, reserved) || available.sort((a, b) => a.lastActive - b.lastActive || collisions(a) - collisions(b) || a.column - b.column)[0];
   }
   async function put(record, slot, focus) {
     const prior = slot?.group.activeTab;

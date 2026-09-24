@@ -33,7 +33,7 @@ function createTourController({ prepare, present, clear, publish, layoutAction }
     snapshot,
     updatePresentation: (read) => run(async () => {
       if (!current) return;
-      const presentation = read();
+      const presentation = await read();
       if (JSON.stringify(presentation) === JSON.stringify(current.presentation)) return;
       current = { ...current, presentation }; revision++; publish(snapshot());
     }),

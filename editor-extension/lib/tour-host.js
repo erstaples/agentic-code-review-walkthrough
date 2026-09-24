@@ -83,10 +83,9 @@ function createTourHost(vscode, { changed = () => {}, explore = () => {}, storag
   }
   function schedule() {
     clearTimeout(timer);
-    timer = setTimeout(async () => {
-      try { if (!navigating) await layout.observe(); paint(); badgeEvents.fire(undefined); changed(); }
-      catch (error) { console.error("Kanko layout observation:", error); }
-    }, 30);
+    // Observation must share the controller queue with navigation and pins.
+    // An observer awaiting editor geometry must not resume in another stop.
+    timer = setTimeout(changed, 30);
   }
   function reveal(record) {
     const editor = vscode.window.visibleTextEditors.find(e => key(e.document.uri) === key(record.anchor.side === "base" ? record.base : record.head));
@@ -174,6 +173,7 @@ function createTourHost(vscode, { changed = () => {}, explore = () => {}, storag
     badgeEvents,
   ];
   return { prepare, present, snapshot,
+    async refresh() { await layout.observe(); paint(); badgeEvents.fire(undefined); return snapshot(); },
     async layoutAction(body, state) { navigating++; try { await layout.action(body, state);
       if (body.action === "overrideSequence") return await present(state);
       if (body.action === "place" && body.placement?.kind !== "peek") {

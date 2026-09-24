@@ -118,3 +118,18 @@ test('pause closes disposable previews, collapses empty groups, and resumes the 
   await f.engine.action({action:'pin',anchor:1,pinned:true},f.state);const tab=f.groups[0].activeTab;
   await f.engine.suspend();assert.ok(f.groups[0].tabs.includes(tab));assert.equal(tab.owned,false);
 });
+test('visiting a saved stop while Exploring defers restoration until Following',async()=>{
+  const f=fixture({storage:memory()});await f.apply(1,2);f.resize();await f.engine.observe();
+  f.state.plan.stops.push({id:'b',anchors:f.records.map(r=>r.anchor)});
+  await f.engine.begin({...f.state,stopIndex:1},f.records);await f.engine.apply({...f.state,stopIndex:1},[f.records[2]]);
+  const before=f.groups.map(g=>g.activeTab);
+  await f.engine.begin({...f.state,mode:'exploring'},f.records);await f.engine.observe();
+  assert.deepEqual(f.groups.map(g=>g.activeTab),before);
+  await f.engine.begin({...f.state,mode:'following'},f.records);await f.engine.apply(f.state,[f.records[0]]);
+  assert.deepEqual(f.engine.snapshot().slots.map(s=>s.anchor),[1,2]);
+});
+
+test('automatic grid placement separates repeated colors when a diagonal slot is available',async()=>{
+  const f=fixture({cap:4});await f.apply(1,7,2,3);
+  assert.deepEqual(f.engine.snapshot().slots.map(s=>s.anchor),[1,2,3,7]);
+});

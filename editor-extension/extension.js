@@ -19,7 +19,7 @@ let server, lockPath;
 async function activate(context) {
   let controller;
   const report = error => vscode.window.showWarningMessage(`Tour presentation: ${error.message}`);
-  const host = createTourHost(vscode, { storage: createLayoutState(context.globalState), changed: () => controller?.updatePresentation(host.snapshot).catch(report), explore: () => controller?.setState({ mode: "exploring" }).catch(report) });
+  const host = createTourHost(vscode, { storage: createLayoutState(context.globalState), changed: () => controller?.updatePresentation(host.refresh).catch(report), explore: () => controller?.setState({ mode: "exploring" }).catch(report) });
   const status = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Right, 100);
   status.command = "kanko.tour.focus";
   const view = createTourView(vscode, context.extensionUri, () => controller);

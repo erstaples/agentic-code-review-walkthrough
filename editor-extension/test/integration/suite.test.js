@@ -344,6 +344,15 @@ module.exports = function register({ test, before }) {
       record(`inventory-${count}`,s);
     }
   });
+  test('grid placement keeps repeated anchor colors diagonal when there is room',async()=>{
+    await sidebarFixture({count:12,cap:4});
+    const payload=service.loadTour({workspace:fixture.workspace,mapId:fixture.mapId});
+    await api('kanko_tour_clear');await vscode.commands.executeCommand('workbench.action.closeAllEditors');
+    payload.tourId+=`-color-grid-${++fixtureNumber}`;
+    const stop=payload.plan.stops.find(s=>s.id==='sidebar');stop.beats=[{id:'colors',narration:'Compare {{a:1}} and {{a:7}} with distinct numbered identities.',active:[1,7,2,3]}];payload.plan.stops=[stop];
+    const r=await http('/tour/load',payload);assert.equal(r.ok,true,JSON.stringify(r));
+    assert.deepEqual(r.snapshot.presentation.layout.slots.map(s=>s.anchor),[1,2,3,7]);record('color-grid',r.snapshot);
+  });
   async function persistenceFixture() {
     await api('kanko_tour_clear');await vscode.commands.executeCommand('workbench.action.closeAllEditors');await vscode.commands.executeCommand('workbench.action.editorLayoutSingle');
     await layoutConfig.update('maxGroups',3,vscode.ConfigurationTarget.Workspace);await layoutConfig.update('sequenceFallback',false,vscode.ConfigurationTarget.Workspace);
@@ -379,6 +388,17 @@ module.exports = function register({ test, before }) {
     const responses=await Promise.all(actions);assert.ok(responses.every(r=>r.snapshot));
     assert.ok(tabs().length<=3);record('rapid-navigation',{snapshot:(await api('kanko_tour_status')).snapshot,tabs:tabs()});
   });
+  test('a reviewer tab move is reconciled by native identity and survives return and end',async()=>{
+    await persistenceFixture();
+    const doc=vscode.window.visibleTextEditors.find(e=>e.document.uri.path.endsWith('/service.js')).document;
+    await vscode.window.showTextDocument(doc,{viewColumn:1,preview:true});
+    await vscode.commands.executeCommand('moveActiveEditor',{to:'position',by:'group',value:2});
+    await api('kanko_tour_navigate',{action:'nextStop'});
+    const s=(await api('kanko_tour_navigate',{action:'previousStop'})).snapshot;
+    assert.equal(s.presentation.anchors.find(a=>a.n===1).column,2);
+    assert.equal(tabs().filter(t=>t.uri===doc.uri.toString()).length,1);
+    await api('kanko_tour_clear');assert.ok(tabs().some(t=>t.uri===doc.uri.toString()));record('reviewer-moved-tab',s);
+  });
   test('pause closes unclaimed tour tabs and retains dirty reviewer work',async()=>{
     await persistenceFixture();
     let s=(await api('kanko_tour_set_state',{mode:'paused'})).snapshot;
@@ -389,6 +409,19 @@ module.exports = function register({ test, before }) {
     s=(await api('kanko_tour_set_state',{mode:'paused'})).snapshot;
     assert.equal(doc.isDirty,true);assert.ok(tabs().some(t=>t.uri?.endsWith('/service.js')));record('paused-dirty',s);
     await vscode.window.showTextDocument(doc);await vscode.commands.executeCommand('workbench.action.files.revert');
+  });
+
+  test('a renamed source resolves through its destination path without reviving a saved old anchor',async()=>{
+    const payload=await persistenceFixture();
+    await api('kanko_tour_clear');await vscode.commands.executeCommand('workbench.action.closeAllEditors');
+    const {tourSources}=require('../../../contract/tour-sources.js'),{hashText}=require('../../../contract/tour.js');
+    const source=tourSources(fixture.workspace,payload.change);
+    const a={n:1,path:'renamed.js',role:'change',label:'The renamed source',context:{startLine:1,endLine:1},rev:source.revisions,side:'head',view:'head',change:'unchanged'};
+    a.contentHash=hashText(source.readSource(a).head.trimEnd());
+    payload.plan.stops[0].anchors=[a];payload.plan.stops[0].beats=[{id:'renamed',narration:'{{a:1}} keeps the original source under its new name.',active:[1]}];
+    const result=await http('/tour/load',payload);assert.equal(result.ok,true,JSON.stringify(result));
+    assert.deepEqual(result.snapshot.presentation.layout.slots.filter(s=>s.anchor).map(s=>s.anchor),[1]);
+    assert.ok(tabs().some(t=>t.uri?.endsWith('/renamed.js')));assert.ok(!tabs().some(t=>t.uri?.includes('before-rename.js')));record('renamed-source',result.snapshot);
   });
 
   if (process.env.KANKO_TOUR_MANUAL) test('manual screenshot acceptance session', async () => {

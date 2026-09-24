@@ -53,3 +53,17 @@ Bridge protocol 3 is required on both sides.
 
 [Report an issue](https://github.com/getkanko/kanko/issues)
 with your VS Code version and whether you use a local or remote workspace.
+
+### Saved stop arrangements
+
+Kankō saves each stop's current editor arrangement, pins and role destinations in
+the local editor profile, outside the reviewed repository. Returning to a stop
+or reloading the same tour restores compatible arrangements. Changed source,
+changed anchors and a reduced group limit invalidate incompatible saved layouts.
+Reset clears the stop's tour pins and customization while retaining remembered
+role destinations. Pause and End close only disposable tour previews.
+
+Reviewer-owned, dirty, kept and moved tabs take precedence over saved placement.
+After an editor restart, existing tabs are conservatively treated as
+reviewer-owned and reused where they are. Close those tabs explicitly before
+Reset if you want the tour to create a fresh default arrangement.
