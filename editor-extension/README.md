@@ -42,7 +42,8 @@ there is room, otherwise a seam offers **Peek removed code**. Set
 
 The tour reuses matching tabs and closes only untouched previews that it opened.
 Pinning, editing, or moving a tab makes it yours. Selecting code switches to
-Exploring. Layout placement and restoration remain later phases.
+Exploring. Use the sidebar inventory to place, move, and pin anchors; compatible
+stop arrangements and role destinations persist in the local editor profile.
 
 ## Local connection
 

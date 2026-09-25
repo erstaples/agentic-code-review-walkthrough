@@ -1,15 +1,15 @@
 # Kankō v2: multi-anchor editor presentation
 
-Phase 4 extends the phase 3 load/navigation workflow with an anchor opener,
-a six-color decoration registry, source identity, and conservative tab ownership.
-The wire protocol is 3. No retired stop/focus compatibility path is added.
+Tour presentation uses an anchor opener, a six-color decoration registry,
+source identity, and conservative tab ownership. The wire protocol is 3;
+retired stop/focus routes are unsupported.
 
 ## Observable behavior
 
 A beat opens up to three active anchors, in priority order. The first takes
 editor focus; later anchors preserve it. Existing matching tabs are reused in
-their current group. The basic allocator uses available groups and creates up
-to three columns; task 5 will supply the role-aware shape/placement engine.
+their current group. The layout engine uses available groups, remembered role destinations, and
+[reviewer-controlled placement](kanko-v2-layout.md).
 It does not collapse or rearrange a reviewer's existing layout.
 
 The same anchor number and palette color appear in narration chips, editor
@@ -39,8 +39,8 @@ selection commands do not.
 
 `presentation.anchors` in snapshots reports each current-stop anchor's number,
 path, status (`visible`, `open`, `not-open`, or `stale`), group, source scheme,
-companion group, and removed-code mode. Later sidebar/layout work can consume
-these facts without computing editor state in the webview.
+companion group, and removed-code mode. The sidebar consumes these facts
+without computing editor state in the webview.
 
 ## Tab ownership and removed code
 
@@ -63,10 +63,12 @@ links to the pinned base through **Peek removed code**. Hunks are computed from
 captured text, so staged-only and renamed sources do not consult a moving index
 when placing seams. Companions use the same tab ownership and group bound.
 
-## Remaining phases
+## Related behavior and verification
 
-Role-based stacked/split shapes, explicit placement and pin controls, same-color
-separation, Sequence mode, full anchor-list scaling, and exact layout restoration
-are not implemented in this phase. Paused clears presentation without collapsing
-the workspace. See the [acceptance report](verification/kanko-v2-multi-anchor/README.md)
-for verified behavior and outstanding screenshot proof.
+[Layout policy](kanko-v2-layout.md) covers role-based shapes, explicit placement,
+pins, Sequence mode, and compatible saved arrangements. The
+[sidebar guide](kanko-v2-sidebar.md) covers the complete anchor inventory.
+The [multi-anchor acceptance report](verification/kanko-v2-multi-anchor/README.md)
+records the historical presentation build; [closeout acceptance](verification/kanko-v2-closeout/README.md)
+records later lifecycle and layout checks. Neither substitutes for current-build
+verification.

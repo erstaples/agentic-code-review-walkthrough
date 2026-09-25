@@ -1,6 +1,6 @@
 # Kankō v2: load and navigate an authored tour
 
-Phase 3 connects a current review map plan to a native VS Code secondary sidebar.
+Loading connects a current review map plan to the native VS Code secondary sidebar.
 It requires VS Code 1.139+ (the verified secondary-sidebar contribution API),
 Node 22+, and bridge protocol 3 on both ends. No old stop/focus compatibility
 routes or tools remain.
@@ -46,9 +46,11 @@ to the same controller used by the bridge.
 - **Following** opens the first active anchor of the current beat.
 - **Exploring** advances narration without moving the current editor. Explicit
   citation-chip clicks still open their source.
-- **Paused** removes decorations. Following resumes at the current beat.
-- **End tour** clears the snapshot and decorations. It does not mark a stop
-  reviewed, record approval, or close revision tabs.
+- **Paused** removes decorations and releases disposable tour previews.
+  Following resumes at the current beat.
+- **End tour** clears the snapshot, decorations, and disposable tour previews.
+  It does not mark a stop reviewed or record approval. Reviewer-owned, dirty,
+  pinned, and moved tabs remain protected.
 
 ## Citations and source display
 
@@ -63,19 +65,20 @@ line breaks). Raw HTML and authored links are inert. Only escaped narration
 and extension-generated citation buttons enter the webview. A nonce-based
 content security policy prevents authored scripts and external resources.
 
-Phase 3 introduced single-anchor presentation. Phase 4 now opens multiple
-active anchors, reuses matching real head files, and tracks tab ownership; see
+Presentation opens multiple active anchors, reuses matching real head files,
+and tracks tab ownership; see
 [the multi-anchor guide](kanko-v2-multi-anchor.md). `kanko.presentation.dimOpacity` and `showLabels` are applied when
 painting; `kanko.tour.anchorLimit` bounds validation (default 24, maximum 99).
 
-## Phase boundary and verification
+## Verification
 
-Phase 4 implements multi-anchor presentation, colors, badges, removed-code
-companions, automatic Exploring, and owned-preview cleanup. Layout placement,
-the full anchor list, persistence, and restoration remain later phases.
-The sidebar currently provides narration, citations, and navigation.
+Presentation includes multi-anchor colors, badges, removed-code companions,
+automatic Exploring, owned-preview cleanup, [layout and persistence](kanko-v2-layout.md),
+and the [full stop inventory](kanko-v2-sidebar.md). Historical verification reports
+record the specific build and scope checked; they are not current test results.
 
-Run the dependency-free suite from the repository root:
+After installing development dependencies as described in the
+[development guide](../editor-extension/DEVELOPMENT.md), run from the repository root:
 
 ```sh
 npm --prefix editor-extension run test:all

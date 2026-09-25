@@ -1,8 +1,9 @@
 # Kankō v2 tour data contract
 
-Phase 2 adds source-backed validation to `CreateTourPlan` and `kanko_map_check`.
+`CreateTourPlan` and `kanko_map_check` validate source-backed plans.
 The schema is [tour-plan.schema.json](../schemas/tour-plan.schema.json); the
-shared implementation is [shared/tour.ts](../shared/tour.ts). [Editor loading and navigation](kanko-v2-tour-loading.md) are available in phase 3.
+shared implementation is [shared/tour.ts](../shared/tour.ts).
+[Editor loading and navigation](kanko-v2-tour-loading.md) use the validated plan.
 Creating a plan does not contact the editor.
 
 ## Authoring a plan
@@ -84,8 +85,9 @@ v2 plan against its current review map revision without rewriting it.
 | Observed claim without its own evidence anchor | Warning naming the claim |
 
 Set `KANKO_TOUR_ANCHOR_LIMIT` for the MCP server, or pass `tourAnchorLimit` to
-`ReviewMapService`. Invalid settings fail at startup. A future loader passes the
-same setting as `hardLimit` to the shared validator; the ceiling is always 99.
+`ReviewMapService`. Invalid settings fail at startup. The extension independently
+validates loads with its `kanko.tour.anchorLimit` setting; keep the MCP and editor limits aligned.
+The ceiling is always 99.
 
 Overlaps are compared only on the same file and coordinate side. Transitive
 overlaps form a single group. The first anchor retains its label and optional
