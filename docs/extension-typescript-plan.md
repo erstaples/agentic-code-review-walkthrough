@@ -2,8 +2,8 @@
 
 Date: September 24, 2026
 
-Status: Slices 1–3 are merged. Slices 4 and 5 are complete and ready for review.
-Slice 6 remains. The intermittent Linux pin-restoration failure from slice 3
+Status: Slices 1–5 are merged. The readability follow-up brings slice 5 from its
+merged branch into dev. Slice 6 remains. The intermittent Linux pin-restoration failure from slice 3
 remains unexplained; it did not recur during slices 4 or 5.
 
 Baseline: `dev` at `4f66b0b` (merged v2 persistence and acceptance work)
@@ -227,6 +227,13 @@ Evidence: [slice 5 verification](verification/extension-typescript/slice-5.md).
 
 **Exit:** The React sidebar preserves observable behavior and passes interaction
 tests. The packaged extension loads the production browser bundle successfully.
+
+### Readability follow-up
+
+The approved follow-up formats all handwritten source, extracts sidebar hooks,
+and separates layout choices, editor calls and saved state. It preserves the
+existing queue and data formats. See the [verification report](verification/extension-typescript/readability.md)
+and [remaining JavaScript assessment](javascript-typescript-assessment.md).
 
 ### Slice 6 — Final native and visual acceptance (0.5–1.5 days)
 

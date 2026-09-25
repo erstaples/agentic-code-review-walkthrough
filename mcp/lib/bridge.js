@@ -6,9 +6,9 @@ async function request(lock, method, route, body) {
   const url =
     `http://127.0.0.1:${lock.port}${route}` +
     (method === "GET" ? `?protocolVersion=${PROTOCOL_VERSION}` : "");
-  let res;
+  let response;
   try {
-    res = await fetch(url, {
+    response = await fetch(url, {
       method,
       headers: {
         "content-type": "application/json",
@@ -19,28 +19,26 @@ async function request(lock, method, route, body) {
           ? undefined
           : JSON.stringify({ ...body, protocolVersion: PROTOCOL_VERSION }),
     });
-  } catch (err) {
+  } catch (error) {
     throw Object.assign(
       new Error(
-        `tour bridge at port ${lock.port} did not answer: ${err.message}`,
+        `tour bridge at port ${lock.port} did not answer: ${error.message}`,
       ),
       { code: "no_bridge" },
     );
   }
 
-  const payload = await res
-    .json()
-    .catch(() => ({
-      ok: false,
-      error: {
-        code: "bad_request",
-        message: `non-JSON response (HTTP ${res.status})`,
-      },
-    }));
+  const payload = await response.json().catch(() => ({
+    ok: false,
+    error: {
+      code: "bad_request",
+      message: `non-JSON response (HTTP ${response.status})`,
+    },
+  }));
   if (!payload.ok) {
     const { code, message, details } = payload.error || {};
     throw Object.assign(
-      new Error(message || `bridge returned HTTP ${res.status}`),
+      new Error(message || `bridge returned HTTP ${response.status}`),
       {
         code: code || "bad_request",
         ...(details === undefined ? {} : { details }),

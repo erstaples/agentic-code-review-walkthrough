@@ -1,5 +1,7 @@
 import { execFileSync } from "node:child_process";
+import { existsSync } from "node:fs";
 import { createRequire } from "node:module";
+import { join } from "node:path";
 import { fileURLToPath } from "node:url";
 
 const root = fileURLToPath(new URL("../", import.meta.url));
@@ -22,7 +24,8 @@ const files = execFileSync(
       /\.(?:[cm]?js|tsx?)$/.test(file) ||
       /(?:^|\/)tsconfig[^/]*\.json$/.test(file),
   )
-  .filter((file) => !file.startsWith("editor-extension/lib/"));
+  .filter((file) => !file.startsWith("editor-extension/lib/"))
+  .filter((file) => existsSync(join(root, file)));
 execFileSync(process.execPath, [prettier, mode, ...new Set(files)], {
   cwd: root,
   stdio: "inherit",

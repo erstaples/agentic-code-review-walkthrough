@@ -13,8 +13,11 @@ npm run watch
 ```
 
 `watch` rebuilds both bundles as source changes. Run type checking separately;
-esbuild does not check types. `npm run format` formats only migrated TypeScript,
-build scripts, and TypeScript configurations. `npm run test:unit` compiles once
+esbuild does not check types. `npm run format` formats handwritten JavaScript and TypeScript throughout the
+repository, plus TypeScript configurations. The root formatter settings also
+apply to MCP, tests and fixtures. Generated extension copies are excluded; run
+the shared-source sync after editing their originals. CI checks formatting
+before tests. `npm run test:unit` compiles once
 and runs the extension's existing Node test runner; `test:all` also runs the
 repository, shared protocol, and direct-Node MCP suites. Tests import compiled
 host modules through `test/compiled.js`. `.test-dist/` and `dist/` are disposable,
@@ -84,3 +87,22 @@ in both `test:unit` and `test:all` using the existing Node runner. The browser
 bundle smoke test separately checks startup without Node globals. Actual
 geometry, scrolling, CSP enforcement, themes, and accessibility still require
 native UI acceptance.
+
+## Readability
+
+Use descriptive local names, one declaration per statement, and short guards.
+Split a function when it mixes responsibilities; avoid adding helpers that only
+rename an expression. Comments should explain a reason the code cannot show.
+
+The sidebar hooks separate list filtering and focus (`useAnchorList`), placement
+choices (`usePlacement`), and document/host shortcuts (`useSidebarShortcuts`).
+`App.tsx` renders their state. Shortcuts use the current render's actions; keep
+that property when changing subscriptions.
+
+The layout engine coordinates ordered operations. `layout-placement.ts` chooses
+slots and builds diagrams, `layout-editors.ts` handles native editor calls, and
+`layout-persistence.ts` handles saved stop layouts and role preferences. Keep
+observations and storage writes inside the existing transaction order.
+
+The [remaining JavaScript assessment](../docs/javascript-typescript-assessment.md)
+describes the next conversion work and the plugin startup constraint.

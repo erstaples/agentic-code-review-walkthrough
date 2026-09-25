@@ -1,11 +1,4 @@
-import {
-  useEffect,
-  useLayoutEffect,
-  useRef,
-  useState,
-  useSyncExternalStore,
-  type KeyboardEvent,
-} from "react";
+import { useEffect, useState, useSyncExternalStore } from "react";
 import type { LoadedTourSnapshot } from "../shared/snapshot.js";
 import type { SidebarBridge, SidebarState } from "./bridge.js";
 import * as model from "../shared/sidebar-model.js";
@@ -14,6 +7,10 @@ import { TourNavigation } from "./components/TourNavigation.js";
 import { AnchorList } from "./components/AnchorList.js";
 import { PlacementPicker } from "./components/PlacementPicker.js";
 import { Narration } from "./components/Narration.js";
+
+import { useAnchorList } from "./hooks/useAnchorList.js";
+import { usePlacement } from "./hooks/usePlacement.js";
+import { useSidebarShortcuts } from "./hooks/useSidebarShortcuts.js";
 
 export function App({ bridge }: { bridge: SidebarBridge }) {
   const { snapshot, error, selection } = useSyncExternalStore(
@@ -52,7 +49,7 @@ export function App({ bridge }: { bridge: SidebarBridge }) {
 }
 
 function StopView({
-  snapshot: s,
+  snapshot,
   selection,
   bridge,
   order,
@@ -64,152 +61,36 @@ function StopView({
   order: model.ListOrder;
   setOrder(order: model.ListOrder): void;
 }) {
-  const rows = model.rows(s);
-  const paused = s.mode === "paused";
-  const [filter, setFilter] = useState("");
-  const [collapsed, setCollapsed] = useState<
-    Partial<Record<model.SectionKey, boolean>>
-  >({});
-  const [picker, setPicker] = useState<{ anchor: number; id: number } | null>(
-    null,
+  const rows = model.rows(snapshot);
+  const paused = snapshot.mode === "paused";
+  const listState = useAnchorList(rows, order);
+  const {
+    filter,
+    setFilter,
+    collapsed,
+    setCollapsed,
+    scrollTop,
+    setScrollTop,
+    scroll,
+  } = listState;
+  const { picker, select, closePicker, row } = usePlacement(
+    snapshot,
+    rows,
+    bridge,
+    listState,
   );
-  const pickerId = useRef(0);
-  const [scrollTop, setScrollTop] = useState(0);
-  const [focusRow, setFocusRow] = useState<number | null>(null);
-  const list = useRef<HTMLDivElement>(null);
-  useLayoutEffect(() => {
-    if (list.current) list.current.scrollTop = scrollTop;
-  }, [scrollTop, filter, order, collapsed]);
-  function scroll(top: number) {
-    if (list.current) list.current.scrollTop = top;
-    setScrollTop(top);
-  }
-  function reveal(n: number, clearFilter = true) {
-    const row = rows.find((r) => r.n === n);
-    if (!row) return;
-    const nextCollapsed = clearFilter
-      ? { ...collapsed, [row.slot ? "view" : row.role]: false }
-      : collapsed;
-    if (clearFilter) {
-      setFilter("");
-      setCollapsed(nextCollapsed);
-    }
-    const entries = model.entries(rows, {
-      filter: clearFilter ? "" : filter,
-      order,
-      collapsed: nextCollapsed,
-    });
-    let top = 0;
-    for (const entry of entries) {
-      if (entry.type === "row" && entry.row.n === n) break;
-      top += entry.height;
-    }
-    scroll(Math.max(0, top - 32));
-  }
-  function select(n: number, move = false) {
-    const layout = s.presentation.layout;
-    const row = rows.find((r) => r.n === n);
-    if (!layout || !row || paused) return;
-    if (!move && (row.slot || row.status === "open")) {
-      setPicker(null);
-      bridge.send({ type: "focus", anchor: n });
-      return;
-    }
-    const target = layout.slots.find(
-      (slot) => slot.slot === row.remembered?.slot,
-    );
-    if (
-      !move &&
-      target?.anchor &&
-      row.options.some((o) => o.kind === "replace" && o.of === target.anchor)
-    ) {
-      setPicker(null);
-      bridge.send({
-        type: "layout",
-        action: "place",
-        anchor: n,
-        placement: { kind: "replace", of: target.anchor },
-      });
-      return;
-    }
-    reveal(n);
-    setPicker({ anchor: n, id: ++pickerId.current });
-  }
-  function closePicker() {
-    if (picker) {
-      const visible = model
-        .entries(rows, { filter, order, collapsed })
-        .some((entry) => entry.type === "row" && entry.row.n === picker.anchor);
-      if (visible) reveal(picker.anchor, false);
-      setFocusRow(picker.anchor);
-    }
-    setPicker(null);
-  }
-  useLayoutEffect(() => {
-    if (focusRow !== null) {
-      const target = list.current?.querySelector<HTMLButtonElement>(
-        `[data-row="${focusRow}"] [data-anchor]`,
-      );
-      (target || list.current)?.focus({ preventScroll: true });
-      setFocusRow(null);
-    }
-  }, [focusRow]);
-  // Host shortcuts and document keys use the current render's choices.
-  const actions = useRef({ select, closePicker, picker });
-  useLayoutEffect(() => {
-    actions.current = { select, closePicker, picker };
+  useSidebarShortcuts({
+    selection,
+    bridge,
+    select,
+    closePicker,
+    pickerOpen: picker !== null,
   });
-  useEffect(() => {
-    if (selection) actions.current.select(selection.anchor, selection.move);
-  }, [selection]);
-  useEffect(() => {
-    const keyDown = (event: globalThis.KeyboardEvent) => {
-      if (event.altKey && /^Digit\d$/.test(event.code)) {
-        event.preventDefault();
-        const n = Number(event.code.slice(5));
-        if (!n && !event.shiftKey) bridge.send({ type: "quickPick" });
-        else actions.current.select(n + (event.shiftKey ? 10 : 0));
-      } else if (event.key === "Escape" && actions.current.picker) {
-        event.preventDefault();
-        actions.current.closePicker();
-      }
-    };
-    document.addEventListener("keydown", keyDown);
-    return () => document.removeEventListener("keydown", keyDown);
-  }, [bridge]);
-  function listKeyDown(event: KeyboardEvent<HTMLDivElement>) {
-    if (!["ArrowDown", "ArrowUp", "Home", "End"].includes(event.key)) return;
-    const available = model
-      .entries(rows, { filter, order, collapsed })
-      .flatMap((e) => (e.type === "row" ? [e.row.n] : []));
-    if (!available.length) return;
-    const target =
-      event.target instanceof Element
-        ? event.target.closest<HTMLElement>("[data-row]")
-        : null;
-    const index = available.indexOf(Number(target?.dataset.row));
-    const next =
-      event.key === "Home"
-        ? 0
-        : event.key === "End"
-          ? available.length - 1
-          : Math.max(
-              0,
-              Math.min(
-                available.length - 1,
-                index + (event.key === "ArrowDown" ? 1 : -1),
-              ),
-            );
-    event.preventDefault();
-    reveal(available[next], false);
-    setFocusRow(available[next]);
-  }
-  const row = rows.find((r) => r.n === picker?.anchor);
-  const pinned = rows.filter((r) => r.pinned).length;
-  const hidden = rows.filter((r) => r.active && !r.slot).length;
+  const pinned = rows.filter((row) => row.pinned).length;
+  const hidden = rows.filter((row) => row.active && !row.slot).length;
   const notes = [
     pinned ? `${pinned} anchor${pinned === 1 ? " is" : "s are"} pinned.` : "",
-    rows.some((r) => r.status === "stale")
+    rows.some((row) => row.status === "stale")
       ? "A source has changed. Reload the tour before relying on its highlights."
       : "",
     hidden
@@ -220,16 +101,16 @@ function StopView({
     .join(" ");
   return (
     <section id="tour">
-      <TourHeader snapshot={s} />
+      <TourHeader snapshot={snapshot} />
       <ModeControls
-        mode={s.mode}
+        mode={snapshot.mode}
         change={(mode) => bridge.send({ type: "state", mode })}
       />
       <section id="inventory" aria-label="Files in this stop">
         <div className="inventory-heading">
           <span id="file-count">
             {rows.length} {rows.length === 1 ? "anchor" : "anchors"} ·{" "}
-            {rows.filter((r) => r.slot).length} in view
+            {rows.filter((row) => row.slot).length} in view
           </span>
           <button
             id="quick-pick"
@@ -279,28 +160,28 @@ function StopView({
           order={order}
           collapsed={collapsed}
           scrollTop={scrollTop}
-          listRef={list}
+          listRef={listState.listRef}
           paused={paused}
           scroll={setScrollTop}
           toggle={(key, closed) =>
             setCollapsed({ ...collapsed, [key]: closed })
           }
           select={select}
-          pin={(r) =>
+          pin={(row) =>
             bridge.send({
               type: "layout",
               action: "pin",
-              anchor: r.n,
-              pinned: !r.pinned,
+              anchor: row.n,
+              pinned: !row.pinned,
             })
           }
-          keyDown={listKeyDown}
+          keyDown={listState.handleKeyDown}
         />
-        {row && picker && s.presentation.layout && (
+        {row && picker && snapshot.presentation.layout && (
           <PlacementPicker
             key={picker.id}
             row={row}
-            layout={s.presentation.layout}
+            layout={snapshot.presentation.layout}
             paused={paused}
             close={closePicker}
             place={(placement, remember) =>
@@ -317,7 +198,7 @@ function StopView({
       </section>
       <div className="beat-heading">
         <span id="beat-position">
-          Beat {s.beatIndex + 1} of {s.beatCount}
+          Beat {snapshot.beatIndex + 1} of {snapshot.beatCount}
         </span>
         <button
           id="reset-layout"
@@ -328,15 +209,15 @@ function StopView({
         </button>
       </div>
       <Narration
-        html={s.narrationHtml}
-        active={s.beat.active}
+        html={snapshot.narrationHtml}
+        active={snapshot.beat.active}
         paused={paused}
         select={select}
       />
       <p
         id="sequence-note"
         className="muted"
-        hidden={!s.presentation.layout?.sequence}
+        hidden={!snapshot.presentation.layout?.sequence}
       >
         Sequence mode keeps small editors readable.{" "}
         <button
@@ -350,7 +231,7 @@ function StopView({
         {notes}
       </p>
       <TourNavigation
-        snapshot={s}
+        snapshot={snapshot}
         navigate={(action) => bridge.send({ type: "navigate", action })}
         end={() => bridge.send({ type: "clear" })}
       />

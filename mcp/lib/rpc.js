@@ -11,8 +11,7 @@ function parseLines(buffer) {
     try {
       messages.push(JSON.parse(line));
     } catch {
-      // A malformed line cannot be attributed to a request id, so there is
-      // nobody to answer. Dropping it keeps the stream alive.
+      // Ignore malformed lines without stopping the stream.
     }
   }
   return { messages, rest };
