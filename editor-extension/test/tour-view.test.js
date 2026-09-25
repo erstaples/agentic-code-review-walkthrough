@@ -18,5 +18,5 @@ test('view requires a revision for editor mutations and forwards only known layo
 test('number shortcuts wait for the webview ready handshake before opening an anchor picker',async()=>{
   const f=fixture();f.messages.length=0;await f.view.showAnchor(12);assert.equal(f.messages.length,0);
   await f.receive({type:'ready'});assert.equal(f.messages.at(-1).type,'selectAnchor');assert.equal(f.messages.at(-1).anchor,12);
-  assert.ok(f.webview.html.indexOf('id="inventory"')<f.webview.html.indexOf('id="narration"'));
+  assert.ok(f.webview.html.includes('<div id="root"></div>'));
 });

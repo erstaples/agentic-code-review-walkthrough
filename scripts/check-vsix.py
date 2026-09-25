@@ -18,6 +18,7 @@ ARTIFACTS = {
     'extension/assets/kanko-icon-256.png': 'assets/kanko-icon-256.png',
     'extension/assets/kanko-sidebar.svg': 'assets/kanko-sidebar.svg',
     'extension/media/tour.css': 'media/tour.css',
+    'extension/THIRD_PARTY_NOTICES.txt': 'THIRD_PARTY_NOTICES.txt',
 }
 METADATA = {'[Content_Types].xml', 'extension.vsixmanifest'}
 
