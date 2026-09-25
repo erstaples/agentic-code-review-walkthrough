@@ -1,9 +1,6 @@
 import type { LineRange, SourceSide } from "../shared/tour.js";
 
-/**
- * One zero-context unified diff hunk. Starts are 1-based. A zero length marks
- * a pure insertion or deletion; its start is then the line *before* the gap.
- */
+/** Starts are 1-based; a zero-length side starts at the line before the gap. */
 export interface Hunk {
   baseStart: number;
   baseLen: number;
@@ -30,10 +27,7 @@ export function parseHunks(text: string): Hunk[] {
   });
 }
 
-/**
- * The 0-based head line after which removed base line `start0` (0-based) is
- * drawn, or undefined when that line was not removed.
- */
+/** Returns the deletion marker line, or undefined; both use 0-based lines. */
 export function seamLineFor(
   start0: number,
   hunks: readonly Hunk[],

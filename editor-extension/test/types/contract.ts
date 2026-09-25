@@ -1,4 +1,4 @@
-// The annotated contract constants list every member of their declared unions.
+// Each list must include every declared value.
 import type {
   ErrorCode,
   ProtocolMode,
@@ -21,9 +21,39 @@ export type Checks = [
   Expect<Equal<(typeof STOP_TYPES)[number], StopType>>,
 ];
 
-// External JSON is accepted as unknown; the reader receives a typed anchor.
+// The source reader receives a checked anchor.
 validateTourPlan(JSON.parse("{}"), {
   readSource: (anchor) => ({ base: null, head: anchor.path }),
 });
 // @ts-expect-error A source reader must report both sides.
 validateTourPlan({}, { readSource: () => ({ head: "" }) });
+
+import type { TourAnchor, TourPlanInput } from "../../src/shared/tour.js";
+
+export function optionalMetadata(input: unknown) {
+  const result = validateTourPlan(input, {
+    readSource: () => ({ base: "", head: "" }),
+  });
+  if (!result.ok) return;
+  // @ts-expect-error The plan ID is not checked.
+  result.plan.id?.toUpperCase();
+  // @ts-expect-error The plan title is not checked.
+  result.plan.title?.toUpperCase();
+  // @ts-expect-error Coverage IDs are not checked.
+  result.plan.stops[0].coveredEntityIds?.map((id: string) => id.toUpperCase());
+  // @ts-expect-error The stop type is not checked.
+  result.plan.stops[0].type?.toUpperCase();
+}
+
+export function normalizeInput(input: TourPlanInput) {
+  // @ts-expect-error Input anchors may omit defaults.
+  const before: TourAnchor = input.stops[0].anchors[0];
+  const result = validateTourPlan(input, {
+    readSource: () => ({ base: "", head: "" }),
+  });
+  if (result.ok) {
+    const after: TourAnchor = result.plan.stops[0].anchors[0];
+    return after;
+  }
+  return before;
+}

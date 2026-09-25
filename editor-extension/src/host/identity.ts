@@ -2,7 +2,7 @@ import type { ProtocolSide } from "../../lib/contract-types.js";
 
 export interface RevisionRef {
   sha: string;
-  name?: string;
+  name?: unknown;
 }
 
 export interface DiffIdentity {

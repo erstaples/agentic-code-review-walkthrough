@@ -24,3 +24,28 @@ export function restorable(saved: unknown, stop: { anchors: []; beats: [] }) {
   if (!compatible(saved, { identity: "digest" }, stop, 3)) return null;
   return saved.slots.map((slot) => slot.anchor);
 }
+
+import type { RolePreference } from "../../src/shared/layout.js";
+import { createIdentity } from "../../src/host/identity.js";
+
+export const customDestination: RolePreference = {
+  kind: "replace",
+  slot: "group2",
+};
+
+export function uncheckedMetadata(snapshot: TourSnapshot) {
+  if (!snapshot.loaded) return;
+  // @ts-expect-error The snapshot retains the unchecked title.
+  snapshot.title?.toUpperCase();
+  // @ts-expect-error The snapshot retains the unchecked plan ID.
+  snapshot.planId?.toUpperCase();
+}
+
+export function revisionName() {
+  const identity = createIdentity().check({
+    base: { sha: "base", name: 42 },
+    head: { sha: "head" },
+  });
+  // @ts-expect-error Only the SHA was checked.
+  identity.base.name?.toUpperCase();
+}

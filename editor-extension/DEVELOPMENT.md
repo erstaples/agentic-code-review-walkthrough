@@ -16,16 +16,16 @@ npm run watch
 esbuild does not check types. `npm run format` formats only migrated TypeScript,
 build scripts, and TypeScript configurations. `npm run test:unit` compiles once
 and runs the extension's existing Node test runner; `test:all` also runs the
-repository, canonical contract, and direct-Node MCP suites. Tests import compiled
+repository, shared protocol, and direct-Node MCP suites. Tests import compiled
 host modules through `test/compiled.js`. `.test-dist/` and `dist/` are disposable,
 ignored output. On macOS use `TMPDIR=/private/tmp npm run test:all` when Git and
 Node disagree about the system temporary directory's canonical path.
 
 `src/shared/` holds the data definitions both sides use: tour data (re-exported
-from the generated contract declarations), snapshots, layouts and saved layouts,
+from the generated declarations), snapshots, layouts and saved layouts,
 and the sidebar/host message unions. The sidebar list model also lives there,
 because the host's anchor quick pick uses it. `src/host/` contains migrated host
-modules; `lib/` contains unmigrated host code and generated contract copies.
+modules; `lib/` contains unmigrated host code and generated shared modules.
 Browser code may import `src/shared/` but never Node or VS Code modules.
 The browser entry still bundles the imperative sidebar in `media/tour.js`;
 its TypeScript conversion belongs to slice 3 and React to slice 5.
@@ -33,14 +33,14 @@ its TypeScript conversion belongs to slice 3 and React to slice 5.
 Host and webview configs have separate Node/VS Code and DOM environments. Both
 are strict for TypeScript, with temporary `allowJs: true`, `checkJs: false` for
 unmigrated code in `lib/` and `media/tour.js`. `typecheck` also runs
-`tsconfig.contract.json`, which checks the shared JavaScript contracts and their
+`tsconfig.contract.json`, which checks the shared JavaScript modules and their
 copies strictly through JSDoc, and `tsconfig.types.json`, which compiles the
 type-level tests in `test/types/`. Those tests use `@ts-expect-error` to prove
 that invalid messages, unnarrowed snapshots and unchecked stored layouts are
 rejected; an unused directive fails the check. They do not replace the runtime
 validation tests.
 
-Shared runtime contracts still originate in `../contract/`; run
+Shared JavaScript modules still originate in `../contract/`; run
 `node ../contract/sync.js` when changing them, including their declarations, and
 keep the existing drift tests. Do not independently edit their generated `lib/`
 copies. The MCP server continues to run without compilation or installed

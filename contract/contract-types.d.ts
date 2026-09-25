@@ -1,10 +1,4 @@
-// Type declarations for the shared wire contract. The JavaScript modules in
-// this directory remain the runtime source of truth: the MCP server runs them
-// directly with Node, and contract/sync.js copies them into the extension.
-// These declarations change no serialized field or validation result. See
-// README.md for the version-bump rule, which applies only to wire changes.
-
-// ---- Protocol constants (protocol.js) ----
+// Types for the JavaScript modules used by MCP and the extension.
 
 export type ProtocolVersion = 3;
 
@@ -23,7 +17,7 @@ export type ErrorCode =
   | "stale_presentation"
   | "navigation_boundary";
 
-/** Revision sides known to the HTTP protocol. `working` means the worktree. */
+/** `working` refers to the working tree. */
 export type ProtocolSide = "base" | "head" | "working";
 export type ProtocolMode = "diff" | "file";
 export type StopType =
@@ -41,12 +35,7 @@ export interface ProtocolConstants {
   STOP_TYPES: readonly StopType[];
 }
 
-// ---- Tour plan (tour.js) ----
-
-/**
- * A 1-based inclusive line range, exactly as serialized on the wire. Editor
- * APIs use 0-based positions; convert at the editor boundary, never here.
- */
+/** Line numbers start at 1 and include both endpoints. */
 export interface LineRange {
   startLine: number;
   endLine: number;
@@ -55,7 +44,7 @@ export interface LineRange {
 /** A `sha256:<64 lowercase hex>` digest of source text. */
 export type ContentHash = `sha256:${string}`;
 
-/** The side whose coordinates a range uses. Anchors never cite the worktree. */
+/** The revision used for line numbers; `head` may represent a working-tree snapshot. */
 export type SourceSide = "base" | "head";
 export type AnchorRole =
   | "change"
@@ -70,10 +59,7 @@ export type ChangeKind = "modified" | "added" | "deleted" | "unchanged";
 export type FocusKind = "added" | "removed" | "unchanged";
 export type Risk = "low" | "medium" | "high";
 
-/**
- * Pinned revision identities. `head` is a commit id, or `WORKTREE:<digest>`
- * for a working-tree snapshot.
- */
+/** `head` is a commit ID or `WORKTREE:<digest>`. */
 export interface Revisions {
   base: string;
   head: string;
@@ -86,9 +72,9 @@ export interface FocusSpan {
   kind?: FocusKind;
 }
 
-/** An anchor after validation has applied its `side`, `focus`, and `claimRefs` defaults. */
+/** Checked anchor with defaults applied. */
 export interface TourAnchor {
-  /** Stop-local number, equal to array position + 1. Also its display identity. */
+  /** Array position + 1 within this stop. */
   n: number;
   role: AnchorRole;
   label: string;
@@ -119,18 +105,27 @@ export interface TourStop {
   risk: Risk;
   anchors: TourAnchor[];
   beats: Beat[];
-  /** Review map coverage fields are carried through unchanged when present. */
-  type?: string;
-  coveredEntityIds?: string[];
+  /** Copied without validation. */
+  type?: unknown;
+  coveredEntityIds?: unknown;
 }
 
-/** A validated and normalized tour plan. */
+/** Checked plan; optional metadata is copied without validation. */
 export interface TourPlan {
   presentationVersion: 2;
   stops: TourStop[];
-  id?: string;
-  title?: string;
+  id?: unknown;
+  title?: unknown;
 }
+
+export type TourAnchorInput = Omit<TourAnchor, "side" | "focus" | "claimRefs"> & {
+  side?: SourceSide | null;
+  focus?: FocusSpan[] | null;
+  claimRefs?: string[] | null;
+};
+
+export type TourStopInput = Omit<TourStop, "anchors"> & { anchors: TourAnchorInput[] };
+export type TourPlanInput = Omit<TourPlan, "stops"> & { stops: TourStopInput[] };
 
 export type FindingSeverity = "error" | "warning";
 
@@ -181,7 +176,7 @@ export type FindingCode =
 export interface Finding {
   severity: FindingSeverity;
   code: FindingCode;
-  /** A JSON-path-like location such as `stops[0].anchors[2].context`. */
+  /** For example, `stops[0].anchors[2].context`. */
   location: string;
   message: string;
   /** `overlapping_anchors`: the original numbers merged into one anchor. */
@@ -202,13 +197,9 @@ export interface SourceTexts {
   head: string | null;
 }
 
-/**
- * Reads revision-pinned source text. Throws when a revision cannot be
- * resolved rather than reporting an arbitrary failure as an absent file.
- */
+/** Throws if a revision cannot be read; returns null only for an absent file. */
 export type SourceReader = (anchor: TourAnchor) => SourceTexts;
 
-/** The subset of a review map claim that tour validation reads. */
 export interface ClaimSummary {
   id: string;
   truthStatus?: string;
@@ -231,9 +222,6 @@ export interface AnchorLimits {
   active: 3;
 }
 
-// ---- Source manifests (tour-sources.js) ----
-
-/** The fields of a review map manifest file entry that source reading uses. */
 export interface ManifestFile {
   path: string;
   kind?: string;
@@ -268,11 +256,8 @@ export interface TourSourceCatalog {
   readSource: SourceReader;
 }
 
-// ---- Narration (narration.js) ----
-
 export type NarrationSurface = "terminal" | "sidebar" | "receipt";
 
-/** The anchor fields narration rendering reads. */
 export type NarrationAnchor = Pick<
   TourAnchor,
   "n" | "path" | "label" | "context" | "rev" | "view" | "change"

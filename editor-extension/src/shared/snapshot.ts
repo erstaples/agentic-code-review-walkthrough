@@ -8,10 +8,8 @@ import type { Beat, Finding, TourStop } from "./tour.js";
 
 export type PresentationMode = "following" | "exploring" | "paused";
 
-/** Whether an anchor's editor is on screen, open in a tab, or unopened. */
 export type AnchorStatus = "visible" | "open" | "not-open" | "stale";
 
-/** How removed base code is shown beside an inline diff. */
 export type RemovedCodeDisplay = "companion" | "peek";
 
 export interface AnchorPresentation {
@@ -28,7 +26,7 @@ export interface AnchorPresentation {
 export interface SlotSnapshot {
   slot: SlotLabel;
   column: number;
-  /** The anchor shown in this group, if the active tab belongs to the tour. */
+  /** Absent when the active tab is outside the tour. */
   anchor?: number;
   pinned: boolean;
 }
@@ -41,12 +39,12 @@ export interface LayoutSnapshot {
   sequenceOverride: boolean;
   unplaced: number[];
   slots: SlotSnapshot[];
-  /** Currently allowed placements, keyed by anchor number. */
+  /** Allowed placements by anchor number. */
   options: Record<number, PlacementOption[]>;
   preferences: RolePreferences;
 }
 
-/** Editor state for the current stop. `layout` is absent before a tour is presented. */
+/** `layout` is absent before the tour is shown. */
 export interface PresentationSnapshot {
   layout?: LayoutSnapshot;
   anchors: AnchorPresentation[];
@@ -58,12 +56,12 @@ export interface UnloadedTourSnapshot {
 }
 
 export interface LoadedTourSnapshot {
-  /** Increments on every accepted change; actions must quote the latest value. */
+  /** Increments after each accepted change. */
   revision: number;
   loaded: true;
   tourId: string;
-  planId?: string;
-  title?: string;
+  planId?: unknown;
+  title?: unknown;
   mode: PresentationMode;
   stopIndex: number;
   beatIndex: number;
@@ -80,5 +78,4 @@ export interface LoadedTourSnapshot {
   receiptNarration: string;
 }
 
-/** A serializable tour state. Check `loaded` before reading tour fields. */
 export type TourSnapshot = UnloadedTourSnapshot | LoadedTourSnapshot;

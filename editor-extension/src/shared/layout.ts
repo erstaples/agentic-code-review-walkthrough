@@ -1,6 +1,5 @@
 import type { AnchorRole } from "./tour.js";
 
-/** Editor arrangements the tour creates. See the host layout model. */
 export type ShapeName =
   | "single"
   | "stack"
@@ -9,7 +8,6 @@ export type ShapeName =
   | "columns"
   | "grid";
 
-/** Semantic positions of editor groups within a known shape. */
 export type SlotName =
   | "top"
   | "bottom"
@@ -20,7 +18,7 @@ export type SlotName =
   | "bottomLeft"
   | "bottomRight";
 
-/** A group outside any known shape is named by its view column. */
+/** Custom groups use their column number. */
 export type SlotLabel = SlotName | `group${number}`;
 
 /** `0` arranges children horizontally and `1` vertically, as in VS Code. */
@@ -42,11 +40,7 @@ export interface EditorLayout extends EditorGroupLayout {
 export type LayoutOrientationSetting = "auto" | "stacked" | "columns";
 export type SplitKind = "below" | "beside";
 
-/**
- * Where to put an anchor. `auto` lets the tour choose; `peek` keeps the
- * arrangement and shows an inline preview; the rest act on the group that
- * currently shows anchor `of`.
- */
+/** Replace and split target the group showing anchor `of`. */
 export type PlacementChoice =
   | { kind: "auto" }
   | { kind: "peek" }
@@ -60,22 +54,20 @@ export interface PreviewCell {
   y: number;
   w: number;
   h: number;
-  /** The anchor that would be shown, or none for an empty group. */
+  /** Empty groups have no anchor. */
   anchor?: number | null;
 }
 
-/** A placement the host currently allows, with its resulting arrangement. */
 export type PlacementOption = PlacementChoice & { preview: PreviewCell[] };
 
-/** A remembered destination for anchors of one role. */
 export interface RolePreference {
   kind: "replace";
-  slot: SlotName;
+  slot: SlotLabel;
 }
 
 export type RolePreferences = Partial<Record<AnchorRole, RolePreference>>;
 
-/** Reviewer layout requests. The host rechecks each against live state. */
+/** The host checks each request against the current layout. */
 export type LayoutAction =
   | {
       action: "place";
@@ -87,19 +79,13 @@ export type LayoutAction =
   | { action: "reset" }
   | { action: "overrideSequence" };
 
-// ---- Saved layouts (profile-local globalState, version 1) ----
-
-/** A group in a saved stop arrangement, identified by anchor number only. */
 export interface SavedSlot {
   anchor: number | null;
   pinned: boolean;
   lastActive: number;
 }
 
-/**
- * A stop's saved arrangement. `identity` digests the tour identity with the
- * stop's anchors and beats, so an edited stop never restores a stale layout.
- */
+/** `identity` changes when the tour, anchors, or beats change. */
 export interface SavedStopLayout {
   identity: string;
   layout: EditorLayout;
@@ -112,7 +98,7 @@ export interface SavedStopLayout {
 /** Layouts keyed by stop id. */
 export type SavedStopLayouts = Record<string, SavedStopLayout>;
 
-/** The stored value for one workspace and tour. Unknown versions are ignored. */
+/** Stored per workspace and tour; unknown versions are ignored. */
 export interface StoredLayoutState {
   version: 1;
   identity: string;
@@ -120,7 +106,7 @@ export interface StoredLayoutState {
   preferences: RolePreferences;
 }
 
-/** What the layout engine reads back and writes; storage adds version and identity. */
+/** Storage adds the version and identity. */
 export interface LayoutMemory {
   layouts: SavedStopLayouts;
   preferences: RolePreferences;

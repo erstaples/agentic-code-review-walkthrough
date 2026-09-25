@@ -1,4 +1,4 @@
-# Wire contract
+# Shared protocol
 
 `protocol.js` is the source of truth for the protocol version, error codes, and
 closed value sets. `fixtures.json` holds representative request and response envelopes per
@@ -26,19 +26,16 @@ packaged source byte for byte (apart from the validator import name).
 
 ## Types
 
-`contract-types.d.ts` declares the transported shapes: protocol constants,
-anchors, spans, revisions, beats, stops, normalized plans, findings, and the
-source-reader interface. The JavaScript modules stay the runtime source of
-truth and run directly with Node; they reference these declarations through
-JSDoc, and `npm --prefix editor-extension run typecheck` checks them strictly
-(`tsconfig.contract.json`). Nothing here needs compiling or installing to run
-the MCP server.
+`contract-types.d.ts` describes the data used by these JavaScript modules.
+MCP runs them directly with Node; `npm --prefix editor-extension run typecheck`
+checks their JSDoc types. The sync script copies the declarations into the
+extension, and a test detects differences.
 
-Received JSON is `unknown` until `validateTourPlan` accepts it; only a result
-with `ok: true` carries a `TourPlan`. The sync script copies the declarations
-to `editor-extension/lib/contract-types.d.ts`, and a drift test compares them.
+Received JSON stays `unknown` until checked. A successful `validateTourPlan`
+result carries a normalized `TourPlan`; optional metadata that the validator
+copies without checking remains `unknown`. `TourPlanInput` allows callers to
+omit fields that validation fills in.
 
-A type-only change (declarations or JSDoc) does not change the wire protocol
-and needs no version bump, but must leave every fixture and serialized field
-unchanged. Changing what is sent or accepted is still a protocol change: bump
-`PROTOCOL_VERSION`, then update the declarations with both sides.
+Type declarations and comments alone do not require a protocol version change.
+Changes to sent or accepted data require updating `PROTOCOL_VERSION`, fixtures,
+and both consumers.

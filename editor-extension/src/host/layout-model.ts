@@ -60,7 +60,6 @@ export function shapeFor(
   return count === 3 ? "stackSplitBottom" : "grid";
 }
 
-/** The shape and destination slot produced by splitting `slot`, if supported. */
 export type SplitResult = [shape: ShapeName, destination: SlotName];
 
 const SPLIT_TRANSITIONS: Partial<Record<string, SplitResult>> = {
@@ -105,7 +104,6 @@ export function geometry(layout: EditorGroupLayout): string {
   return JSON.stringify(normalize(layout));
 }
 
-/** The editor properties `cramped` reads. */
 export interface ViewportEditor {
   document: { lineCount: number };
   visibleRanges: readonly { start: { line: number }; end: { line: number } }[];

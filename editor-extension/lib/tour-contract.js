@@ -1,6 +1,6 @@
 "use strict";
 
-// Shared by review map authoring and the future editor loader. No editor operations.
+// Used by MCP and the extension.
 const { createHash } = require("node:crypto");
 
 /** @typedef {import("./contract-types.js").AnchorRole} AnchorRole */
@@ -23,6 +23,8 @@ const LIMITS = { recommended: 7, hard: 24, maximum: 99, active: 3 };
 const hashText = (text) => `sha256:${createHash("sha256").update(text).digest("hex")}`;
 /** @param {unknown} value @returns {value is Record<string, unknown>} */
 const object = (value) => value !== null && typeof value === "object" && !Array.isArray(value);
+/** @param {unknown} value @returns {value is unknown[]} */
+const array = (value) => Array.isArray(value);
 /** @param {unknown} value @returns {value is string} */
 const nonempty = (value) => typeof value === "string" && value.trim().length > 0;
 /** @param {unknown} value @returns {value is number} */
@@ -49,9 +51,7 @@ function assertHardLimit(value = LIMITS.hard) {
   return value;
 }
 
-// readSource(anchor) returns {base: string|null, head: string|null} from a
-// revision-pinned snapshot. It must throw on unresolvable revisions, not turn
-// arbitrary read failures into absent files. All validation precedes normalization.
+// Source readers must throw on read failures and use null for absent files.
 /** @param {unknown} input @param {ValidateOptions} [options] @returns {ValidationResult} */
 function validateTourPlan(input, options = {}) {
   const hardLimit = assertHardLimit(options.hardLimit);
@@ -61,17 +61,15 @@ function validateTourPlan(input, options = {}) {
   const add = (severity, code, location, message, extra = {}) => findings.push({ severity, code, location, message, ...extra });
   /** @param {FindingCode} code @param {string} location @param {string} message */
   const error = (code, location, message) => add("error", code, location, message);
-  if (!object(input) || !Array.isArray(input.stops) || !input.stops.length) {
+  if (!object(input) || !array(input.stops) || !input.stops.length) {
     error("invalid_stops", "stops", "Provide at least one stop.");
     return { ok: false, plan: null, findings };
   }
-  // The working copy is read with its intended shape so each check stays
-  // legible, but no field is trusted: every one is checked below, and only a
-  // result without errors is returned as a TourPlan.
-  const plan = /** @type {TourPlan} */ (/** @type {unknown} */ (structuredClone(input)));
+  /** @type {Record<string, unknown> & { stops: unknown[] }} */
+  const plan = structuredClone({ ...input, stops: input.stops });
   if (plan.presentationVersion !== 2) error("unsupported_version", "presentationVersion", "Tour plans require presentationVersion 2.");
   if (typeof options.readSource !== "function") error("source_reader_required", "stops", "Supply a revision-pinned source reader before accepting this tour.");
-  /** @type {Set<string>} */
+  /** @type {Set<unknown>} */
   const stopIds = new Set();
   /** @type {Map<TourAnchor, SourceTexts>} */
   const sources = new Map();
@@ -83,51 +81,54 @@ function validateTourPlan(input, options = {}) {
     if (!nonempty(stop.id) || stopIds.has(stop.id)) error("invalid_stop_id", `${loc}.id`, "Provide a unique, non-empty stop id.");
     stopIds.add(stop.id);
     if (!nonempty(stop.title)) error("invalid_title", `${loc}.title`, "Provide a stop title.");
-    if (!["low", "medium", "high"].includes(stop.risk)) error("invalid_risk", `${loc}.risk`, "Risk must be low, medium, or high.");
-    if (!Array.isArray(stop.anchors) || !stop.anchors.length) { error("invalid_anchors", `${loc}.anchors`, "Provide at least one anchor."); continue; }
+    if (!["low", "medium", "high"].some((risk) => risk === stop.risk)) error("invalid_risk", `${loc}.risk`, "Risk must be low, medium, or high.");
+    if (!array(stop.anchors) || !stop.anchors.length) { error("invalid_anchors", `${loc}.anchors`, "Provide at least one anchor."); continue; }
     if (stop.anchors.length > hardLimit) error("anchor_limit", `${loc}.anchors`, `This stop has ${stop.anchors.length} anchors; the configured maximum is ${hardLimit}. Split the stop.`);
     if (stop.anchors.length > LIMITS.recommended) add("warning", "anchor_budget", `${loc}.anchors`, `Prefer at most ${LIMITS.recommended} anchors per stop.`);
-    for (const [ai, anchor] of stop.anchors.entries()) {
+    const anchors = stop.anchors;
+    for (const [ai, anchor] of anchors.entries()) {
       const aloc = `${loc}.anchors[${ai}]`;
       const start = findings.filter((f) => f.severity === "error").length;
       if (!object(anchor)) { error("invalid_anchor", aloc, "An anchor must be an object."); continue; }
       if (anchor.n !== ai + 1) error("invalid_number", `${aloc}.n`, `Anchor numbers must follow array order; expected ${ai + 1}.`);
-      if (!ROLES.includes(anchor.role)) error("invalid_role", `${aloc}.role`, `Choose a role: ${ROLES.join(", ")}.`);
+      if (!ROLES.some((role) => role === anchor.role)) error("invalid_role", `${aloc}.role`, `Choose a role: ${ROLES.join(", ")}.`);
       if (!nonempty(anchor.label) || anchor.label.trim().split(/\s+/).length > 5) error("invalid_label", `${aloc}.label`, "Provide a label of one to five words.");
       if (!validPath(anchor.path)) error("invalid_path", `${aloc}.path`, "Use a repository-relative path without traversal or backslashes.");
-      if (!["diff", "head", "base"].includes(anchor.view)) error("invalid_view", `${aloc}.view`, "View must be diff, head, or base.");
-      if (!["modified", "added", "deleted", "unchanged"].includes(anchor.change)) error("invalid_change", `${aloc}.change`, "Change must be modified, added, deleted, or unchanged.");
+      if (!["diff", "head", "base"].some((value) => value === anchor.view)) error("invalid_view", `${aloc}.view`, "View must be diff, head, or base.");
+      if (!["modified", "added", "deleted", "unchanged"].some((value) => value === anchor.change)) error("invalid_change", `${aloc}.change`, "Change must be modified, added, deleted, or unchanged.");
       if (!object(anchor.rev) || !nonempty(anchor.rev.base) || !nonempty(anchor.rev.head)) error("invalid_revision", `${aloc}.rev`, "Provide both base and head revision identities.");
-      if (options.revisions && (anchor.rev?.base !== options.revisions.base || anchor.rev?.head !== options.revisions.head)) error("revision_mismatch", `${aloc}.rev`, "Use the review map's pinned base and head revisions.");
+      if (options.revisions && (!object(anchor.rev) || anchor.rev.base !== options.revisions.base || anchor.rev.head !== options.revisions.head)) error("revision_mismatch", `${aloc}.rev`, "Use the review map's pinned base and head revisions.");
       anchor.side ??= anchor.view === "base" || anchor.change === "deleted" ? "base" : "head";
-      if (!["base", "head"].includes(anchor.side) || (anchor.view !== "diff" && anchor.view !== anchor.side)) error("invalid_side", `${aloc}.side`, "Context side must be base or head and agree with a single-side view.");
+      if (!["base", "head"].some((value) => value === anchor.side) || (anchor.view !== "diff" && anchor.view !== anchor.side)) error("invalid_side", `${aloc}.side`, "Context side must be base or head and agree with a single-side view.");
       if (!validRange(anchor.context)) error("invalid_range", `${aloc}.context`, "Context must be a 1-based inclusive line range.");
       if (!validHash(anchor.contentHash)) error("invalid_hash", `${aloc}.contentHash`, "Provide a sha256 hash of the context text.");
       if (anchor.symbol !== undefined && !nonempty(anchor.symbol)) error("invalid_symbol", `${aloc}.symbol`, "Symbol must be a non-empty string.");
       anchor.focus ??= [];
-      if (!Array.isArray(anchor.focus)) error("invalid_focus", `${aloc}.focus`, "Focus must be an array of side-specific spans.");
+      if (!array(anchor.focus)) error("invalid_focus", `${aloc}.focus`, "Focus must be an array of side-specific spans.");
       else for (const [fi, focus] of anchor.focus.entries()) {
-        if (!object(focus) || !["base", "head"].includes(focus.side) || !validRange(focus.range) || (focus.contentHash !== undefined && !validHash(focus.contentHash)) || (focus.kind !== undefined && !["added", "removed", "unchanged"].includes(focus.kind))) error("invalid_focus", `${aloc}.focus[${fi}]`, "Each focus span needs a base/head side, valid range, and valid optional kind/hash.");
+        if (!object(focus) || !["base", "head"].some((side) => side === focus.side) || !validRange(focus.range) || (focus.contentHash !== undefined && !validHash(focus.contentHash)) || (focus.kind !== undefined && !["added", "removed", "unchanged"].some((kind) => kind === focus.kind))) error("invalid_focus", `${aloc}.focus[${fi}]`, "Each focus span needs a base/head side, valid range, and valid optional kind/hash.");
       }
       anchor.claimRefs ??= [];
-      if (!Array.isArray(anchor.claimRefs) || anchor.claimRefs.some((ref) => !nonempty(ref) || (options.claims && !knownClaims.has(ref)))) error("invalid_claim_ref", `${aloc}.claimRefs`, "Reference existing claim ids.");
+      if (!array(anchor.claimRefs) || anchor.claimRefs.some((ref) => !nonempty(ref) || (options.claims && !knownClaims.has(ref)))) error("invalid_claim_ref", `${aloc}.claimRefs`, "Reference existing claim ids.");
       if (findings.filter((f) => f.severity === "error").length !== start || typeof options.readSource !== "function") continue;
+      // Only anchors that passed every field check reach the source reader.
+      const checkedAnchor = /** @type {TourAnchor} */ (/** @type {unknown} */ (anchor));
       let source;
-      try { source = options.readSource(anchor); } catch (e) { error("source_unavailable", aloc, `Cannot resolve ${anchor.path}: ${/** @type {Error} */ (e).message}`); continue; }
-      sources.set(anchor, source);
+      try { source = options.readSource(checkedAnchor); } catch (e) { error("source_unavailable", aloc, `Cannot resolve ${anchor.path}: ${/** @type {Error} */ (e).message}`); continue; }
+      sources.set(checkedAnchor, source);
       if (!object(source) || ![source.base, source.head].every((text) => text === null || typeof text === "string")) { error("invalid_source", aloc, "Source reader must return base/head text or null for absent files."); continue; }
       const actual = source.base === null ? "added" : source.head === null ? "deleted" : source.base === source.head ? "unchanged" : "modified";
       if ((source.base === null && source.head === null) || anchor.change !== actual) error("change_mismatch", `${aloc}.change`, `Source revisions indicate ${source.base === null && source.head === null ? "a missing file" : actual}; update the anchor.`);
-      const context = rangeText(source[anchor.side], anchor.context);
+      const context = rangeText(source[checkedAnchor.side], checkedAnchor.context);
       if (context === null) error("range_out_of_bounds", `${aloc}.context`, "Context does not exist on its selected side and revision.");
       else if (hashText(context) !== anchor.contentHash) error("content_mismatch", `${aloc}.contentHash`, "Context bytes changed; inspect the source and regenerate its hash.");
-      for (const [fi, focus] of anchor.focus.entries()) {
+      for (const [fi, focus] of checkedAnchor.focus.entries()) {
         const text = rangeText(source[focus.side], focus.range);
         if (text === null) error("range_out_of_bounds", `${aloc}.focus[${fi}]`, "Focus does not exist on its selected side and revision.");
         else if (focus.contentHash && focus.contentHash !== hashText(text)) error("content_mismatch", `${aloc}.focus[${fi}]`, "Focus hash does not match its source revision.");
       }
     }
-    if (!Array.isArray(stop.beats) || !stop.beats.length) { error("invalid_beats", `${loc}.beats`, "Provide at least one beat."); continue; }
+    if (!array(stop.beats) || !stop.beats.length) { error("invalid_beats", `${loc}.beats`, "Provide at least one beat."); continue; }
     const beatIds = new Set();
     const paths = new Set([...(options.repositoryPaths || []), ...stop.anchors.filter(object).map((a) => a.path).filter(nonempty)]);
     for (const [bi, beat] of stop.beats.entries()) {
@@ -144,7 +145,7 @@ function validateTourPlan(input, options = {}) {
         for (const path of paths) {
           const escaped = path.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
           if (new RegExp(`(^|[^\\w./-])${escaped}(?=$|[^\\w./-]|\\.(?=$|\\s))`).test(beat.narration)) {
-            const anchor = stop.anchors.find((a) => a?.path === path);
+            const anchor = anchors.filter(object).find((a) => a.path === path);
             error("raw_path", `${bloc}.narration`, `Replace ${path} with ${anchor ? `{{a:${anchor.n}}}` : "a new anchor token"}.`);
           }
         }
@@ -157,13 +158,15 @@ function validateTourPlan(input, options = {}) {
           if (!paths.has(path)) error("raw_path", `${bloc}.narration`, `Replace the file reference ${path} with an anchor token.`);
         }
       }
-      if (!Array.isArray(beat.active) || beat.active.some((n) => !Number.isInteger(n) || n < 1 || n > stop.anchors.length) || new Set(beat.active).size !== beat.active.length) error("invalid_active", `${bloc}.active`, "Active must contain unique anchor numbers from this stop, in priority order.");
+      if (!array(beat.active) || beat.active.some((n) => typeof n !== "number" || !Number.isInteger(n) || n < 1 || n > anchors.length) || new Set(beat.active).size !== beat.active.length) error("invalid_active", `${bloc}.active`, "Active must contain unique anchor numbers from this stop, in priority order.");
       else if (beat.active.length > LIMITS.active) add("warning", "active_budget", `${bloc}.active`, "More than three active anchors will require overflow handling.");
     }
   }
   if (findings.some((f) => f.severity === "error")) return { ok: false, plan: null, findings };
 
-  for (const [si, stop] of plan.stops.entries()) {
+  // All fields used below have passed validation.
+  const validated = /** @type {TourPlan} */ (/** @type {unknown} */ (plan));
+  for (const [si, stop] of validated.stops.entries()) {
     // Connected overlap groups include transitive ranges; array order determines
     // the survivor. Never merge different coordinate systems or semantic roles.
     /** @type {TourAnchor[][]} */
@@ -188,8 +191,7 @@ function validateTourPlan(input, options = {}) {
           first.focus = group.flatMap((a) => a.focus.length ? a.focus : [{ side: a.side, range: { ...a.context } }]);
           first.claimRefs = [...new Set(group.flatMap((a) => a.claimRefs))];
           first.context = { startLine: Math.min(...group.map((a) => a.context.startLine)), endLine: Math.max(...group.map((a) => a.context.endLine)) };
-          // Every anchor was read during validation, and the union of in-range
-          // contexts on one side stays in range.
+          // The merged range uses already-checked source lines.
           const source = /** @type {SourceTexts} */ (sources.get(first));
           first.contentHash = hashText(/** @type {string} */ (rangeText(source[first.side], first.context)));
           add("warning", "overlapping_anchors", location, `Merged overlapping anchors ${group.map((a) => a.n).join(", ")} into ${index + 1}; retained the first label.`, { anchors: group.map((a) => a.n), normalizedNumber: index + 1 });
@@ -205,11 +207,11 @@ function validateTourPlan(input, options = {}) {
   }
   for (const claim of claims) {
     if (claim.truthStatus !== "observed" || claim.status === "obsolete" || claim.disposition === "obsolete") continue;
-    const supported = plan.stops.some((stop) => stop.anchors.some((a) => a.role === "evidence" && a.claimRefs.includes(claim.id)));
+    const supported = validated.stops.some((stop) => stop.anchors.some((a) => a.role === "evidence" && a.claimRefs.includes(claim.id)));
     if (!supported) add("warning", "observed_without_evidence", "stops", `Observed claim ${claim.id} needs an evidence-role anchor with this claim in claimRefs.`, { claimId: claim.id });
   }
   const ok = !findings.some((f) => f.severity === "error");
-  return ok ? { ok, plan, findings } : { ok, plan: null, findings };
+  return ok ? { ok, plan: validated, findings } : { ok, plan: null, findings };
 }
 
 module.exports = { ROLES, LIMITS, hashText, rangeText, validPath, assertHardLimit, validateTourPlan };

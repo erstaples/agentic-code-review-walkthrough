@@ -1,5 +1,4 @@
-// Sidebar rows and list entries derived from a tour snapshot. Shared by the
-// webview and the host's anchor quick pick; it performs no DOM or editor actions.
+// Builds rows for the sidebar and quick pick.
 import type { PlacementOption, RolePreference } from "./layout.js";
 import type { AnchorStatus, PresentationSnapshot } from "./snapshot.js";
 import type { AnchorRole, Beat, TourAnchor, TourStop } from "./tour.js";
@@ -24,7 +23,6 @@ export function position(slot: string | undefined): string {
     .replace(/^group/, "group ");
 }
 
-/** The snapshot fields that rows are derived from. */
 export interface RowSource {
   stop: Pick<TourStop, "anchors">;
   beat: Pick<Beat, "active">;
@@ -42,11 +40,10 @@ export interface AnchorRow extends TourAnchor {
   slot: string;
   pinned: boolean;
   options: PlacementOption[];
-  /** The remembered destination for this anchor's role, if any. */
+
   remembered: RolePreference | undefined;
 }
 
-/** One row for every anchor in the stop, including unopened and inactive ones. */
 export function rows(snapshot: RowSource): AnchorRow[] {
   const states = snapshot.presentation?.anchors || [];
   const layout = snapshot.presentation?.layout;
@@ -75,7 +72,7 @@ export type ListOrder = "role" | "order";
 export interface ListOptions {
   filter?: string;
   order?: ListOrder;
-  /** Explicit reviewer choices; absent sections use the default rule. */
+  /** User choices override the initial collapsed state. */
   collapsed?: Partial<Record<SectionKey, boolean>>;
 }
 
@@ -85,7 +82,7 @@ export const SECTION_HEIGHT = 28;
 export interface RowEntry {
   type: "row";
   row: AnchorRow;
-  /** Rows under a role heading omit the icon the heading already shows. */
+  /** Hide repeated role icons under a role heading. */
   showRoleIcon: boolean;
   height: typeof ROW_HEIGHT;
 }
@@ -101,9 +98,9 @@ export interface SectionEntry {
 
 export type ListEntry = RowEntry | SectionEntry;
 
-/** Stops with fewer anchors are always listed in order, without sections. */
+/** Smaller stops use a flat list. */
 const GROUPING_THRESHOLD = 5;
-/** Stops with at least this many anchors collapse inactive role sections. */
+/** Larger stops start with inactive sections collapsed. */
 const COLLAPSE_THRESHOLD = 12;
 
 export function entries(
@@ -170,8 +167,7 @@ export interface ListWindow {
 /** Extra height rendered above and below the viewport. */
 const OVERSCAN = 136;
 
-// Fixed row heights let 99-anchor stops render only the viewport plus a small
-// overscan. Spacers preserve scroll geometry; numbers remain global identities.
+// Render nearby rows and use spacers for the rest.
 export function windowed(
   entries: ListEntry[],
   scrollTop: number,

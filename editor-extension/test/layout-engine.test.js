@@ -133,3 +133,25 @@ test('automatic grid placement separates repeated colors when a diagonal slot is
   const f=fixture({cap:4});await f.apply(1,7,2,3);
   assert.deepEqual(f.engine.snapshot().slots.map(s=>s.anchor),[1,2,3,7]);
 });
+
+test('a corrupt saved root is discarded before any editor layout command', async () => {
+  const storage = memory();
+  const first = fixture({ storage });
+  await first.apply(1);
+  const value = storage.read(first.state);
+  value.layouts.a.layout = {};
+  await storage.write(first.state, value);
+  const next = fixture({ storage });
+  await next.apply(2);
+  assert.deepEqual(next.calls, []);
+  assert.deepEqual(next.engine.snapshot().slots.map(slot => slot.anchor), [2]);
+});
+
+test('remembered destinations use column labels in a custom arrangement', async () => {
+  const f = fixture();
+  await f.vscode.commands.executeCommand('vscode.setEditorLayout', { orientation: 0, groups: [{}, {}, {}] });
+  await f.apply(1, 2);
+  await f.engine.action({ action: 'place', anchor: 3, placement: { kind: 'replace', of: 2 }, remember: true }, f.state);
+  assert.equal(f.engine.snapshot().shape, 'custom');
+  assert.deepEqual(f.engine.snapshot().preferences.change, { kind: 'replace', slot: 'group2' });
+});

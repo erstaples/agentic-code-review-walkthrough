@@ -1,5 +1,4 @@
-// Compile-time checks, run by `npm run typecheck`. Each @ts-expect-error must
-// be an error; an unused one fails the check. Nothing here executes.
+// Checked by TypeScript; never executed.
 import type {
   HostMessage,
   RevisionedMessage,
@@ -38,7 +37,7 @@ export const valid: SidebarMessage[] = [
 ];
 
 export const invalid: SidebarMessage[] = [
-  // @ts-expect-error Presentation changes must quote a revision.
+  // @ts-expect-error Missing revision.
   { type: "navigate", action: "nextBeat" },
   // @ts-expect-error Only the four stepwise actions come from the sidebar.
   { type: "navigate", action: "goto", revision: 1 },
@@ -46,7 +45,7 @@ export const invalid: SidebarMessage[] = [
   { type: "state", mode: "stopped", revision: 1 },
   // @ts-expect-error Placement needs a placement choice.
   { type: "layout", action: "place", anchor: 1, revision: 1 },
-  // @ts-expect-error Pinning states the requested pin state.
+  // @ts-expect-error Missing pinned state.
   { type: "layout", action: "pin", anchor: 1, revision: 1 },
   // @ts-expect-error Sequence override is its own message, not a layout action.
   { type: "layout", action: "overrideSequence", revision: 1 },

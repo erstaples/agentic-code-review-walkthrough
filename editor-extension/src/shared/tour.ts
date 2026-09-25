@@ -1,6 +1,4 @@
-// Tour data shared by the host and the sidebar. The declarations are generated
-// from ../../../contract/contract-types.d.ts by contract/sync.js; this module
-// re-exports them so extension code has one import location.
+// Tour types used by the host and sidebar.
 export type {
   AnchorRole,
   AnchorView,
@@ -20,7 +18,10 @@ export type {
   SourceSide,
   SourceTexts,
   TourAnchor,
+  TourAnchorInput,
   TourPlan,
+  TourPlanInput,
   TourStop,
+  TourStopInput,
   ValidationResult,
 } from "../../lib/contract-types.js";
