@@ -1,0 +1,103 @@
+{
+  "baselineCommit": "4f66b0b",
+  "candidateCommit": "1d8d037fa82ea426d5a1c481b99717845cbbcba2",
+  "editor": "VS Code 1.139.0, macOS arm64",
+  "baseline": {
+    "slots": [
+      {
+        "slot": "top",
+        "column": 1,
+        "anchor": 1,
+        "pinned": false
+      },
+      {
+        "slot": "bottom",
+        "column": 2,
+        "anchor": 3,
+        "pinned": true
+      }
+    ],
+    "preferences": {},
+    "customized": true,
+    "shape": "stack"
+  },
+  "afterUpgrade": {
+    "slots": [
+      {
+        "slot": "top",
+        "column": 1,
+        "anchor": 1,
+        "pinned": false
+      },
+      {
+        "slot": "bottom",
+        "column": 2,
+        "anchor": 3,
+        "pinned": true
+      }
+    ],
+    "preferences": {},
+    "customized": true,
+    "shape": "stack"
+  },
+  "beforeSecondReload": {
+    "slots": [
+      {
+        "slot": "topLeft",
+        "column": 1,
+        "anchor": 1,
+        "pinned": false
+      },
+      {
+        "slot": "topRight",
+        "column": 2,
+        "anchor": 2,
+        "pinned": false
+      },
+      {
+        "slot": "bottom",
+        "column": 3,
+        "anchor": 3,
+        "pinned": true
+      }
+    ],
+    "preferences": {
+      "evidence": {
+        "kind": "replace",
+        "slot": "topRight"
+      }
+    },
+    "customized": true,
+    "shape": "stackSplitTop"
+  },
+  "afterSecondReload": {
+    "slots": [
+      {
+        "slot": "topLeft",
+        "column": 1,
+        "anchor": 1,
+        "pinned": false
+      },
+      {
+        "slot": "topRight",
+        "column": 2,
+        "anchor": 2,
+        "pinned": false
+      },
+      {
+        "slot": "bottom",
+        "column": 3,
+        "anchor": 3,
+        "pinned": true
+      }
+    ],
+    "preferences": {
+      "evidence": {
+        "kind": "replace",
+        "slot": "topRight"
+      }
+    },
+    "customized": true,
+    "shape": "stackSplitTop"
+  }
+}

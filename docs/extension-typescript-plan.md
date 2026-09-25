@@ -2,9 +2,9 @@
 
 Date: September 24, 2026
 
-Status: Slices 1 and 2 are merged, with packaged native acceptance complete.
-Slice 3 is implemented and locally verified; its PR records an intermittent
-Linux pin-restoration failure. Slices 4–6 have not started.
+Status: Slices 1–3 are merged. Slice 4 acceptance is complete.
+Slices 5–6 have not started. The intermittent Linux pin-restoration failure
+recorded in slice 3 remains unexplained; it did not recur during slice 4.
 
 Baseline: `dev` at `4f66b0b` (merged v2 persistence and acceptance work)
 
@@ -186,14 +186,16 @@ Evidence: [slice 3 verification](verification/extension-typescript/slice-3.md).
 
 ### Slice 4 — TypeScript phase acceptance (0.5–0.75 day)
 
-- [ ] Run the full repository suite and packaged native acceptance; verify the
+- [x] Run the full repository suite and packaged native acceptance; verify the
   clean build and package path used by CI.
-- [ ] Smoke-test the actual sidebar, editor navigation, placement, pause/end, and
+- [x] Smoke-test the actual sidebar, editor navigation, placement, pause/end, and
   real-window reload using isolated profiles and representative existing scenes.
-- [ ] Check that a saved arrangement created by the baseline extension still
+- [x] Check that a saved arrangement created by the baseline extension still
   loads with the migrated version in an isolated persistent profile.
-- [ ] Document commands, build output, shared-code exception, and evidence.
+- [x] Document commands, build output, shared-code exception, and evidence.
   Mark the TypeScript PR(s) ready before starting the React conversion.
+
+Evidence: [slice 4 verification](verification/extension-typescript/slice-4.md).
 
 **Exit:** The TypeScript migration is independently shippable and reviewable.
 
