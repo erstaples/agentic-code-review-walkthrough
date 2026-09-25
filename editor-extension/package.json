@@ -514,8 +514,8 @@
     "build": "node scripts/build.mjs",
     "watch": "node scripts/build.mjs --watch",
     "typecheck": "tsc -p tsconfig.host.json && tsc -p tsconfig.webview.json && tsc -p tsconfig.contract.json && tsc -p tsconfig.types.json",
-    "format:check": "prettier --check \"src/**/*.{ts,tsx}\" \"test/types/*.ts\" \"scripts/*.mjs\" \"tsconfig*.json\"",
-    "format": "prettier --write \"src/**/*.{ts,tsx}\" \"test/types/*.ts\" \"scripts/*.mjs\" \"tsconfig*.json\"",
+    "format:check": "prettier --check \"src/**/*.{ts,tsx}\" \"test/types/*.ts\" \"scripts/*.mjs\" \"tsconfig*.json\" \"test/sidebar-ui.test.js\" \"test/ui/*.js\"",
+    "format": "prettier --write \"src/**/*.{ts,tsx}\" \"test/types/*.ts\" \"scripts/*.mjs\" \"tsconfig*.json\" \"test/sidebar-ui.test.js\" \"test/ui/*.js\"",
     "build:test": "node scripts/build.mjs --test",
     "test:all": "npm run build:test && node --test ../test/*.test.js ../mcp/test/*.test.js test/*.test.js",
     "vscode:prepublish": "npm run typecheck && npm run format:check && npm run build"

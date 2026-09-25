@@ -39,6 +39,16 @@ export function PlacementPicker({
 }) {
   const [remember, setRemember] = useState(false);
   const picker = useRef<HTMLElement>(null);
+  const hadFocus = useRef(false);
+  useLayoutEffect(() => {
+    if (hadFocus.current && document.activeElement === document.body) {
+      const target =
+        picker.current?.querySelector<HTMLButtonElement>(
+          "#placement-options button:not(:disabled)",
+        ) || picker.current?.querySelector<HTMLButtonElement>("#close-picker");
+      target?.focus();
+    }
+  });
   useLayoutEffect(() => {
     picker.current?.scrollIntoView({ block: "nearest" });
     picker.current
@@ -50,7 +60,21 @@ export function PlacementPicker({
     .sort((a, b) => Number(a.kind === "peek") - Number(b.kind === "peek"));
   const atCap = layout.slots.length >= layout.cap;
   return (
-    <section id="picker" aria-label="Placement picker" ref={picker}>
+    <section
+      id="picker"
+      aria-label="Placement picker"
+      ref={picker}
+      onFocus={() => {
+        hadFocus.current = true;
+      }}
+      onBlur={(event) => {
+        if (
+          event.relatedTarget &&
+          !event.currentTarget.contains(event.relatedTarget)
+        )
+          hadFocus.current = false;
+      }}
+    >
       <div className="picker-heading">
         <strong id="picker-title">
           {row.slot ? "Move" : "Open"} {row.n} · {row.filename}

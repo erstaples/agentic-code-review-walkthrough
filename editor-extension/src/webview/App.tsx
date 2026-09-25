@@ -137,18 +137,20 @@ function StopView({
   }
   function closePicker() {
     if (picker) {
-      reveal(picker.anchor);
+      const visible = model
+        .entries(rows, { filter, order, collapsed })
+        .some((entry) => entry.type === "row" && entry.row.n === picker.anchor);
+      if (visible) reveal(picker.anchor, false);
       setFocusRow(picker.anchor);
     }
     setPicker(null);
   }
   useLayoutEffect(() => {
     if (focusRow !== null) {
-      list.current
-        ?.querySelector<HTMLButtonElement>(
-          `[data-row="${focusRow}"] [data-anchor]`,
-        )
-        ?.focus({ preventScroll: true });
+      const target = list.current?.querySelector<HTMLButtonElement>(
+        `[data-row="${focusRow}"] [data-anchor]`,
+      );
+      (target || list.current)?.focus({ preventScroll: true });
       setFocusRow(null);
     }
   }, [focusRow]);
