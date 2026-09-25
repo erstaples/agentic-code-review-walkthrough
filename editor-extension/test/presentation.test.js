@@ -1,9 +1,9 @@
 "use strict";
 const test = require("node:test");
 const assert = require("node:assert/strict");
-const { createPresentation } = require("./compiled.js")("lib/presentation.js");
-const { createIntentStore } = require("./compiled.js")("lib/decorations.js");
-const { hashText } = require("./compiled.js")("lib/anchors.js");
+const { createPresentation } = require("./legacy/presentation.js");
+const { createIntentStore } = require("./legacy/decorations.js");
+const { hashText } = require("./legacy/anchors.js");
 
 function fixture({ sideBySide = false, settings = {} } = {}) {
   class Uri {

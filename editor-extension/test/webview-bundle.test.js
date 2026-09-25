@@ -4,7 +4,7 @@ const assert = require("node:assert/strict");
 const fs = require("node:fs");
 const path = require("node:path");
 const vm = require("node:vm");
-const { createTourView } = require("./compiled.js")("lib/tour-view.js");
+const { createTourView } = require("./compiled.js")("src/host/tour-view.js");
 
 test("the browser bundle starts without Node globals and sends the ready handshake", () => {
   const messages = [];

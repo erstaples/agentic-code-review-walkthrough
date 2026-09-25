@@ -1,6 +1,6 @@
 const { test } = require("node:test");
 const assert = require("node:assert");
-const { startServer } = require("./compiled.js")("lib/httpserver.js");
+const { startServer } = require("./compiled.js")("src/host/httpserver.js");
 
 const TOKEN = "secret-token";
 
@@ -147,7 +147,7 @@ test("close() resolves even when a client is holding a half-sent request", async
 
 test("a listening server does not on its own keep its host process alive", () => {
   const { execFileSync } = require("node:child_process");
-  const script = `require(${JSON.stringify(require("./compiled.js").resolve("lib/httpserver.js"))})
+  const script = `require(${JSON.stringify(require("./compiled.js").resolve("src/host/httpserver.js"))})
     .startServer({ handlers: {}, authToken: "t", protocolVersion: 1 });`;
   execFileSync(process.execPath, ["-e", script], { timeout: 5000 });
 });

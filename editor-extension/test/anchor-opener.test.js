@@ -2,9 +2,9 @@
 const test = require("node:test");
 const assert = require("node:assert/strict");
 const fs = require("node:fs"), os = require("node:os"), path = require("node:path");
-const { createAnchorOpener } = require("./compiled.js")("lib/anchor-opener.js");
-const { sourceHunks } = require("./compiled.js")("lib/source-diff.js");
-const { createDecorationRegistry } = require("./compiled.js")("lib/decoration-registry.js");
+const { createAnchorOpener } = require("./compiled.js")("src/host/anchor-opener.js");
+const { sourceHunks } = require("./compiled.js")("src/host/source-diff.js");
+const { createDecorationRegistry } = require("./compiled.js")("src/host/decoration-registry.js");
 function fixture(t) {
   const workspace = fs.realpathSync(fs.mkdtempSync(path.join(os.tmpdir(), "kanko-opener-")));
   t.after(() => fs.rmSync(workspace, { recursive: true, force: true }));

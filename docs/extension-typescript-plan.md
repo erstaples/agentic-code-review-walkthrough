@@ -2,9 +2,8 @@
 
 Date: September 24, 2026
 
-Status: Slice 1 complete, including clean-checkout and packaged native acceptance.
-Slice 2 implemented; its packaged native run is pending CI (see its evidence).
-Slices 3–6 have not started.
+Status: Slices 1 and 2 are merged, with packaged native acceptance complete.
+Slice 3 is implemented and undergoing final verification. Slices 4–6 have not started.
 
 Baseline: `dev` at `4f66b0b` (merged v2 persistence and acceptance work)
 
@@ -160,27 +159,29 @@ still run with plain Node without an MCP build or new runtime dependency.
 
 ### Slice 3 — Host migration and readability (1.25–2 days)
 
-- [ ] Convert host modules in dependency order: Git/transport and source helpers;
+- [x] Convert host modules in dependency order: Git/transport and source helpers;
   opening/decorations/presentation; layout engine; controller, host, and webview
   provider. Use official VS Code types and narrow native tab input variants.
-- [ ] Type injected dependencies by the capabilities actually used so test fakes
+- [x] Type injected dependencies by the capabilities actually used so test fakes
   remain meaningful. Do not cast incomplete fakes to the entire VS Code API.
-- [ ] Separate persisted layout data, native tab ownership records, placement
+- [x] Separate persisted layout data, native tab ownership records, placement
   choices, and published presentation state. Make optional lifecycle state clear.
-- [ ] Expand dense controller/layout branches and name meaningful intermediate
+- [x] Expand dense controller/layout branches and name meaningful intermediate
   values while preserving queue ordering, observation timing, and cleanup rules.
-- [ ] Convert the existing imperative sidebar script to TypeScript without React
+- [x] Convert the existing imperative sidebar script to TypeScript without React
   yet. Type DOM elements and events, and use the shared message bridge.
-- [ ] Retain validators for HTTP requests, webview messages, and saved state.
+- [x] Retain validators for HTTP requests, webview messages, and saved state.
   Keep protocol versions, command identifiers, settings, persistence keys, and
   stored representation compatible.
-- [ ] Remove the migration allowance for extension-owned JavaScript. Keep the
+- [x] Remove the migration allowance for extension-owned JavaScript. Keep the
   explicit checked-JavaScript exception for shared runtime contract modules;
   existing JS tests and build scripts need not all become TypeScript.
 
 **Exit:** Strict checks pass across extension-owned source without broad escape
 hatches. Existing unit and packaged native integration tests pass. The resulting
 VSIX preserves tour loading, presentation, persistence, and reviewer tab ownership.
+
+Evidence: [slice 3 verification](verification/extension-typescript/slice-3.md).
 
 ### Slice 4 — TypeScript phase acceptance (0.5–0.75 day)
 

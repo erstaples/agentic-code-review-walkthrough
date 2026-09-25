@@ -1,7 +1,7 @@
 "use strict";
 
 const path = require("node:path");
-const { mapRange, seamLineFor, removedBaseLines0 } = require("../src/host/hunks.js");
+const { mapRange, seamLineFor, removedBaseLines0 } = require("../compiled.js")("src/host/hunks.js");
 const { normalizeAnchor, checkAnchor, hashText, rangeText } = require("./anchors.js");
 
 function createPresentation(vscode, editor, store, sideResolver, git = require("./git.js")) {
