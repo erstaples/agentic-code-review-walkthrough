@@ -2,15 +2,39 @@
 
 // Shared by review map authoring and the future editor loader. No editor operations.
 const { createHash } = require("node:crypto");
+
+/** @typedef {import("./contract-types.js").AnchorRole} AnchorRole */
+/** @typedef {import("./contract-types.js").ContentHash} ContentHash */
+/** @typedef {import("./contract-types.js").Finding} Finding */
+/** @typedef {import("./contract-types.js").FindingCode} FindingCode */
+/** @typedef {import("./contract-types.js").FindingSeverity} FindingSeverity */
+/** @typedef {import("./contract-types.js").LineRange} LineRange */
+/** @typedef {import("./contract-types.js").SourceTexts} SourceTexts */
+/** @typedef {import("./contract-types.js").TourAnchor} TourAnchor */
+/** @typedef {import("./contract-types.js").TourPlan} TourPlan */
+/** @typedef {import("./contract-types.js").ValidateOptions} ValidateOptions */
+/** @typedef {import("./contract-types.js").ValidationResult} ValidationResult */
+
+/** @type {readonly AnchorRole[]} */
 const ROLES = ["change", "evidence", "callee", "caller", "config", "schema", "context"];
+/** @type {import("./contract-types.js").AnchorLimits} */
 const LIMITS = { recommended: 7, hard: 24, maximum: 99, active: 3 };
+/** @param {string} text @returns {ContentHash} */
 const hashText = (text) => `sha256:${createHash("sha256").update(text).digest("hex")}`;
+/** @param {unknown} value @returns {value is Record<string, unknown>} */
 const object = (value) => value !== null && typeof value === "object" && !Array.isArray(value);
+/** @param {unknown} value @returns {value is string} */
 const nonempty = (value) => typeof value === "string" && value.trim().length > 0;
-const validRange = (range) => object(range) && Number.isInteger(range.startLine) && Number.isInteger(range.endLine) && range.startLine > 0 && range.endLine >= range.startLine;
+/** @param {unknown} value @returns {value is number} */
+const positiveInteger = (value) => typeof value === "number" && Number.isInteger(value) && value > 0;
+/** A 1-based inclusive range. @param {unknown} range @returns {range is LineRange} */
+const validRange = (range) => object(range) && positiveInteger(range.startLine) && positiveInteger(range.endLine) && range.endLine >= range.startLine;
+/** Repository-relative, without traversal. @param {unknown} value @returns {value is string} */
 const validPath = (value) => nonempty(value) && !/[\\\x00-\x1f:]/.test(value) && !value.startsWith("/") && value.split("/").every((part) => part && part !== "." && part !== "..");
+/** @param {unknown} value @returns {value is ContentHash} */
 const validHash = (value) => typeof value === "string" && /^sha256:[0-9a-f]{64}$/.test(value);
 
+/** @param {unknown} text @param {unknown} range @returns {string | null} */
 function rangeText(text, range) {
   if (typeof text !== "string" || !validRange(range)) return null;
   // Match the existing presentation hash: LF separators, CR bytes preserved.
@@ -19,6 +43,7 @@ function rangeText(text, range) {
   return range.endLine > lines.length ? null : lines.slice(range.startLine - 1, range.endLine).join("\n");
 }
 
+/** @param {number} [value] */
 function assertHardLimit(value = LIMITS.hard) {
   if (!Number.isInteger(value) || value < 1 || value > LIMITS.maximum) throw new RangeError("anchor hard limit must be an integer from 1 through 99");
   return value;
@@ -27,19 +52,28 @@ function assertHardLimit(value = LIMITS.hard) {
 // readSource(anchor) returns {base: string|null, head: string|null} from a
 // revision-pinned snapshot. It must throw on unresolvable revisions, not turn
 // arbitrary read failures into absent files. All validation precedes normalization.
+/** @param {unknown} input @param {ValidateOptions} [options] @returns {ValidationResult} */
 function validateTourPlan(input, options = {}) {
   const hardLimit = assertHardLimit(options.hardLimit);
+  /** @type {Finding[]} */
   const findings = [];
+  /** @param {FindingSeverity} severity @param {FindingCode} code @param {string} location @param {string} message @param {Partial<Finding>} [extra] */
   const add = (severity, code, location, message, extra = {}) => findings.push({ severity, code, location, message, ...extra });
+  /** @param {FindingCode} code @param {string} location @param {string} message */
   const error = (code, location, message) => add("error", code, location, message);
   if (!object(input) || !Array.isArray(input.stops) || !input.stops.length) {
     error("invalid_stops", "stops", "Provide at least one stop.");
     return { ok: false, plan: null, findings };
   }
-  const plan = structuredClone(input);
+  // The working copy is read with its intended shape so each check stays
+  // legible, but no field is trusted: every one is checked below, and only a
+  // result without errors is returned as a TourPlan.
+  const plan = /** @type {TourPlan} */ (/** @type {unknown} */ (structuredClone(input)));
   if (plan.presentationVersion !== 2) error("unsupported_version", "presentationVersion", "Tour plans require presentationVersion 2.");
   if (typeof options.readSource !== "function") error("source_reader_required", "stops", "Supply a revision-pinned source reader before accepting this tour.");
+  /** @type {Set<string>} */
   const stopIds = new Set();
+  /** @type {Map<TourAnchor, SourceTexts>} */
   const sources = new Map();
   const claims = options.claims || [];
   const knownClaims = new Set(claims.map((claim) => claim.id));
@@ -79,7 +113,7 @@ function validateTourPlan(input, options = {}) {
       if (!Array.isArray(anchor.claimRefs) || anchor.claimRefs.some((ref) => !nonempty(ref) || (options.claims && !knownClaims.has(ref)))) error("invalid_claim_ref", `${aloc}.claimRefs`, "Reference existing claim ids.");
       if (findings.filter((f) => f.severity === "error").length !== start || typeof options.readSource !== "function") continue;
       let source;
-      try { source = options.readSource(anchor); } catch (e) { error("source_unavailable", aloc, `Cannot resolve ${anchor.path}: ${e.message}`); continue; }
+      try { source = options.readSource(anchor); } catch (e) { error("source_unavailable", aloc, `Cannot resolve ${anchor.path}: ${/** @type {Error} */ (e).message}`); continue; }
       sources.set(anchor, source);
       if (!object(source) || ![source.base, source.head].every((text) => text === null || typeof text === "string")) { error("invalid_source", aloc, "Source reader must return base/head text or null for absent files."); continue; }
       const actual = source.base === null ? "added" : source.head === null ? "deleted" : source.base === source.head ? "unchanged" : "modified";
@@ -132,6 +166,7 @@ function validateTourPlan(input, options = {}) {
   for (const [si, stop] of plan.stops.entries()) {
     // Connected overlap groups include transitive ranges; array order determines
     // the survivor. Never merge different coordinate systems or semantic roles.
+    /** @type {TourAnchor[][]} */
     const groups = [];
     for (const anchor of stop.anchors) {
       const hits = groups.filter((g) => g.some((a) => a.path === anchor.path && a.side === anchor.side && a.context.startLine <= anchor.context.endLine && anchor.context.startLine <= a.context.endLine));
@@ -140,6 +175,7 @@ function validateTourPlan(input, options = {}) {
       groups.push(group);
     }
     groups.sort((a, b) => a[0].n - b[0].n);
+    /** @type {Map<number, number>} */
     const renumber = new Map();
     stop.anchors = groups.map((group, index) => {
       const first = group[0];
@@ -152,14 +188,18 @@ function validateTourPlan(input, options = {}) {
           first.focus = group.flatMap((a) => a.focus.length ? a.focus : [{ side: a.side, range: { ...a.context } }]);
           first.claimRefs = [...new Set(group.flatMap((a) => a.claimRefs))];
           first.context = { startLine: Math.min(...group.map((a) => a.context.startLine)), endLine: Math.max(...group.map((a) => a.context.endLine)) };
-          first.contentHash = hashText(rangeText(sources.get(first)[first.side], first.context));
+          // Every anchor was read during validation, and the union of in-range
+          // contexts on one side stays in range.
+          const source = /** @type {SourceTexts} */ (sources.get(first));
+          first.contentHash = hashText(/** @type {string} */ (rangeText(source[first.side], first.context)));
           add("warning", "overlapping_anchors", location, `Merged overlapping anchors ${group.map((a) => a.n).join(", ")} into ${index + 1}; retained the first label.`, { anchors: group.map((a) => a.n), normalizedNumber: index + 1 });
         }
       }
       return { ...first, n: index + 1 };
     });
     for (const beat of stop.beats) {
-      beat.active = [...new Set(beat.active.map((n) => renumber.get(n)))];
+      // Validation guaranteed each active number names an anchor in this stop.
+      beat.active = [...new Set(beat.active.map((n) => /** @type {number} */ (renumber.get(n))))];
       beat.narration = beat.narration.replace(/\{\{a:(\d+)\}\}/g, (_, n) => `{{a:${renumber.get(Number(n))}}}`);
     }
   }
@@ -169,7 +209,7 @@ function validateTourPlan(input, options = {}) {
     if (!supported) add("warning", "observed_without_evidence", "stops", `Observed claim ${claim.id} needs an evidence-role anchor with this claim in claimRefs.`, { claimId: claim.id });
   }
   const ok = !findings.some((f) => f.severity === "error");
-  return { ok, plan: ok ? plan : null, findings };
+  return ok ? { ok, plan, findings } : { ok, plan: null, findings };
 }
 
 module.exports = { ROLES, LIMITS, hashText, rangeText, validPath, assertHardLimit, validateTourPlan };

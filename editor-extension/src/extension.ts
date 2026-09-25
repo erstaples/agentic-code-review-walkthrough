@@ -7,22 +7,13 @@ import { writeLock, removeLock } from "../lib/lockfile.js";
 import { PROTOCOL_VERSION } from "../lib/contract.js";
 import { anchorNumber, filename } from "../lib/narration.js";
 import { formatCitation } from "./host/citation.js";
+import type { TourSnapshot } from "./shared/snapshot.js";
 import { createTourController } from "../lib/tour-controller.js";
-import { createLayoutState } from "../lib/layout-state.js";
+import { createLayoutState } from "./host/layout-state.js";
 import { createTourHost } from "../lib/tour-host.js";
 import { createTourView } from "../lib/tour-view.js";
 import { createAnchorQuickPick } from "../lib/anchor-quick-pick.js";
 type Controller = ReturnType<typeof createTourController>;
-type Snapshot = ReturnType<Controller["snapshot"]>;
-interface StatusAnchor {
-  n: number;
-  path: string;
-}
-interface PinSlot {
-  column: number;
-  anchor?: number;
-  pinned: boolean;
-}
 const errorMessage = (error: unknown) =>
   error instanceof Error ? error.message : String(error);
 const LOCK_DIR = path.join(os.homedir(), ".kanko", "tour");
@@ -51,25 +42,23 @@ export async function activate(context: vscode.ExtensionContext) {
     present: host.present,
     clear: host.clear,
     layoutAction: host.layoutAction,
-    publish(snapshot: Snapshot) {
+    publish(snapshot: TourSnapshot) {
       view.publish(snapshot);
       vscode.commands.executeCommand(
         "setContext",
         "kanko.tourLoaded",
         snapshot.loaded,
       );
-      if ("stop" in snapshot && snapshot.loaded) {
-        const anchors = snapshot.beat.active.map((n: number) =>
-          snapshot.stop.anchors.find((a: StatusAnchor) => a.n === n),
+      if (snapshot.loaded) {
+        // Validation guarantees each active number names an anchor of the stop.
+        const anchors = snapshot.beat.active.flatMap((n) =>
+          snapshot.stop.anchors.filter((a) => a.n === n).slice(0, 1),
         );
         const identity =
           anchors.length > 3
             ? `${anchorNumber(anchors[0].n)} ${filename(anchors[0].path)} +${anchors.length - 1}`
             : anchors
-                .map(
-                  (a: StatusAnchor) =>
-                    `${anchorNumber(a.n)} ${filename(a.path)}`,
-                )
+                .map((a) => `${anchorNumber(a.n)} ${filename(a.path)}`)
                 .join("  ");
         status.text = `$(book) Stop ${snapshot.stopIndex + 1}/${snapshot.stopCount} · Beat ${snapshot.beatIndex + 1}/${snapshot.beatCount} · ${identity} · ${snapshot.mode}`;
         status.show();
@@ -202,13 +191,11 @@ export async function activate(context: vscode.ExtensionContext) {
     ),
     vscode.commands.registerCommand("kanko.tour.pinActive", async () => {
       const snapshot = controller.snapshot();
-      const slot =
-        "presentation" in snapshot
-          ? snapshot.presentation?.layout?.slots.find(
-              (s: PinSlot) =>
-                s.column === vscode.window.activeTextEditor?.viewColumn,
-            )
-          : undefined;
+      const slot = snapshot.loaded
+        ? snapshot.presentation?.layout?.slots.find(
+            (s) => s.column === vscode.window.activeTextEditor?.viewColumn,
+          )
+        : undefined;
       if (slot?.anchor)
         return controller.layout({
           action: "pin",

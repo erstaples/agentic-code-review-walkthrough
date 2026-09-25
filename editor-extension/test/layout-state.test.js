@@ -1,6 +1,6 @@
 "use strict";
 const test = require('node:test'), assert = require('node:assert/strict');
-const {createLayoutState, compatible, stopIdentity}=require("./compiled.js")("lib/layout-state.js");
+const {createLayoutState, compatible, stopIdentity}=require("./compiled.js")("src/host/layout-state.js");
 const state={workspace:'/workspace',tourId:'tour',identity:'sha256:one'},stop={anchors:[{n:1,path:'a.js'}],beats:[]};
 const saved=()=>({identity:stopIdentity(state,stop),layout:{orientation:1,groups:[{}]},slots:[{anchor:1,pinned:true,lastActive:1}],customized:true,sequence:false,override:false});
 test('profile state is isolated by workspace and tour, while revision changes retain only role choices',async()=>{

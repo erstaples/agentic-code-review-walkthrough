@@ -1,8 +1,15 @@
 "use strict";
 
+/** @typedef {import("./contract-types.js").ErrorCode} ErrorCode */
+/** @typedef {import("./contract-types.js").ProtocolSide} ProtocolSide */
+/** @typedef {import("./contract-types.js").ProtocolMode} ProtocolMode */
+/** @typedef {import("./contract-types.js").StopType} StopType */
+
+/** @type {import("./contract-types.js").ProtocolVersion} */
 const PROTOCOL_VERSION = 3;
 
-const ERROR_CODES = [
+// `satisfies` keeps each literal, so type tests can prove the lists are complete.
+const ERROR_CODES = /** @satisfies {readonly ErrorCode[]} */ (/** @type {const} */ ([
   "unauthorized",
   "protocol_mismatch",
   "bad_request",
@@ -16,11 +23,11 @@ const ERROR_CODES = [
   "no_tour",
   "stale_presentation",
   "navigation_boundary",
-];
+]));
 
-const SIDES = ["base", "head", "working"];
-const MODES = ["diff", "file"];
-const STOP_TYPES = ["context", "implementation", "risk", "evidence", "limitation"];
+const SIDES = /** @satisfies {readonly ProtocolSide[]} */ (/** @type {const} */ (["base", "head", "working"]));
+const MODES = /** @satisfies {readonly ProtocolMode[]} */ (/** @type {const} */ (["diff", "file"]));
+const STOP_TYPES = /** @satisfies {readonly StopType[]} */ (/** @type {const} */ (["context", "implementation", "risk", "evidence", "limitation"]));
 
 const ROUTES = {
   kanko_tour_status: { method: "GET", path: "/status" },

@@ -1,6 +1,6 @@
 "use strict";
 const test = require('node:test'), assert = require('node:assert/strict');
-const model = require('../media/sidebar-model.js');
+const model = require('./compiled.js')('src/shared/sidebar-model.js');
 function snapshot(count, active = [1, 2]) {
   return { stop: { anchors: Array.from({length:count},(_,i)=>({n:i+1,path:`src/file-${i+1}.js`,label:`Source ${i+1}`,role:Object.keys(model.roles)[i%7],context:{startLine:1,endLine:9}})) },beat:{active},presentation:{anchors:[],layout:{slots:[{anchor:1,slot:'top',pinned:true},{anchor:2,slot:'bottomLeft'}],options:{}}} };
 }

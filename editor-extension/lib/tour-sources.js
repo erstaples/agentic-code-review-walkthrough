@@ -7,13 +7,31 @@ const { createHash } = require("node:crypto");
 
 const { validPath } = require("./tour-contract.js");
 
+/** @typedef {import("./contract-types.js").ReviewChange} ReviewChange */
+/** @typedef {import("./contract-types.js").ManifestFile} ManifestFile */
+/** @typedef {import("./contract-types.js").TourSourceCatalog} TourSourceCatalog */
 
+/** @param {unknown} ok @param {string} code @param {string} message @returns {asserts ok} */
 function invariant(ok, code, message) { if (!ok) throw Object.assign(new Error(message), { code }); }
+/** @param {Buffer} bytes */
 const digest = (bytes) => `sha256:${createHash("sha256").update(bytes).digest("hex")}`;
+/**
+ * @overload
+ * @param {string} workspace @param {string[]} args @returns {string}
+ */
+/**
+ * @overload
+ * @param {string} workspace @param {string[]} args @param {{ encoding: null }} options @returns {Buffer}
+ */
+/** @param {string} workspace @param {string[]} args @param {{ encoding?: null }} [options] @returns {string | Buffer} */
 function git(workspace, args, options = {}) {
   try { return execFileSync("git", ["-C", workspace, ...args], { encoding: options.encoding === null ? null : "utf8", maxBuffer: 32 * 1024 * 1024, stdio: ["ignore", "pipe", "pipe"] }); }
-  catch (error) { throw Object.assign(new Error(error.stderr?.toString().trim() || error.message), { code: "git_failed" }); }
+  catch (error) {
+    const failure = /** @type {Error & { stderr?: Buffer }} */ (error); // execFileSync's documented failure shape
+    throw Object.assign(new Error(failure.stderr?.toString().trim() || failure.message), { code: "git_failed" });
+  }
 }
+/** @param {string} workspace @param {string} base @param {string} head */
 function renamedFiles(workspace, base, head) {
   const fields = git(workspace, ["diff", "--name-status", "-z", "--find-renames", base, head, "--"]).split("\0");
   const files = [];
@@ -24,7 +42,9 @@ function renamedFiles(workspace, base, head) {
   return files;
 }
 
+/** @param {string} workspace @param {string} commit */
 function tree(workspace, commit) {
+  /** @type {Map<string, string>} */
   const entries = new Map();
   for (const entry of git(workspace, ["ls-tree", "-r", "-z", commit]).split("\0").filter(Boolean)) {
     const match = entry.match(/^(\d+) (\w+) ([0-9a-f]+)\t([\s\S]+)$/);
@@ -35,11 +55,14 @@ function tree(workspace, commit) {
 
 // Snapshot catalogs once, and read immutable blobs by id. Working bytes are
 // checked against the selected manifest so staged-only tours never read edits.
+/** @param {string} workspace @param {ReviewChange} change @returns {TourSourceCatalog} */
 function tourSources(workspace, change) {
   const manifest = change.manifest;
   const base = manifest.effectiveBase || manifest.baselineCommit;
   const head = manifest.headCommit || manifest.currentHead;
-  invariant([base, head].every((ref) => typeof ref === "string" && /^[0-9a-f]{40,64}$/.test(ref)), "invalid_revision", "source revisions must be pinned commit ids");
+  /** @param {unknown} ref @returns {ref is string} */
+  const pinned = (ref) => typeof ref === "string" && /^[0-9a-f]{40,64}$/.test(ref);
+  invariant(pinned(base) && pinned(head), "invalid_revision", "source revisions must be pinned commit ids");
   invariant(Array.isArray(manifest.files) && manifest.files.every((f) => validPath(f.path) && (!f.renamedFrom || validPath(f.renamedFrom)) && (!f.oldPath || validPath(f.oldPath))), "invalid_path", "manifest paths must stay inside the repository");
   const baseTree = tree(workspace, base);
   const headTree = tree(workspace, head);
@@ -54,13 +77,17 @@ function tourSources(workspace, change) {
       headTree.delete(f.renamedFrom);
     }
   }
+  /** @type {Map<string, Buffer>} */
   const cache = new Map();
+  /** @param {string | undefined} blob @returns {Buffer | null} */
   const readBlob = (blob) => {
     if (!blob) return null;
     invariant(/^[0-9a-f]{40,64}$/.test(blob), "invalid_revision", "source blobs must use pinned ids");
-    if (!cache.has(blob)) cache.set(blob, git(workspace, ["cat-file", "blob", blob], { encoding: null }));
-    return cache.get(blob);
+    let bytes = cache.get(blob);
+    if (!bytes) { bytes = git(workspace, ["cat-file", "blob", blob], { encoding: null }); cache.set(blob, bytes); }
+    return bytes;
   };
+  /** @param {Buffer | null} bytes */
   const asText = (bytes) => {
     if (bytes === null) return null;
     invariant(!bytes.includes(0), "binary_anchor", "line anchors require a text file");
@@ -68,6 +95,7 @@ function tourSources(workspace, change) {
     invariant(Buffer.from(text).equals(bytes), "invalid_encoding", "line anchors require UTF-8 source text");
     return text;
   };
+  /** @param {ManifestFile} file */
   const readWorking = (file) => {
     if (file.untracked || file.unstaged) {
       if (!file.working) return null; // selected deletion

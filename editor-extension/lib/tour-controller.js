@@ -7,6 +7,7 @@ const fail = (code, message, details) => Object.assign(new Error(message), { cod
 // editor changes, and failed loads leave the previous tour and cursor intact.
 function createTourController({ prepare, present, clear, publish, layoutAction }) {
   let current = null, revision = 0, queue = Promise.resolve();
+  /** @returns {import("../src/shared/snapshot.js").TourSnapshot} */
   function snapshot(state = current) {
     if (!state) return { revision, loaded: false };
     const stop = state.plan.stops[state.stopIndex], beat = stop.beats[state.beatIndex];

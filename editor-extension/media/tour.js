@@ -1,5 +1,5 @@
 "use strict";
-import * as model from "./sidebar-model.js";
+import * as model from "../src/shared/sidebar-model.js";
 const vscode = acquireVsCodeApi();
 const byId = id => document.getElementById(id);
 let revision = 0, snapshot, rows = [], stopKey, order = "role", collapsed = {}, pickerAnchor = null;

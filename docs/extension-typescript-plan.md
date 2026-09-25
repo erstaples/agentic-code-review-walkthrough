@@ -3,7 +3,8 @@
 Date: September 24, 2026
 
 Status: Slice 1 complete, including clean-checkout and packaged native acceptance.
-Slices 2–6 have not started.
+Slice 2 implemented; its packaged native run is pending CI (see its evidence).
+Slices 3–6 have not started.
 
 Baseline: `dev` at `4f66b0b` (merged v2 persistence and acceptance work)
 
@@ -131,21 +132,27 @@ packaged extension in the isolated native test host. Build failures fail CI.
 
 ### Slice 2 — Shared models and pure logic (0.75–1.25 days)
 
-- [ ] Define shared types for anchors, spans, revisions, beats, stops, normalized
+- [x] Define shared types for anchors, spans, revisions, beats, stops, normalized
   plans, findings, presentation snapshots, placement options, and saved layouts.
   Preserve 1-based inclusive wire ranges and existing serialized field names.
-- [ ] Define host-to-webview and webview-to-host message unions, including ready,
+- [x] Define host-to-webview and webview-to-host message unions, including ready,
   snapshot, error, anchor selection, navigation, mode, and layout requests.
   Include revision requirements in the appropriate action types.
-- [ ] Add checked annotations to shared contract entry points in `contract/`;
+- [x] Add checked annotations to shared contract entry points in `contract/`;
   sync declarations/annotations needed by the generated copies and retain drift
   checks. Clarify in `contract/README.md` that type-only changes do not change the
   wire protocol; preserve the version-bump rule for actual wire changes.
-- [ ] Migrate the pure identity, range, citation, layout-model, layout-state, and
+- [x] Migrate the pure identity, range, citation, layout-model, layout-state, and
   sidebar-model code. Model invalid/unloaded cases instead of asserting them away.
-- [ ] Add focused compile-time checks for invalid message combinations and
+- [x] Add focused compile-time checks for invalid message combinations and
   loaded-state narrowing. Preserve runtime fixtures for malformed input and
   source validation; types do not establish runtime safety.
+
+Evidence: [slice 2 verification](verification/extension-typescript/slice-2.md).
+"Range" is the hunk range mapper (`src/host/hunks.ts`); citation moved in slice 1.
+Only tests reach `src/host/identity.ts` (migrated as planned), `lib/anchors.js`,
+and the legacy `presentation`, `editor`, `git`, and `decorations` modules; the
+shipped bundle does not. Decide in slice 3 whether to convert or retire them.
 
 **Exit:** The host and sidebar share one definition of each transported data
 shape. Existing serialization and validation results are unchanged. MCP tests

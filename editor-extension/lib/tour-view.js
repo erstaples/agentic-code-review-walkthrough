@@ -1,8 +1,10 @@
 "use strict";
 
 const crypto = require("node:crypto");
+const { REVISIONED_MESSAGE_TYPES } = require("../src/shared/messages.js");
 function createTourView(vscode, extensionUri, controller) {
   let view, pendingAnchor, ready = false, latest = { loaded: false, revision: 0 };
+  /** @param {import("../src/shared/snapshot.js").TourSnapshot} snapshot */
   const publish = (snapshot) => { latest = snapshot; return view?.webview.postMessage({ type: "snapshot", snapshot }); };
   return {
     publish,
@@ -45,7 +47,7 @@ function createTourView(vscode, extensionUri, controller) {
         try {
           const api = controller();
           if (message.type === "ready") { ready = true; await publish(latest); if (pendingAnchor !== undefined) { await view.webview.postMessage({ type: "selectAnchor", anchor: pendingAnchor }); pendingAnchor = undefined; } return; }
-          if (["navigate", "state", "focus", "layout", "sequenceOverride"].includes(message.type) && !Number.isInteger(message.revision)) throw new Error("Use the latest tour snapshot before changing the presentation.");
+          if (REVISIONED_MESSAGE_TYPES.includes(message.type) && !Number.isInteger(message.revision)) throw new Error("Use the latest tour snapshot before changing the presentation.");
           if (message.type === "navigate") await api.navigate({ action: message.action, expectedRevision: message.revision });
           else if (message.type === "state") await api.setState({ mode: message.mode, expectedRevision: message.revision });
           else if (message.type === "focus") await api.focus({ anchor: message.anchor, expectedRevision: message.revision });

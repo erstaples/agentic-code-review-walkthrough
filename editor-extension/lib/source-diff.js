@@ -3,7 +3,7 @@ const fs = require("node:fs");
 const os = require("node:os");
 const path = require("node:path");
 const { execFileSync } = require("node:child_process");
-const { parseHunks } = require("./hunks.js");
+const { parseHunks } = require("../src/host/hunks.js");
 
 // Compare captured bytes, including staged-only snapshots and renamed paths.
 // Reading the current Git index here could misplace a removal seam after drift.

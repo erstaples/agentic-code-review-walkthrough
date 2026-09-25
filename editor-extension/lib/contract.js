@@ -4,6 +4,7 @@
 // The extension is packaged as a .vsix and cannot require outside its own
 // directory, so the shared contract is copied here and drift-checked in CI.
 
+/** @type {import("./contract-types.js").ProtocolConstants} */
 module.exports = {
   "PROTOCOL_VERSION": 3,
   "ERROR_CODES": [

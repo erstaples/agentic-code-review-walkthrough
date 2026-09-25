@@ -12,6 +12,7 @@ const body = `"use strict";
 // The extension is packaged as a .vsix and cannot require outside its own
 // directory, so the shared contract is copied here and drift-checked in CI.
 
+/** @type {import("./contract-types.js").ProtocolConstants} */
 module.exports = ${JSON.stringify(
   { PROTOCOL_VERSION: c.PROTOCOL_VERSION, ERROR_CODES: c.ERROR_CODES, SIDES: c.SIDES, MODES: c.MODES, STOP_TYPES: c.STOP_TYPES },
   null,
@@ -27,6 +28,10 @@ console.log(`wrote ${out}`);
 const tourOut = path.join(path.dirname(out), "tour-contract.js");
 fs.writeFileSync(tourOut, fs.readFileSync(path.join(__dirname, "tour.js")));
 console.log(`wrote ${tourOut}`);
+// Type declarations only; copied verbatim so annotated copies resolve locally.
+const typesOut = path.join(path.dirname(out), "contract-types.d.ts");
+fs.writeFileSync(typesOut, fs.readFileSync(path.join(__dirname, "contract-types.d.ts")));
+console.log(`wrote ${typesOut}`);
 for (const name of ["tour-sources", "narration"]) {
   const source = fs.readFileSync(path.join(__dirname, `${name}.js`), "utf8").replace('require("./tour.js")', 'require("./tour-contract.js")');
   fs.writeFileSync(path.join(path.dirname(out), `${name}.js`), source);

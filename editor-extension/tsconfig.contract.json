@@ -1,0 +1,22 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "module": "Node16",
+    "moduleResolution": "Node16",
+    "lib": ["ES2022"],
+    "types": ["node"],
+    "checkJs": true
+  },
+  "include": [
+    "../contract/contract-types.d.ts",
+    "../contract/protocol.js",
+    "../contract/tour.js",
+    "../contract/tour-sources.js",
+    "../contract/narration.js",
+    "lib/contract-types.d.ts",
+    "lib/contract.js",
+    "lib/tour-contract.js",
+    "lib/tour-sources.js",
+    "lib/narration.js"
+  ]
+}

@@ -1,5 +1,5 @@
 "use strict";
-const { rows, position } = require("../media/sidebar-model.js");
+const { rows, position } = require("../src/shared/sidebar-model.js");
 // Native quick picks provide fuzzy matching and accessible selection. Freeze the revision so a changed tour cannot reinterpret the selection.
 function createAnchorQuickPick(vscode, controller, view) {
   let active, acceptShortcut;
