@@ -10,7 +10,7 @@ need npm
 need git
 [ "$(git branch --show-current)" = main ] || fail 'Switch to main after the version PR is merged'
 [ -z "$(git status --porcelain)" ] || fail 'Commit or remove working-tree changes before releasing'
-git fetch origin refs/heads/main:refs/remotes/origin/main
+git fetch --no-tags origin refs/heads/main:refs/remotes/origin/main
 [ "$(git rev-parse HEAD)" = "$(git rev-parse refs/remotes/origin/main)" ] || fail 'Update main with git pull --ff-only before releasing'
 version="$(bash "$root/scripts/version.sh" show)"
 tag="v$version"
