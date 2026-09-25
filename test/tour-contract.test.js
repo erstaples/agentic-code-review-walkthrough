@@ -143,7 +143,7 @@ test("source failures are actionable and catalog paths include bare filenames", 
 });
 
 test("range hashing preserves established CRLF bytes but excludes nonexistent EOF lines", () => {
-  const old = require("../editor-extension/lib/anchors.js");
+  const old = require("../editor-extension/test/legacy/anchors.js");
   const range = { startLine: 1, endLine: 2 };
   assert.equal(hashText(rangeText("a\r\nb\r\n", range)), old.hashText(old.rangeText("a\r\nb\r\n", range)));
   assert.equal(rangeText("", { startLine: 1, endLine: 1 }), null);

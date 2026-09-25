@@ -1,6 +1,6 @@
 const { test } = require("node:test");
 const assert = require("node:assert");
-const { createIntentStore } = require("./compiled.js")("lib/decorations.js");
+const { createIntentStore } = require("./legacy/decorations.js");
 
 const stop = {
   stopId: "s2",

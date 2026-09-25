@@ -21,30 +21,26 @@ host modules through `test/compiled.js`. `.test-dist/` and `dist/` are disposabl
 ignored output. On macOS use `TMPDIR=/private/tmp npm run test:all` when Git and
 Node disagree about the system temporary directory's canonical path.
 
-`src/shared/` holds the data definitions both sides use: tour data (re-exported
-from the generated declarations), snapshots, layouts and saved layouts,
-and the sidebar/host message unions. The sidebar list model also lives there,
-because the host's anchor quick pick uses it. `src/host/` contains migrated host
-modules; `lib/` contains unmigrated host code and generated shared modules.
-Browser code may import `src/shared/` but never Node or VS Code modules.
-The browser entry still bundles the imperative sidebar in `media/tour.js`;
-its TypeScript conversion belongs to slice 3 and React to slice 5.
+`src/shared/` defines tours, snapshots, layouts, saved layouts, and messages.
+`src/host/` contains the host implementation, including tab ownership and request
+validation. `src/webview/sidebar.ts` renders the existing sidebar; `bridge.ts`
+owns the VS Code connection and adds the current revision to requests. React
+belongs to slice 5.
 
-Host and webview configs have separate Node/VS Code and DOM environments. Both
-are strict for TypeScript, with temporary `allowJs: true`, `checkJs: false` for
-unmigrated code in `lib/` and `media/tour.js`. `typecheck` also runs
-`tsconfig.contract.json`, which checks the shared JavaScript modules and their
-copies strictly through JSDoc, and `tsconfig.types.json`, which compiles the
-type-level tests in `test/types/`. Those tests use `@ts-expect-error` to prove
-that invalid messages, unnarrowed snapshots and unchecked stored layouts are
-rejected; an unused directive fails the check. They do not replace the runtime
-validation tests.
+Host and browser configurations use separate Node/VS Code and DOM environments.
+All extension-owned source is strict TypeScript. `lib/` contains only generated,
+checked JavaScript and declarations copied from `../contract/`; MCP still runs
+those shared modules directly without installation or compilation. Run
+`node ../contract/sync.js` after changing their canonical sources.
 
-Shared JavaScript modules still originate in `../contract/`; run
-`node ../contract/sync.js` when changing them, including their declarations, and
-keep the existing drift tests. Do not independently edit their generated `lib/`
-copies. The MCP server continues to run without compilation or installed
-dependencies.
+`typecheck` also checks the shared JavaScript and compile-time tests. Those tests
+cover invalid messages, unchecked data, snapshots, and small injected API fakes.
+Runtime validation remains necessary for external input.
+
+The retired presentation helpers live under `test/legacy/` solely for historical
+regression checks. They are not compiled into the extension. HTTP/MCP bridge
+tests live in the extension suite so they use the compiled server; standalone
+MCP tests still run with plain Node.
 
 The pinned Node types target Node 22. As of September 24, npm publishes VS Code
 API types only through 1.138.0, so this slice uses that compatible subset while

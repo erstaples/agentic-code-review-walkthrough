@@ -1,6 +1,6 @@
 "use strict";
 const test = require('node:test'), assert = require('node:assert/strict');
-const {createTourView}=require("./compiled.js")("lib/tour-view.js");
+const {createTourView}=require("./compiled.js")("src/host/tour-view.js");
 function fixture() {
   let receive;const messages=[],calls=[];
   const webview={asWebviewUri:u=>u,cspSource:'vscode-resource:',postMessage:async m=>messages.push(m),onDidReceiveMessage:fn=>{receive=fn;return{dispose(){}}}};

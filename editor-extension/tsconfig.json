@@ -3,7 +3,7 @@
     "target": "ES2022",
     "strict": true,
     "allowJs": true,
-    "checkJs": false,
+    "checkJs": true,
     "noEmit": true,
     "forceConsistentCasingInFileNames": true,
     "skipLibCheck": false

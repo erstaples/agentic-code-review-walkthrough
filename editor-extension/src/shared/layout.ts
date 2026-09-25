@@ -102,12 +102,12 @@ export type SavedStopLayouts = Record<string, SavedStopLayout>;
 export interface StoredLayoutState {
   version: 1;
   identity: string;
-  layouts: SavedStopLayouts;
+  layouts: Record<string, unknown>;
   preferences: RolePreferences;
 }
 
 /** Storage adds the version and identity. */
 export interface LayoutMemory {
-  layouts: SavedStopLayouts;
+  layouts: Record<string, unknown>;
   preferences: RolePreferences;
 }

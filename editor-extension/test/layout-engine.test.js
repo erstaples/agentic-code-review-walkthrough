@@ -1,7 +1,7 @@
 "use strict";
 const test = require('node:test'), assert = require('node:assert/strict');
 const { SHAPES, geometry, cramped, shapeFor } = require("./compiled.js")("src/host/layout-model.js");
-const { createLayoutEngine } = require("./compiled.js")("lib/layout-engine.js");
+const { createLayoutEngine } = require("./compiled.js")("src/host/layout-engine.js");
 function fixture({cap=3,orientation='stacked',diff=false,storage}={}) {
   let layout=structuredClone(SHAPES.single.layout), current=1;
   const groups=[{viewColumn:1,tabs:[]}], calls=[], opened=[], closed=[];

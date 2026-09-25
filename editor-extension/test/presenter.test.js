@@ -1,8 +1,8 @@
 "use strict";
 const test = require("node:test");
 const assert = require("node:assert/strict");
-const { createPresenter } = require("./compiled.js")("lib/presenter.js");
-const { normalizeAnchor, checkAnchor, hashText } = require("./compiled.js")("lib/anchors.js");
+const { createPresenter } = require("./compiled.js")("src/host/presenter.js");
+const { normalizeAnchor, checkAnchor, hashText } = require("./legacy/anchors.js");
 const { parseHunks, seamLineFor, removedBaseLines0, mapRange } = require("./compiled.js")("src/host/hunks.js");
 
 function fixture() {
