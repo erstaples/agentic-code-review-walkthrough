@@ -6,14 +6,15 @@ import * as assert from "node:assert/strict";
 import * as fs from "node:fs";
 import * as os from "node:os";
 import * as path from "node:path";
-import { spawnSync } from "node:child_process";
+import { execFileSync, spawnSync } from "node:child_process";
 
 function fixture(t: TestContext) {
-  const root = fs.mkdtempSync(path.join(os.tmpdir(), "extension-release-"));
+  const root = fs.mkdtempSync(path.join(os.tmpdir(), "extension release-"));
   t.after(() => fs.rmSync(root, { recursive: true, force: true }));
   for (const file of [
-    "scripts/check-extension-release.js",
-    "scripts/version.js",
+    "Makefile",
+    "scripts/release.sh",
+    "scripts/version.sh",
     "plugin.json",
     ".codex-plugin/plugin.json",
     ".claude-plugin/plugin.json",
@@ -35,8 +36,14 @@ function fixture(t: TestContext) {
       fs.writeFileSync(path.join(root, file), value),
     run: (...args: string[]) =>
       spawnSync(
-        process.execPath,
-        [path.join(root, "scripts/check-extension-release.js"), ...args],
+        "make",
+        [
+          "--no-print-directory",
+          "-C",
+          root,
+          "version-check",
+          ...args.map((tag) => `TAG=${tag}`),
+        ],
         { encoding: "utf8" },
       ),
     version: record(
@@ -131,10 +138,21 @@ test("release validation rejects drift in every distributed manifest", (t) => {
 });
 
 test("bump uses SemVer ordering and rejects invalid or non-increasing versions", () => {
-  const { nextVersion } = require(
-    path.join(__dirname, "../scripts/version.js"),
-  ) as {
-    nextVersion: (current: string, bump: string) => string;
+  const nextVersion = (current: string, bump: string) => {
+    const result = spawnSync(
+      "bash",
+      [
+        "-c",
+        'source "$1"; next_version "$2" "$3"',
+        "version-test",
+        path.join(__dirname, "../scripts/version.sh"),
+        current,
+        bump,
+      ],
+      { encoding: "utf8" },
+    );
+    if (result.status !== 0) throw new Error(result.stderr);
+    return result.stdout.trim();
   };
   for (const [bump, expected] of [
     ["patch", "1.2.10"],
@@ -157,7 +175,7 @@ test("bump uses SemVer ordering and rejects invalid or non-increasing versions",
     assert.throws(() => nextVersion("1.2.9", bump));
 });
 
-test("bump synchronizes distributable metadata and runtime without changing dependencies or history", (t) => {
+test("Bash release workflow synchronizes versions and tags only clean, current main", (t) => {
   const f = fixture(t);
   const source = path.resolve(__dirname, "..");
   for (const file of [
@@ -180,9 +198,18 @@ test("bump synchronizes distributable metadata and runtime without changing depe
   const lock = record(JSON.parse(f.read("editor-extension/package-lock.json")));
   const run = (...args: string[]) =>
     spawnSync(
-      process.execPath,
-      [path.join(f.root, "scripts/version.js"), ...args],
-      { encoding: "utf8" },
+      "make",
+      [
+        "--no-print-directory",
+        "-C",
+        f.root,
+        args[0] === "bump" ? "bump" : "version-sync",
+        ...(args[1] ? [`VERSION=${args[1]}`] : []),
+      ],
+      {
+        encoding: "utf8",
+        cwd: os.tmpdir(),
+      },
     );
   const unchanged = f.read("plugin.json");
   assert.notEqual(
@@ -198,6 +225,17 @@ test("bump synchronizes distributable metadata and runtime without changing depe
       "# Changelog\n\n## Unreleased\n\n- Release workflow fixture.",
     ),
   );
+  const brokenManifest = ".claude-plugin/plugin.json";
+  const originalManifest = f.read(brokenManifest);
+  f.write(brokenManifest, "{invalid JSON");
+  assert.notEqual(run("bump", "patch").status, 0);
+  assert.equal(
+    f.read("plugin.json"),
+    unchanged,
+    "invalid JSON must not partially bump files",
+  );
+  assert.ok(f.read("editor-extension/CHANGELOG.md").includes("## Unreleased"));
+  f.write(brokenManifest, originalManifest);
   const result = run("bump", "patch");
   assert.equal(result.status, 0, result.stderr);
   const version = record(JSON.parse(f.read("plugin.json"))).version;
@@ -252,4 +290,53 @@ test("bump synchronizes distributable metadata and runtime without changing depe
   const synchronized = run("sync");
   assert.equal(synchronized.status, 0, synchronized.stderr);
   assert.equal(record(JSON.parse(f.read("plugin.json"))).version, version);
+
+  // Exercise release tagging only against a disposable local bare repository.
+  const remote = fs.mkdtempSync(
+    path.join(os.tmpdir(), "kanko release remote-"),
+  );
+  t.after(() => fs.rmSync(remote, { recursive: true, force: true }));
+  const git = (...args: string[]) =>
+    execFileSync("git", ["-C", f.root, ...args], {
+      encoding: "utf8",
+      stdio: ["ignore", "pipe", "pipe"],
+    }).trim();
+  f.write(".gitignore", "node_modules/\n");
+  git("init", "-q", "--initial-branch=main");
+  git("config", "user.name", "Release test");
+  git("config", "user.email", "release-test@example.com");
+  git("add", ".");
+  git("commit", "-qm", "release fixture");
+  execFileSync("git", ["init", "--bare", "-q", remote]);
+  git("remote", "add", "origin", remote);
+  git("push", "-u", "origin", "main");
+  const release = (target: string) =>
+    spawnSync("make", ["--no-print-directory", "-C", f.root, target], {
+      encoding: "utf8",
+      cwd: os.tmpdir(),
+    });
+  const originalHead = git("rev-parse", "HEAD");
+  git("switch", "-c", "feature");
+  assert.match(release("release-check").stderr, /Switch to main/);
+  git("switch", "main");
+  f.write("uncommitted.txt", "dirty");
+  assert.match(release("release-check").stderr, /working-tree changes/);
+  fs.unlinkSync(path.join(f.root, "uncommitted.txt"));
+  git("commit", "--allow-empty", "-qm", "unpublished local commit");
+  assert.match(release("release-check").stderr, /Update main/);
+  git("reset", "--hard", originalHead);
+  const preview = release("release-check");
+  assert.equal(preview.status, 0, preview.stderr);
+  assert.match(preview.stdout, /no tag created or pushed/);
+  assert.equal(git("tag", "--list"), "");
+  assert.equal(git("ls-remote", "--tags", "origin"), "");
+  const published = release("release");
+  assert.equal(published.status, 0, published.stderr);
+  assert.equal(git("cat-file", "-t", `refs/tags/v${version}`), "tag");
+  assert.equal(git("rev-parse", `v${version}^{commit}`), originalHead);
+  assert.ok(
+    git("ls-remote", "--tags", "origin").includes(`refs/tags/v${version}`),
+  );
+  git("tag", "-d", `v${version}`);
+  assert.match(release("release-check").stderr, /Remote tag .* already exists/);
 });

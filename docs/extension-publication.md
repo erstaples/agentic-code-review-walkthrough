@@ -4,7 +4,7 @@ The extension identity is `getkankodev.kanko`. The extension, MCP runtime,
 Claude plugin, Codex plugin, and marketplace metadata share one release version.
 The only authoritative version is `version` in the root `plugin.json`.
 Required copies in other manifests and the generated runtime are maintained by
-`scripts/version.js`; do not bump them individually.
+`scripts/version.sh` through the root Makefile; do not bump them individually.
 The Marketplace package name is `kanko` and the display name is
 **Kankō**. The supplied Kankō logo assets are used for branding.
 
@@ -69,15 +69,17 @@ before that deadline. This workflow does not currently use OIDC or Entra ID.
 
 ## Release procedure
 
-Prepare a release in a PR, from the repository root:
+The [README versioning guide](../README.md#versioning-and-releases) covers the
+complete bump, review, and publication sequence. Prepare a release in a PR,
+from the repository root:
 
 ```sh
-npm --prefix editor-extension ci
+make setup
 # Add release notes under "## Unreleased" in editor-extension/CHANGELOG.md.
-node scripts/version.js bump patch
-# Or: bump minor, bump major, or bump an explicit stable version such as 1.2.3.
-node scripts/check-extension-release.js
-npm --prefix editor-extension run test:all
+make bump VERSION=patch
+# Or: VERSION=minor, VERSION=major, or an exact stable version such as 1.2.3.
+make version-check
+make test
 ```
 
 The bump command updates root `plugin.json`, synchronizes the extension manifest
@@ -86,16 +88,16 @@ regenerates the checked-in MCP runtime, and promotes `## Unreleased` to the new
 version. It does not commit, tag, push, install, or publish. Commit the complete
 diff, including generated files, for review. A bump needs installed build
 dependencies; if runtime generation fails, fix the error and run
-`node scripts/version.js sync` to finish synchronizing the selected version.
+`make version-sync` to finish synchronizing the selected version.
 
 Use patch for fixes, minor for compatible features, and major for incompatible
 changes. During `0.x`, use minor for breaking changes and describe them in the
 release notes. Bump once when preparing a release; ordinary development commits
 can keep the current version and accumulate notes under `## Unreleased`.
 
-To repair drift without incrementing, run `node scripts/version.js sync`.
-`node scripts/version.js check` checks the manifest copies without writing;
-`npm --prefix editor-extension run runtime:check` also checks generated runtime
+To repair drift without incrementing, run `make version-sync`.
+`make version-check` checks the manifest copies without writing;
+`make runtime-check` also checks generated runtime
 files. CI and local packaging reject stale versions. Avoid `npm version` or
 `vsce publish patch/minor/major`, which only update the extension's version.
 
@@ -115,9 +117,8 @@ After merging and checking CI, tag the release from the updated `main`:
 ```sh
 git switch main
 git pull --ff-only
-version=$(node -p 'require("./plugin.json").version')
-git tag -a "v$version" -m "Release kanko $version"
-git push origin "v$version"
+make release-check
+make release
 ```
 
 Before the first release with this convention, update any existing
@@ -158,24 +159,25 @@ move the tag or delete/reuse the version. Build artifacts are retained for
 From the repository root:
 
 ```sh
-./scripts/build-vsix.sh
-npm --prefix editor-extension run test:all
+make rebuild
+make test
 ```
 
-The rebuild script requires Node.js 22 or newer, npm, and Python 3.9 or newer.
+The Make targets require Make, Bash 3.2 or newer, Node.js 22 or newer, npm, jq,
+and Python 3.9 or newer.
 It installs locked dependencies, validates release metadata, packages the
 extension, checks the archive against source, and prints the output path.
-It works from any working directory when invoked by its path, and always
-rebuilds the current version. From `editor-extension`, use `npm run rebuild:vsix`
-for the same operation. Rebuilding does not install or publish the extension.
+Use `make -C /path/to/kanko rebuild` from another directory. The old
+`scripts/build-vsix.sh` and `npm run rebuild:vsix` entry points delegate to this
+target. Rebuilding does not install or publish the extension.
 
 Run host tests with
-`npm --prefix editor-extension run test:integration` on a desktop, or prepend
+`make integration` on a desktop, or prepend
 `xvfb-run -a` on headless Linux. Set `EXTENSION_PATH` to an extracted VSIX's
 `extension` directory to test the packaged build, as CI does. Host tests currently
 cover stable VS Code on Linux in CI; they do not certify every supported VS Code
 version or platform.
 
-On macOS, if review map tests report `workspace_mismatch` under `/var/folders`,
-use `TMPDIR=/private/tmp` for the unit-test command. The existing review map tests
-compare Git's canonical repository path with the temporary directory path.
+On macOS, the Makefile sets `TMPDIR=/private/tmp` to avoid `workspace_mismatch`
+when Git and Node resolve system temporary directories differently. Review map
+tests compare Git's canonical repository path with the temporary directory path.

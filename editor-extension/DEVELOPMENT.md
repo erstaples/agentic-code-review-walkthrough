@@ -1,19 +1,18 @@
 # Extension development
 
-Use Node.js 22 or newer, npm, Python 3, and VS Code 1.139 or newer.
-From `editor-extension/`:
+Use Make, Bash 3.2+, Node.js 22+, npm, jq, Python 3.9+, and VS Code 1.139+.
+The root Makefile is the development entry point. From the repository root:
 
 ```sh
-npm ci
-npm run typecheck
-npm run format:check
-npm run test:all
-npm run build
-npm run watch
+make setup
+make check
+make test
+make build
+make watch
 ```
 
-`watch` rebuilds both bundles as source changes. Run type checking separately;
-esbuild does not check types. `npm run format` formats handwritten JavaScript,
+`make watch` rebuilds both bundles as source changes. Run type checking separately;
+esbuild does not check types. `make format` formats handwritten JavaScript,
 TypeScript and TypeScript configurations throughout the repository. Generated
 runtime files are excluded; rebuild them after editing their TypeScript sources.
 CI checks formatting before tests.
@@ -35,9 +34,9 @@ requests. The host still owns editor movement and saved layouts.
 Host and browser configurations use separate Node/VS Code and DOM environments.
 The host, sidebar, shared runtime and MCP implementation use strict TypeScript.
 Shared source lives in `../shared/` and MCP source in `../mcp/`.
-`npm run runtime:build` generates readable JavaScript and declarations under
+`make runtime` generates readable JavaScript and declarations under
 `../generated/`. MCP and the extension consume the same shared output.
-`npm run runtime:check` rejects stale, missing and extra generated files.
+`make runtime-check` rejects stale, missing and extra generated files.
 
 `typecheck` also checks active unit tests and type-only fixtures. These cover
 invalid messages, unchecked data, snapshots and injected API fakes. Received JSON
@@ -55,7 +54,7 @@ package when matching 1.139 types are published.
 
 ## Packaging and native tests
 
-From the repository root, `bash scripts/build-vsix.sh` performs a clean dependency
+From the repository root, `make rebuild` performs a clean dependency
 install, all Node tests, archive rejection tests, release checks, type checking,
 formatting checks, bundling, packaging, and fresh-build archive comparison.
 `npm run package` also runs the required checks/build via `vscode:prepublish`.
@@ -70,10 +69,10 @@ are rejected. This also applies to the publish job's downloaded artifact.
 Native tests must use the extracted VSIX, not `.test-dist`:
 
 ```sh
-version=$(node -p 'require("./plugin.json").version')
+version=$(make --no-print-directory version)
 unzip -q "editor-extension/kanko-$version.vsix" -d /private/tmp/kanko-package-test
 EXTENSION_PATH=/private/tmp/kanko-package-test/extension \
-  npm --prefix editor-extension run test:integration
+  make integration
 ```
 
 Use a new extraction directory for each artifact. The runner creates a separate

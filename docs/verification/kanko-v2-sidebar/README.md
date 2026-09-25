@@ -54,7 +54,7 @@ Commands from the repository root:
 TMPDIR=/private/tmp node --test test/*.test.js mcp/test/*.test.js editor-extension/test/*.test.js
 npm run package --prefix editor-extension
 python3 scripts/check-vsix.py editor-extension/kanko-0.1.0.vsix
-node scripts/check-extension-release.js
+make version-check
 ```
 
 Extract the VSIX and run `editor-extension/test/integration/runner.js` with `EXTENSION_PATH` pointing to the extracted extension. `VSCODE_EXECUTABLE_PATH` can select an isolated local editor. For visual replay, set `KANKO_TOUR_MANUAL=1` and `KANKO_TOUR_OUTPUT` to a temporary output directory. Once `ready.json` exists, atomically write `control.json` with `{"id":"compact","action":"sidebar","options":{"count":3,"cap":2}}`, or use count 9/99 for grouped/large stops. `{"action":"layout","options":{"single":true,"cap":3}}` exposes Below/Beside choices. Interact with the actual sidebar, then send `{"action":"finish"}` to exit cleanly.

@@ -73,22 +73,17 @@ extension, and then configures whichever agents it detects.
 To rebuild the VSIX from the repository root:
 
 ```sh
-./scripts/build-vsix.sh
+make rebuild
 ```
 
-This requires Node.js 22 or newer, npm, and Python 3.9 or newer. It installs
+This requires Make, Bash 3.2 or newer, Node.js 22 or newer, npm, jq, and
+Python 3.9 or newer. It installs
 locked dependencies, checks release metadata, rebuilds and validates the VSIX,
 and prints its absolute path. The filename follows the package name and version
 in root `plugin.json`; the output is `editor-extension/kanko-<version>.vsix`.
-The extension, MCP runtime, and Claude/Codex plugins share that release version.
-To prepare a release, add notes under `## Unreleased` in
-`editor-extension/CHANGELOG.md`, then run `node scripts/version.js bump patch`
-(or `minor`, `major`, or an explicit version). Required manifest copies and the
-checked-in runtime are updated together. See the
-[release procedure](docs/extension-publication.md#release-procedure) for checks
-and publishing with a `vX.Y.Z` tag.
 It replaces that version's existing package without publishing or installing it.
-From `editor-extension`, the same command is available as `npm run rebuild:vsix`.
+See [versioning and releases](#versioning-and-releases) for preparing a shared
+version bump and publishing it.
 
 To install the rebuilt extension locally, run `./install.sh`.
 
@@ -273,22 +268,111 @@ skills/            implementation-capture and walkthrough procedures
 docs/              design spec
 ```
 
-Run the repository, contract, MCP, and compiled extension tests with:
+The root **Makefile** is the entry point for development. Recipes use Bash;
+version and release workflows live in `scripts/*.sh`. npm remains the underlying
+compiler, formatter, test runner, and bundler interface.
+
+Install Make, Bash 3.2+, Node.js 22+, npm, jq, and Python 3.9+, then run:
 
 ```sh
-cd editor-extension
-npm ci
-npm run typecheck
-npm run format:check
-npm run test:all
+make setup        # Install locked dependencies
+make check        # Versions, generated runtime, TypeScript, and formatting
+make test         # Repository, contract, MCP, and extension tests
+make build        # Build extension bundles
+make watch        # Rebuild bundles as sources change
+make format       # Format handwritten sources
+make runtime      # Regenerate checked-in runtime after TypeScript changes
+make package      # Build and validate the VSIX
+make help         # List the commands
 ```
 
-On macOS, prefix the test command with `TMPDIR=/private/tmp` if Git resolves
-system temporary directories differently from Node. The MCP and contract tests
-are compiled with the extension tests by `npm --prefix editor-extension run test:all`.
+Run these commands from the repository root, or use `make -C /path/to/kanko`.
+On macOS, the Makefile uses `/private/tmp` so Git and Node agree on temporary
+paths. `make rebuild` installs dependencies, runs tests, and packages from scratch.
 
 See [extension development](editor-extension/DEVELOPMENT.md) for build, watch,
 packaging, and isolated native test instructions.
+
+## Versioning and releases
+
+The VS Code extension, its `package.json` and lockfile, MCP runtime, Claude and
+Codex plugins, and marketplace metadata all share **one release version**.
+Root `plugin.json` is authoritative. Use the targets below; do not edit the
+other version fields individually.
+
+### 1. Prepare a version bump on a working branch
+
+Run `make setup` once after cloning, or when locked dependencies change. Add
+release notes at the top of `editor-extension/CHANGELOG.md`:
+
+```markdown
+## Unreleased
+
+- Describe the fixes or features in this release.
+```
+
+Choose one bump:
+
+```sh
+make bump VERSION=patch    # 0.1.1 -> 0.1.2: fixes
+make bump VERSION=minor    # 0.1.1 -> 0.2.0: features, or breaking changes during 0.x
+make bump VERSION=major    # 0.1.1 -> 1.0.0: a major release
+# Or choose an exact, higher stable version:
+make bump VERSION=0.2.0
+```
+
+The command updates all shared version fields, turns `Unreleased` into the new
+version heading, and regenerates the checked-in runtime. It does not commit,
+tag, push, install, or publish. Bump once per planned release; ordinary commits
+can keep the current version while adding notes under `Unreleased`.
+
+### 2. Validate, commit, and review
+
+```sh
+make check
+make test
+make package
+git diff
+```
+
+Commit the complete diff, including generated files, and open a PR against `dev`.
+After review, merge it into `dev`, then promote the release to `main` through the
+normal PR process. Wait for `main` CI to pass before publishing.
+
+Useful commands:
+
+```sh
+make version                  # Print the current version
+make version-check            # Check manifests, changelog, and license
+make version-check TAG=v0.2.0  # Also check an intended tag against that version
+make version-sync             # Repair copies without increasing the version
+```
+
+If runtime generation fails after updating metadata, fix the build and run
+`make version-sync` to finish the same bump. Dependency versions, historical
+changelog entries, test fixtures, and protocol/schema compatibility numbers
+are independent; do not replace every matching version string in the repository.
+
+### 3. Publish the reviewed version from main
+
+```sh
+git switch main
+git pull --ff-only
+make release-check  # Fetch and validate; no tag is created or pushed
+make release        # Create and push the annotated vX.Y.Z tag
+```
+
+**`make release` triggers public Marketplace and GitHub publication.** It requires
+a clean `main` checkout matching `origin/main`, synchronized metadata and runtime,
+and a version tag that does not already exist. It never bumps the version or
+merges branches. GitHub rebuilds and tests the tagged commit before publishing.
+Check that the version has not already been published manually in the Marketplace;
+this local command checks Git tags, not Marketplace history.
+
+If the tag push fails, the local annotated tag may remain. Inspect it before
+retrying `git push origin vX.Y.Z`; do not overwrite a published tag or reuse a
+published version. See the [publication guide](docs/extension-publication.md)
+for credentials, CI gates, and recovery after a partial publication.
 
 ## Prior art
 

@@ -95,7 +95,7 @@ service-restart regression asserts that a valid v2 map reports `schemaValid`.
 TMPDIR=/private/tmp node --test test/*.test.js mcp/test/*.test.js editor-extension/test/*.test.js
 npm run package --prefix editor-extension
 python3 scripts/check-vsix.py editor-extension/kanko-0.1.0.vsix
-node scripts/check-extension-release.js
+make version-check
 ```
 
 Extract the VSIX to a temporary directory. Set `EXTENSION_PATH` to its extracted
