@@ -6,10 +6,19 @@ const execFile = util.promisify(cp.execFile);
 
 async function run(cwd, args) {
   try {
-    const { stdout } = await execFile("git", args, { cwd, encoding: "utf8", maxBuffer: 64 * 1024 * 1024 });
+    const { stdout } = await execFile("git", args, {
+      cwd,
+      encoding: "utf8",
+      maxBuffer: 64 * 1024 * 1024,
+    });
     return stdout;
   } catch (err) {
-    throw Object.assign(new Error(`git ${args.join(" ")} failed: ${String(err.stderr || err.message).trim()}`), { code: "git_failed" });
+    throw Object.assign(
+      new Error(
+        `git ${args.join(" ")} failed: ${String(err.stderr || err.message).trim()}`,
+      ),
+      { code: "git_failed" },
+    );
   }
 }
 
@@ -18,13 +27,26 @@ async function revParse(cwd, ref) {
 }
 
 async function changedFiles(cwd, base, head) {
-  const stdout = await run(cwd, ["diff", "--name-status", "-z", "--relative", "--find-renames", base, head, "--"]);
+  const stdout = await run(cwd, [
+    "diff",
+    "--name-status",
+    "-z",
+    "--relative",
+    "--find-renames",
+    base,
+    head,
+    "--",
+  ]);
   const fields = stdout.split("\0");
   const changes = [];
-  for (let i = 0; i < fields.length && fields[i] !== ""; ) {
+  for (let i = 0; i < fields.length && fields[i] !== "";) {
     const status = fields[i++];
     if (status.startsWith("R") || status.startsWith("C")) {
-      changes.push({ status: status[0], sourcePath: fields[i++], targetPath: fields[i++] });
+      changes.push({
+        status: status[0],
+        sourcePath: fields[i++],
+        targetPath: fields[i++],
+      });
     } else {
       const p = fields[i++];
       changes.push({ status: status[0], sourcePath: p, targetPath: p });
@@ -46,7 +68,12 @@ async function hasBlob(cwd, ref, relPath) {
     return true;
   } catch (err) {
     if (err.code === 1 || err.code === 128) return false;
-    throw Object.assign(new Error(`git cat-file failed: ${String(err.stderr || err.message).trim()}`), { code: "git_failed" });
+    throw Object.assign(
+      new Error(
+        `git cat-file failed: ${String(err.stderr || err.message).trim()}`,
+      ),
+      { code: "git_failed" },
+    );
   }
 }
 
@@ -54,9 +81,30 @@ const gitUriQuery = (absPath, ref) => JSON.stringify({ path: absPath, ref });
 
 async function diffHunks(cwd, base, head, paths) {
   const { parseHunks } = require("../compiled.js")("src/host/hunks.js");
-  return parseHunks(await run(cwd, ["diff", "--no-ext-diff", "--no-textconv", "--no-color", "--find-renames", "-U0", base,
-    ...(head === "WORKTREE" ? [] : [head]), "--", ...paths.map((p) => `./${p}`)]));
+  return parseHunks(
+    await run(cwd, [
+      "diff",
+      "--no-ext-diff",
+      "--no-textconv",
+      "--no-color",
+      "--find-renames",
+      "-U0",
+      base,
+      ...(head === "WORKTREE" ? [] : [head]),
+      "--",
+      ...paths.map((p) => `./${p}`),
+    ]),
+  );
 }
-const blobText = (cwd, ref, relPath) => run(cwd, ["show", `${ref}:./${relPath}`]);
+const blobText = (cwd, ref, relPath) =>
+  run(cwd, ["show", `${ref}:./${relPath}`]);
 
-module.exports = { revParse, changedFiles, gitUriQuery, blobLines, hasBlob, diffHunks, blobText };
+module.exports = {
+  revParse,
+  changedFiles,
+  gitUriQuery,
+  blobLines,
+  hasBlob,
+  diffHunks,
+  blobText,
+};

@@ -11,7 +11,9 @@ function fail(code, message) {
 function contains(folder, cwd) {
   const a = nodePath.resolve(folder);
   const b = nodePath.resolve(cwd);
-  return b === a || b.startsWith(a.endsWith(nodePath.sep) ? a : a + nodePath.sep);
+  return (
+    b === a || b.startsWith(a.endsWith(nodePath.sep) ? a : a + nodePath.sep)
+  );
 }
 
 function defaultIsAlive(pid) {
@@ -23,7 +25,13 @@ function defaultIsAlive(pid) {
   }
 }
 
-function resolveLock({ dir, cwd, fs = require("node:fs"), isAlive = defaultIsAlive, protocolVersion }) {
+function resolveLock({
+  dir,
+  cwd,
+  fs = require("node:fs"),
+  isAlive = defaultIsAlive,
+  protocolVersion,
+}) {
   let names;
   try {
     names = fs.readdirSync(dir).filter((n) => n.endsWith(".lock"));
@@ -43,7 +51,11 @@ function resolveLock({ dir, cwd, fs = require("node:fs"), isAlive = defaultIsAli
       continue;
     }
     if (!isAlive(lock.pid)) {
-      try { fs.unlinkSync(full); } catch { /* another process may have won the race */ }
+      try {
+        fs.unlinkSync(full);
+      } catch {
+        /* another process may have won the race */
+      }
       continue;
     }
     if (lock.protocolVersion !== protocolVersion) {
@@ -51,25 +63,34 @@ function resolveLock({ dir, cwd, fs = require("node:fs"), isAlive = defaultIsAli
       continue;
     }
     for (const folder of lock.workspaceFolders || []) {
-      if (contains(folder, cwd)) candidates.push({ lock, depth: nodePath.resolve(folder).length });
+      if (contains(folder, cwd))
+        candidates.push({ lock, depth: nodePath.resolve(folder).length });
     }
   }
 
   if (candidates.length === 0) {
     if (mismatch) {
-      throw fail("protocol_mismatch",
-        `tour bridge speaks protocol ${mismatch.protocolVersion}, this plugin speaks ${protocolVersion}. Update whichever is older.`);
+      throw fail(
+        "protocol_mismatch",
+        `tour bridge speaks protocol ${mismatch.protocolVersion}, this plugin speaks ${protocolVersion}. Update whichever is older.`,
+      );
     }
-    throw fail("no_bridge",
-      `folder ${cwd} is not open in any VS Code window with the tour bridge. Install the Kankō extension and open this folder.`);
+    throw fail(
+      "no_bridge",
+      `folder ${cwd} is not open in any VS Code window with the tour bridge. Install the Kankō extension and open this folder.`,
+    );
   }
 
   const deepest = Math.max(...candidates.map((c) => c.depth));
   const winners = candidates.filter((c) => c.depth === deepest);
   if (winners.length > 1) {
-    const folders = winners.map((w) => w.lock.workspaceFolders.join(", ")).join(" | ");
-    throw fail("ambiguous_bridge",
-      `more than one VS Code window claims ${cwd}: ${folders}. Close one, or run from inside the window you want.`);
+    const folders = winners
+      .map((w) => w.lock.workspaceFolders.join(", "))
+      .join(" | ");
+    throw fail(
+      "ambiguous_bridge",
+      `more than one VS Code window claims ${cwd}: ${folders}. Close one, or run from inside the window you want.`,
+    );
   }
 
   return winners[0].lock;

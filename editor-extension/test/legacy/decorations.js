@@ -28,14 +28,28 @@ function createIntentStore() {
       state = "following";
       paints.clear();
     },
-    state() { return state; },
+    state() {
+      return state;
+    },
     setState(next) {
-      if (!["following", "exploring", "paused", "detour", "stale"].includes(next)) throw new Error("invalid presentation state");
+      if (
+        !["following", "exploring", "paused", "detour", "stale"].includes(next)
+      )
+        throw new Error("invalid presentation state");
       state = next;
     },
-    paintFor(path, side) { return paints.get(keyOf(path, side)) || (paints.size ? { context: [], focus: [] } : {}); },
-    setPaint(path, side, paint) { paints.set(keyOf(path, side), paint); },
-    clearPaint() { paints.clear(); },
+    paintFor(path, side) {
+      return (
+        paints.get(keyOf(path, side)) ||
+        (paints.size ? { context: [], focus: [] } : {})
+      );
+    },
+    setPaint(path, side, paint) {
+      paints.set(keyOf(path, side), paint);
+    },
+    clearPaint() {
+      paints.clear();
+    },
     clear() {
       stop = null;
       focus = null;
@@ -48,17 +62,30 @@ function createIntentStore() {
     },
     currentFocus() {
       return focus
-        ? { path: focus.path, side: focus.side, startLine: focus.startLine, endLine: focus.endLine, note: focus.note }
+        ? {
+            path: focus.path,
+            side: focus.side,
+            startLine: focus.startLine,
+            endLine: focus.endLine,
+            note: focus.note,
+          }
         : null;
     },
     rangesFor({ path, side }) {
       const file = stop && (stop.files || []).find((f) => f.path === path);
       const ranges = file
-        ? file.ranges.filter((r) => r.side === side).map((r) => ({ startLine: r.startLine, endLine: r.endLine }))
+        ? file.ranges
+            .filter((r) => r.side === side)
+            .map((r) => ({ startLine: r.startLine, endLine: r.endLine }))
         : [];
-      const hit = focus && focus.path === path && focus.side === side
-        ? { startLine: focus.startLine, endLine: focus.endLine, note: focus.note }
-        : null;
+      const hit =
+        focus && focus.path === path && focus.side === side
+          ? {
+              startLine: focus.startLine,
+              endLine: focus.endLine,
+              note: focus.note,
+            }
+          : null;
       return { stop: ranges, focus: hit };
     },
     // One entry per (path, side) pair the current stop actually asked for, so a

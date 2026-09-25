@@ -9,25 +9,39 @@
 const PROTOCOL_VERSION = 3;
 
 // `satisfies` keeps each literal, so type tests can prove the lists are complete.
-const ERROR_CODES = /** @satisfies {readonly ErrorCode[]} */ (/** @type {const} */ ([
-  "unauthorized",
-  "protocol_mismatch",
-  "bad_request",
-  "file_not_found",
-  "range_out_of_bounds",
-  "git_failed",
-  "no_active_editor",
-  "content_drift",
-  "diff_identity_mismatch",
-  "invalid_tour_plan",
-  "no_tour",
-  "stale_presentation",
-  "navigation_boundary",
-]));
+const ERROR_CODES = /** @satisfies {readonly ErrorCode[]} */ (
+  /** @type {const} */ ([
+    "unauthorized",
+    "protocol_mismatch",
+    "bad_request",
+    "file_not_found",
+    "range_out_of_bounds",
+    "git_failed",
+    "no_active_editor",
+    "content_drift",
+    "diff_identity_mismatch",
+    "invalid_tour_plan",
+    "no_tour",
+    "stale_presentation",
+    "navigation_boundary",
+  ])
+);
 
-const SIDES = /** @satisfies {readonly ProtocolSide[]} */ (/** @type {const} */ (["base", "head", "working"]));
-const MODES = /** @satisfies {readonly ProtocolMode[]} */ (/** @type {const} */ (["diff", "file"]));
-const STOP_TYPES = /** @satisfies {readonly StopType[]} */ (/** @type {const} */ (["context", "implementation", "risk", "evidence", "limitation"]));
+const SIDES = /** @satisfies {readonly ProtocolSide[]} */ (
+  /** @type {const} */ (["base", "head", "working"])
+);
+const MODES = /** @satisfies {readonly ProtocolMode[]} */ (
+  /** @type {const} */ (["diff", "file"])
+);
+const STOP_TYPES = /** @satisfies {readonly StopType[]} */ (
+  /** @type {const} */ ([
+    "context",
+    "implementation",
+    "risk",
+    "evidence",
+    "limitation",
+  ])
+);
 
 const ROUTES = {
   kanko_tour_status: { method: "GET", path: "/status" },
@@ -37,4 +51,11 @@ const ROUTES = {
   kanko_tour_clear: { method: "POST", path: "/clear" },
 };
 
-module.exports = { PROTOCOL_VERSION, ERROR_CODES, SIDES, MODES, STOP_TYPES, ROUTES };
+module.exports = {
+  PROTOCOL_VERSION,
+  ERROR_CODES,
+  SIDES,
+  MODES,
+  STOP_TYPES,
+  ROUTES,
+};

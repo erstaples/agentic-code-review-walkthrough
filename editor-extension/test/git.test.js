@@ -4,13 +4,20 @@ const fs = require("node:fs");
 const os = require("node:os");
 const path = require("node:path");
 const cp = require("node:child_process");
-const { revParse, changedFiles, gitUriQuery, blobLines, hasBlob } = require("./legacy/git.js");
+const {
+  revParse,
+  changedFiles,
+  gitUriQuery,
+  blobLines,
+  hasBlob,
+} = require("./legacy/git.js");
 
 let repo;
 let baseSha;
 let headSha;
 
-const git = (...args) => cp.execFileSync("git", args, { cwd: repo, encoding: "utf8" }).trim();
+const git = (...args) =>
+  cp.execFileSync("git", args, { cwd: repo, encoding: "utf8" }).trim();
 
 before(() => {
   repo = fs.mkdtempSync(path.join(os.tmpdir(), "tourgit-"));
@@ -38,12 +45,17 @@ test("revParse resolves a name to a full sha", async () => {
 });
 
 test("revParse on an unknown ref fails with git_failed", async () => {
-  await assert.rejects(() => revParse(repo, "no-such-ref"), (err) => err.code === "git_failed");
+  await assert.rejects(
+    () => revParse(repo, "no-such-ref"),
+    (err) => err.code === "git_failed",
+  );
 });
 
 test("changedFiles classifies added, deleted, and modified", async () => {
   const changes = await changedFiles(repo, baseSha, headSha);
-  const byPath = Object.fromEntries(changes.map((c) => [c.targetPath || c.sourcePath, c.status]));
+  const byPath = Object.fromEntries(
+    changes.map((c) => [c.targetPath || c.sourcePath, c.status]),
+  );
   assert.strictEqual(byPath["keep.txt"], "M");
   assert.strictEqual(byPath["new.txt"], "A");
   assert.strictEqual(byPath["gone.txt"], "D");
@@ -59,7 +71,10 @@ test("changedFiles reports renames with both paths", async () => {
 });
 
 test("gitUriQuery encodes the path and ref the git scheme expects", () => {
-  assert.deepStrictEqual(JSON.parse(gitUriQuery("/repo/a.go", "abc123")), { path: "/repo/a.go", ref: "abc123" });
+  assert.deepStrictEqual(JSON.parse(gitUriQuery("/repo/a.go", "abc123")), {
+    path: "/repo/a.go",
+    ref: "abc123",
+  });
 });
 
 test("changedFiles with nested workspace returns workspace-relative paths", async () => {
@@ -84,8 +99,16 @@ test("changedFiles with nested workspace returns workspace-relative paths", asyn
 
   // Assert that paths are workspace-relative (from sub/), not repo-relative (sub/file.txt)
   assert.strictEqual(changes.length, 1, "should have one changed file");
-  assert.strictEqual(changes[0].targetPath, "file.txt", "path should be workspace-relative");
-  assert.strictEqual(changes[0].status, "M", "file should be marked as modified");
+  assert.strictEqual(
+    changes[0].targetPath,
+    "file.txt",
+    "path should be workspace-relative",
+  );
+  assert.strictEqual(
+    changes[0].status,
+    "M",
+    "file should be marked as modified",
+  );
 });
 
 test("blobLines counts lines in a blob at a given ref", async () => {
@@ -94,7 +117,9 @@ test("blobLines counts lines in a blob at a given ref", async () => {
 });
 
 test("blobLines on a path absent from that ref fails with git_failed", async () => {
-  await assert.rejects(blobLines(repo, baseSha, "new.txt"), { code: "git_failed" });
+  await assert.rejects(blobLines(repo, baseSha, "new.txt"), {
+    code: "git_failed",
+  });
 });
 
 test("hasBlob distinguishes an existing base file from a newly added file", async () => {

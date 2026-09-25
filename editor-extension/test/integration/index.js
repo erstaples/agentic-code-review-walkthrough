@@ -36,29 +36,33 @@ exports.run = async function run() {
   const context = (t, label) =>
     new Proxy(t, {
       get(target, prop) {
-        if (prop === "test") return instrument((...a) => target.test(...a), `${label} > `);
+        if (prop === "test")
+          return instrument((...a) => target.test(...a), `${label} > `);
         const value = Reflect.get(target, prop, target);
         return typeof value === "function" ? value.bind(target) : value;
       },
     });
 
-  const instrument = (register, prefix) => (...args) => {
-    const i = lastFunctionIndex(args);
-    if (i === -1) return register(...args);
-    const label = prefix + (typeof args[0] === "string" ? args[0] : "<anonymous>");
-    const fn = args[i];
-    args[i] = async (t) => {
-      try {
-        await fn(t === undefined ? t : context(t, label));
-      } catch (err) {
-        record(label, err);
-        throw err;
-      }
-      console.log("ok:", label);
+  const instrument =
+    (register, prefix) =>
+    (...args) => {
+      const i = lastFunctionIndex(args);
+      if (i === -1) return register(...args);
+      const label =
+        prefix + (typeof args[0] === "string" ? args[0] : "<anonymous>");
+      const fn = args[i];
+      args[i] = async (t) => {
+        try {
+          await fn(t === undefined ? t : context(t, label));
+        } catch (err) {
+          record(label, err);
+          throw err;
+        }
+        console.log("ok:", label);
+      };
+      registered++;
+      return register(...args);
     };
-    registered++;
-    return register(...args);
-  };
 
   const hook = (register, label) => (fn) =>
     register(async (t) => {
@@ -98,6 +102,8 @@ exports.run = async function run() {
   }
 
   if (failures.length > 0) {
-    throw new Error(`${failures.length} integration check(s) failed: ${failures.join(", ")}`);
+    throw new Error(
+      `${failures.length} integration check(s) failed: ${failures.join(", ")}`,
+    );
   }
 };

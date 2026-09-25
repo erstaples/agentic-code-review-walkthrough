@@ -43,14 +43,23 @@ test("Codex uses a portable manifest and MCP configuration", () => {
 });
 
 test("skill lives in a directory matching its frontmatter name", () => {
-  const body = fs.readFileSync(path.join(root, "skills/kanko-tour/SKILL.md"), "utf8");
+  const body = fs.readFileSync(
+    path.join(root, "skills/kanko-tour/SKILL.md"),
+    "utf8",
+  );
   assert.match(body, /^name: kanko-tour$/m);
-  const development = fs.readFileSync(path.join(root, "skills/kanko-build/SKILL.md"), "utf8");
+  const development = fs.readFileSync(
+    path.join(root, "skills/kanko-build/SKILL.md"),
+    "utf8",
+  );
   assert.match(development, /^name: kanko-build$/m);
 });
 
 test("skill is generalized: no personal name, no sibling-skill slash references", () => {
-  const body = fs.readFileSync(path.join(root, "skills/kanko-tour/SKILL.md"), "utf8");
+  const body = fs.readFileSync(
+    path.join(root, "skills/kanko-tour/SKILL.md"),
+    "utf8",
+  );
   assert.doesNotMatch(body, /\bEric\b/);
   assert.doesNotMatch(body, /\/code-review|address-coderabbit/);
 });

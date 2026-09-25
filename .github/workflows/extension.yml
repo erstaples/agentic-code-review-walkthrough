@@ -46,6 +46,8 @@ jobs:
           test "$REF_TYPE" = tag
           node scripts/check-extension-release.js "$RELEASE_TAG"
           git merge-base --is-ancestor HEAD origin/main
+      - name: Check source formatting
+        run: npm --prefix editor-extension run format:check
       - name: Test repository and extension
         run: npm --prefix editor-extension run test:all
       - name: Test archive rejection checks
