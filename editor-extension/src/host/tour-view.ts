@@ -5,7 +5,10 @@ import type { TourSnapshot } from "../shared/snapshot.js";
 import { isRecord, errorMessage } from "./requests.js";
 
 import * as crypto from "node:crypto";
-import { REVISIONED_MESSAGE_TYPES } from "../shared/messages.js";
+import {
+  REVISIONED_MESSAGE_TYPES,
+  type HostMessage,
+} from "../shared/messages.js";
 function createTourView(
   vscode: ViewApi,
   extensionUri: Uri,
@@ -20,7 +23,10 @@ function createTourView(
   let latest: TourSnapshot = { loaded: false, revision: 0 };
   const publish = (snapshot: TourSnapshot) => {
     latest = snapshot;
-    return view?.webview.postMessage({ type: "snapshot", snapshot });
+    return view?.webview.postMessage({
+      type: "snapshot",
+      snapshot,
+    } satisfies HostMessage);
   };
   return {
     publish,
@@ -29,7 +35,10 @@ function createTourView(
       view?.show?.(false);
       pendingAnchor = anchor;
       if (ready) {
-        await view?.webview.postMessage({ type: "selectAnchor", anchor });
+        await view?.webview.postMessage({
+          type: "selectAnchor",
+          anchor,
+        } satisfies HostMessage);
         pendingAnchor = undefined;
       }
     },
@@ -80,7 +89,7 @@ function createTourView(
               await resolved.webview.postMessage({
                 type: "selectAnchor",
                 anchor: pendingAnchor,
-              });
+              } satisfies HostMessage);
               pendingAnchor = undefined;
             }
             return;
@@ -128,7 +137,7 @@ function createTourView(
           view?.webview.postMessage({
             type: "error",
             message: errorMessage(error),
-          });
+          } satisfies HostMessage);
         }
       });
       resolved.onDidDispose(() => {

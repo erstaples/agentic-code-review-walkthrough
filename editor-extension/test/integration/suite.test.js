@@ -317,7 +317,7 @@ module.exports = function register({ test, before }) {
     const before=tabs().filter(t=>t.uri?.includes('/navigation.js')).length;
     s=await layoutCommand({action:'place',anchor:3,placement:{kind:'replace',of:1}});
     assert.equal(s.presentation.anchors.find(a=>a.n===3).column,1);assert.equal(tabs().filter(t=>t.uri?.includes('/navigation.js')).length,before);
-    await layoutCommand({action:'pin',anchor:3,pinned:true});s=await layoutCommand({action:'reset'});
+    const pinned = await layoutCommand({action:'pin',anchor:3,pinned:true});s=await layoutCommand({action:'reset'});
     assert.ok(s.presentation.layout.slots.every(s=>!s.pinned));assert.equal(s.presentation.layout.preferences.caller.slot,'bottom');record('move-reset',s);
   });
   test('moving from an emptying group tolerates native group renumbering',async()=>{
@@ -370,10 +370,10 @@ module.exports = function register({ test, before }) {
     await api('kanko_tour_navigate',{action:'nextStop'});
     let s=(await api('kanko_tour_navigate',{action:'previousStop'})).snapshot;
     assert.deepEqual(s.presentation.layout.slots.map(s=>s.anchor),[1,3]);assert.deepEqual(await vscode.commands.executeCommand('vscode.getEditorLayout'),geometry);
-    await layoutCommand({action:'pin',anchor:3,pinned:true});
+    const pinned = await layoutCommand({action:'pin',anchor:3,pinned:true});
     await api('kanko_tour_clear');await vscode.commands.executeCommand('workbench.action.closeAllEditors');
     s=(await http('/tour/load',payload)).snapshot;
-    assert.deepEqual(s.presentation.layout.slots.map(s=>s.anchor),[1,3]);assert.equal(s.presentation.layout.slots[1].pinned,true);
+    assert.deepEqual(s.presentation.layout.slots.map(s=>s.anchor),[1,3]);assert.equal(s.presentation.layout.slots[1].pinned,true,JSON.stringify({pinned,reloaded:s}));
     assert.equal(s.presentation.layout.preferences.caller.slot,'bottom');record('persisted-return-reload',s);
     s=await layoutCommand({action:'reset'});assert.ok(s.presentation.layout.slots.every(s=>!s.pinned));assert.equal(s.presentation.layout.preferences.caller.slot,'bottom');
   });

@@ -31,8 +31,23 @@ Branch: `codex/extension-typescript-slice3`. September 25, 2026.
 - Strict host, browser, shared JavaScript, and compile-time checks pass.
 - Clean Node 22 build, formatting, six archive rejection tests, packaging, and
   fresh-build byte comparison pass. The VSIX contains 11 files.
-- Initial extracted-VSIX native run: all 30 scenarios passed on VS Code 1.139.0.
-- Final package and native checks: pending after readability cleanup.
+- Final extracted-VSIX native run: all 30 scenarios passed on macOS with VS Code
+  1.139.0, using an isolated profile. Fresh-build comparison matches that package.
+- Standalone MCP: 49 tests passed using plain Node, with no MCP compilation.
+- The focused pin/return/reload scenario passed 40 consecutive native runs in an
+  isolated local profile, with failure diagnostics matching the committed test.
+- Bundle sizes: host 125,286 bytes; browser 22,675 bytes.
+
+## Intermittent CI failure
+
+The first Linux native run at `79fabb6` restored anchors `[1, 3]` but failed the
+saved-pin assertion. Rerunning the same commit passed. The local full suites and
+40 focused repeats also passed. The assertion remains unchanged, with both the
+before-clear and reloaded snapshots now included in failure output.
+
+The cause is not established. This remains a known intermittent restore risk;
+it is not claimed fixed or attributed to the baseline. Track any recurrence
+while carrying out slice 4's persistent-profile acceptance.
 
 ## Limits
 

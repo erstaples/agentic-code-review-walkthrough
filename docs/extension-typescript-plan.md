@@ -3,7 +3,8 @@
 Date: September 24, 2026
 
 Status: Slices 1 and 2 are merged, with packaged native acceptance complete.
-Slice 3 is implemented and undergoing final verification. Slices 4–6 have not started.
+Slice 3 is implemented and locally verified; its PR records an intermittent
+Linux pin-restoration failure. Slices 4–6 have not started.
 
 Baseline: `dev` at `4f66b0b` (merged v2 persistence and acceptance work)
 

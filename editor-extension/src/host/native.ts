@@ -14,20 +14,26 @@ export interface PresenterApi extends Pick<
   window: Pick<Window, "createTextEditorDecorationType">;
 }
 export interface OpenerApi extends Commands {
-  Uri: typeof Code.Uri;
-  window: Pick<Window, "tabGroups" | "showTextDocument">;
+  Uri: Pick<typeof Code.Uri, "file" | "from">;
+  window: Pick<Window, "showTextDocument"> & {
+    tabGroups: Pick<
+      Window["tabGroups"],
+      "all" | "close" | "onDidChangeTabs" | "onDidChangeTabGroups"
+    >;
+  };
   workspace: Pick<
     Workspace,
     "registerTextDocumentContentProvider" | "textDocuments" | "openTextDocument"
   >;
 }
 export interface LayoutApi extends Commands, Pick<Api, "Location" | "Range"> {
-  window: Pick<Window, "tabGroups" | "activeTextEditor" | "visibleTextEditors">;
+  window: Pick<Window, "activeTextEditor" | "visibleTextEditors"> & {
+    tabGroups: Pick<Window["tabGroups"], "all" | "close">;
+  };
   workspace: Pick<Workspace, "getConfiguration">;
 }
 export interface HostApi extends Pick<
   Api,
-  | "Uri"
   | "ThemeColor"
   | "Range"
   | "OverviewRulerLane"
@@ -38,6 +44,7 @@ export interface HostApi extends Pick<
   | "TextEditorRevealType"
   | "TextEditorSelectionChangeKind"
 > {
+  Uri: OpenerApi["Uri"];
   commands: Pick<typeof Code.commands, "executeCommand" | "registerCommand">;
   window: PresenterApi["window"] &
     OpenerApi["window"] &
@@ -68,12 +75,12 @@ export interface QuickPickApi extends Commands {
   >;
 }
 export interface ViewApi extends Commands {
-  Uri: typeof Code.Uri;
+  Uri: Pick<typeof Code.Uri, "joinPath">;
 }
 
 // VS Code owns tab inputs; inspect the supported variants before reading URIs.
 export function tabInput(
-  tab: Code.Tab | undefined,
+  tab: Pick<Code.Tab, "input"> | undefined,
 ): Partial<Code.TabInputText & Code.TabInputTextDiff> {
   const input: unknown = tab?.input;
   if (isTextInput(input)) return input;
