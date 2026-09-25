@@ -153,3 +153,17 @@ test("range hashing preserves established CRLF bytes but excludes nonexistent EO
 test("the packaged tour validator is an exact copy of the shared source", () => {
   assert.equal(fs.readFileSync(path.join(__dirname, "../editor-extension/lib/tour-contract.js"), "utf8"), fs.readFileSync(path.join(__dirname, "../contract/tour.js"), "utf8"), "run node contract/sync.js");
 });
+
+test('optional metadata remains unchanged and is not treated as validated', () => {
+  const input = plan();
+  input.id = 42;
+  input.title = { label: 'unchecked' };
+  input.stops[0].type = false;
+  input.stops[0].coveredEntityIds = 'unchecked';
+  const result = validateTourPlan(input, options);
+  assert.equal(result.ok, true);
+  assert.equal(result.plan.id, 42);
+  assert.deepEqual(result.plan.title, input.title);
+  assert.equal(result.plan.stops[0].type, false);
+  assert.equal(result.plan.stops[0].coveredEntityIds, 'unchecked');
+});
