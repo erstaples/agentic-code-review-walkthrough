@@ -2,9 +2,9 @@
 
 Date: September 24, 2026
 
-Status: Slices 1–3 are merged. Slice 4 acceptance is complete.
-Slices 5–6 have not started. The intermittent Linux pin-restoration failure
-recorded in slice 3 remains unexplained; it did not recur during slice 4.
+Status: Slices 1–5 are merged. The readability follow-up brings slice 5 from its
+merged branch into dev. Slice 6 remains. The intermittent Linux pin-restoration failure from slice 3
+remains unexplained; it did not recur during slices 4 or 5.
 
 Baseline: `dev` at `4f66b0b` (merged v2 persistence and acceptance work)
 
@@ -201,30 +201,39 @@ Evidence: [slice 4 verification](verification/extension-typescript/slice-4.md).
 
 ### Slice 5 — React sidebar and rendered interaction tests (1.5–2.5 days)
 
-- [ ] Add React and its types to the locally bundled webview build. Replace the
+- [x] Add React and its types to the locally bundled webview build. Replace the
   HTML body template with an application mount point; retain CSP, resource URIs,
   and the ready handshake in the provider.
-- [ ] Extract `TourHeader`, `ModeControls`, `AnchorList`, `AnchorRow`,
+- [x] Extract `TourHeader`, `ModeControls`, `AnchorList`, `AnchorRow`,
   `PlacementPicker`, `Narration`, and `TourNavigation` where each has a clear
   responsibility. Preserve the current CSS, DOM semantics, icons, and visual order.
-- [ ] Keep the latest authoritative snapshot separate from local UI state.
+- [x] Keep the latest authoritative snapshot separate from local UI state.
   Derive rows and warnings rather than keeping duplicate copies in React state.
   Preserve stale-revision rejection and ensure outgoing actions use the current
   revision. Clean up message listeners and observers on unmount.
-- [ ] Preserve filter/group reset rules, keyboard shortcuts, row windowing,
+- [x] Preserve filter/group reset rules, keyboard shortcuts, row windowing,
   scrolling, picker focus/return, disabled controls, accessible labels, live
   narration, and immediate role tooltips. Use stable identities for component
   keys so incoming snapshots do not unnecessarily recreate focused controls.
-- [ ] Keep narration's existing escaped HTML boundary and numbered-chip actions;
+- [x] Keep narration's existing escaped HTML boundary and numbered-chip actions;
   do not introduce a second Markdown renderer or trust arbitrary message HTML.
-- [ ] Add rendered component interaction tests using Testing Library and a DOM
+- [x] Add rendered component interaction tests using Testing Library and a DOM
   environment with an explicit VS Code bridge fake. Cover messages, navigation,
   filtering, grouping, picker actions, disabled states, and focus restoration.
   Keep real browser/native checks for geometry, scrolling, and CSP behavior that
   a simulated DOM cannot prove.
 
+Evidence: [slice 5 verification](verification/extension-typescript/slice-5.md).
+
 **Exit:** The React sidebar preserves observable behavior and passes interaction
 tests. The packaged extension loads the production browser bundle successfully.
+
+### Readability follow-up
+
+The approved follow-up formats all handwritten source, extracts sidebar hooks,
+and separates layout choices, editor calls and saved state. It preserves the
+existing queue and data formats. See the [verification report](verification/extension-typescript/readability.md)
+and [remaining JavaScript assessment](javascript-typescript-assessment.md).
 
 ### Slice 6 — Final native and visual acceptance (0.5–1.5 days)
 

@@ -16,12 +16,18 @@ const dispatcher = createDispatcher({
   serverInfo: { name: "kanko", version: "0.1.0" },
   tools: TOOLS,
   callTool: createCallTool({
-    resolveLock: (workspace) => resolveLock({
-      dir: LOCK_DIR,
-      cwd: workspace || process.cwd(),
-      protocolVersion: PROTOCOL_VERSION,
+    resolveLock: (workspace) =>
+      resolveLock({
+        dir: LOCK_DIR,
+        cwd: workspace || process.cwd(),
+        protocolVersion: PROTOCOL_VERSION,
+      }),
+    mapService: new ReviewMapService({
+      tourAnchorLimit:
+        process.env.KANKO_TOUR_ANCHOR_LIMIT === undefined
+          ? undefined
+          : Number(process.env.KANKO_TOUR_ANCHOR_LIMIT),
     }),
-    mapService: new ReviewMapService({ tourAnchorLimit: process.env.KANKO_TOUR_ANCHOR_LIMIT === undefined ? undefined : Number(process.env.KANKO_TOUR_ANCHOR_LIMIT) }),
   }),
 });
 

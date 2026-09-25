@@ -21,11 +21,7 @@ export type ErrorCode =
 export type ProtocolSide = "base" | "head" | "working";
 export type ProtocolMode = "diff" | "file";
 export type StopType =
-  | "context"
-  | "implementation"
-  | "risk"
-  | "evidence"
-  | "limitation";
+  "context" | "implementation" | "risk" | "evidence" | "limitation";
 
 export interface ProtocolConstants {
   PROTOCOL_VERSION: ProtocolVersion;
@@ -47,13 +43,7 @@ export type ContentHash = `sha256:${string}`;
 /** The revision used for line numbers; `head` may represent a working-tree snapshot. */
 export type SourceSide = "base" | "head";
 export type AnchorRole =
-  | "change"
-  | "evidence"
-  | "callee"
-  | "caller"
-  | "config"
-  | "schema"
-  | "context";
+  "change" | "evidence" | "callee" | "caller" | "config" | "schema" | "context";
 export type AnchorView = "diff" | "head" | "base";
 export type ChangeKind = "modified" | "added" | "deleted" | "unchanged";
 export type FocusKind = "added" | "removed" | "unchanged";
@@ -118,14 +108,21 @@ export interface TourPlan {
   title?: unknown;
 }
 
-export type TourAnchorInput = Omit<TourAnchor, "side" | "focus" | "claimRefs"> & {
+export type TourAnchorInput = Omit<
+  TourAnchor,
+  "side" | "focus" | "claimRefs"
+> & {
   side?: SourceSide | null;
   focus?: FocusSpan[] | null;
   claimRefs?: string[] | null;
 };
 
-export type TourStopInput = Omit<TourStop, "anchors"> & { anchors: TourAnchorInput[] };
-export type TourPlanInput = Omit<TourPlan, "stops"> & { stops: TourStopInput[] };
+export type TourStopInput = Omit<TourStop, "anchors"> & {
+  anchors: TourAnchorInput[];
+};
+export type TourPlanInput = Omit<TourPlan, "stops"> & {
+  stops: TourStopInput[];
+};
 
 export type FindingSeverity = "error" | "warning";
 

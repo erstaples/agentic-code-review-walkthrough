@@ -1,42 +1,31 @@
+import { createLayoutEditors } from "./layout-editors.js";
+import { createLayoutPersistence } from "./layout-persistence.js";
+import {
+  choosePlacementSlot,
+  identifyShape,
+  placementPreview,
+  type LayoutSlot,
+} from "./layout-placement.js";
 import type { Tab, TabGroup, Uri } from "vscode";
 import type { LayoutApi } from "./native.js";
 import { tabInput } from "./native.js";
 import type { AnchorOpener } from "./anchor-opener.js";
 import type { TourState, AnchorRecord } from "./state.js";
-import type { AnchorRole } from "../shared/tour.js";
 import type { LayoutSnapshot } from "../shared/snapshot.js";
 import type {
   EditorLayout,
-  EditorGroupLayout,
   ShapeName,
-  SlotLabel,
-  RolePreference,
   SavedStopLayout,
   LayoutOrientationSetting,
   PlacementChoice,
   PreviewCell,
 } from "../shared/layout.js";
 import { isRecord } from "./requests.js";
-interface Slot {
-  slot: SlotLabel;
-  column: number;
-  anchor?: number;
-  pinned: boolean;
-  lastActive: number;
-  group: TabGroup;
-  record?: AnchorRecord;
-}
 interface TabState {
   tab: Tab;
   group: TabGroup;
   column: number;
   active: boolean;
-}
-interface PreviewNode {
-  size?: number;
-  orientation?: number;
-  groups?: PreviewNode[];
-  anchor?: number | null;
 }
 import {
   SHAPES,
@@ -45,7 +34,7 @@ import {
   geometry,
   cramped,
 } from "./layout-model.js";
-import { createLayoutState, stopIdentity, compatible } from "./layout-state.js";
+import { createLayoutState, stopIdentity } from "./layout-state.js";
 const uriKey = (uri: Uri | undefined) => uri?.toString();
 const invalid = (message: string) =>
   Object.assign(new Error(message), { code: "bad_request" });
@@ -55,35 +44,33 @@ function createLayoutEngine(
   opener: AnchorOpener,
   storage = createLayoutState(),
 ) {
-  let records: AnchorRecord[] = [],
-    shape: ShapeName | null = "single",
-    customized = false;
-  const pins = new Set<string>(),
-    pinnedTabs = new Set<Tab>();
-  let prefs = new Map<string, RolePreference>();
-  let tourId: string | undefined,
-    stopId: string | undefined,
-    expected: string | undefined;
-  let tabs: TabState[] = [],
-    internal = 0,
-    sequence = false,
-    override = false,
-    unplaced: number[] = [];
-  let clock = 0;
+  let records: AnchorRecord[] = [];
+  let shape: ShapeName | null = "single";
+  let customized = false;
+  const pins = new Set<string>();
+  const pinnedTabs = new Set<Tab>();
+  const savedLayouts = createLayoutPersistence(storage);
+  let tourId: string | undefined;
+  let stopId: string | undefined;
+  let expectedGeometry: string | undefined;
+  let observedTabs: TabState[] = [];
+  // Ignore observations until the outermost editor operation finishes.
+  let transactionDepth = 0;
+  let sequenceMode = false;
+  let sequenceOverride = false;
+  let unplaced: number[] = [];
+  let activityClock = 0;
   const activity = new Map<Tab, number>();
-  let state: TourState | undefined,
-    layouts: Record<string, unknown> = {},
-    actualLayout: EditorLayout | undefined;
-  let restored = false,
-    suspended = false,
-    deferred = false;
-  // Sort by visual position; VS Code may retain creation order after a split.
-  const groups = () =>
-    [...vscode.window.tabGroups.all].sort(
-      (a, b) => a.viewColumn - b.viewColumn,
-    );
+  let state: TourState | undefined;
+  let actualLayout: EditorLayout | undefined;
+  // Keep the restored arrangement for the first automatic presentation.
+  let restoredLayoutPending = false;
+  let persistenceSuspended = false;
+  let restoreDeferred = false;
+  const editors = createLayoutEditors(vscode, opener);
+  const { groups, tabState } = editors;
   const config = () => vscode.workspace.getConfiguration("kanko.layout");
-  const cap = () =>
+  const maxGroups = () =>
     Math.max(
       2,
       Math.min(4, Math.floor(Number(config().get("maxGroups", 3)) || 3)),
@@ -103,8 +90,8 @@ function createLayoutEngine(
         recordForTab(group.activeTab)?.target.toString() ===
         record.target.toString(),
     );
-  const token = (record: AnchorRecord) => record.target.toString();
-  function slots(): Slot[] {
+  const anchorUriKey = (record: AnchorRecord) => record.target.toString();
+  function slots(): LayoutSlot[] {
     return groups().map((group, i) => {
       const record = recordForTab(group.activeTab);
       return {
@@ -114,7 +101,7 @@ function createLayoutEngine(
         column: group.viewColumn,
         anchor: record?.anchor.n,
         pinned:
-          Boolean(record && pins.has(token(record))) ||
+          Boolean(record && pins.has(anchorUriKey(record))) ||
           Boolean(group.activeTab?.isPinned) ||
           (!!group.activeTab && pinnedTabs.has(group.activeTab)),
         lastActive: (group.activeTab ? activity.get(group.activeTab) : 0) || 0,
@@ -123,50 +110,25 @@ function createLayoutEngine(
       };
     });
   }
-  const tabState = () =>
-    groups().flatMap((group) =>
-      group.tabs.map((tab) => ({
-        tab,
-        group: group,
-        column: group.viewColumn,
-        active: group.activeTab === tab,
-      })),
-    );
-  function identifyShape(layout: EditorLayout) {
-    const topology = (node: EditorGroupLayout): object =>
-      node.groups
-        ? { orientation: node.orientation, groups: node.groups.map(topology) }
-        : {};
-    const structure = JSON.stringify(topology(layout));
-    return (
-      (Object.keys(SHAPES) as ShapeName[]).find(
-        (name) => JSON.stringify(topology(SHAPES[name].layout)) === structure,
-      ) || null
-    );
-  }
   async function capture() {
-    const layout = await vscode.commands.executeCommand<EditorLayout>(
-      "vscode.getEditorLayout",
-    );
+    const layout = await editors.readLayout();
     actualLayout = layout;
-    expected = geometry(layout);
+    expectedGeometry = geometry(layout);
     shape = identifyShape(layout);
-    tabs = tabState();
+    observedTabs = tabState();
   }
   async function observe() {
-    if (internal || !tourId || suspended) return;
-    const layout = await vscode.commands.executeCommand<EditorLayout>(
-      "vscode.getEditorLayout",
-    );
+    if (transactionDepth || !tourId || persistenceSuspended) return;
+    const layout = await editors.readLayout();
     const actual = geometry(layout);
     shape = identifyShape(layout);
-    if (internal) return;
+    if (transactionDepth) return;
     const now = tabState();
     if (
-      expected &&
-      (actual !== expected ||
-        tabs.length !== now.length ||
-        tabs.some(
+      expectedGeometry &&
+      (actual !== expectedGeometry ||
+        observedTabs.length !== now.length ||
+        observedTabs.some(
           (tab, i) =>
             tab.tab !== now[i]?.tab ||
             tab.column !== now[i]?.column ||
@@ -174,39 +136,34 @@ function createLayoutEngine(
         ))
     )
       customized = true;
-    expected = actual;
+    expectedGeometry = actual;
     actualLayout = layout;
-    tabs = now;
+    observedTabs = now;
     // Closed anchors lose their pins; moved tabs are resolved from live groups.
     for (const record of records)
-      if (!opener.find(record)) pins.delete(token(record));
+      if (!opener.find(record)) pins.delete(anchorUriKey(record));
     for (const tab of pinnedTabs)
       if (!now.some((entry) => entry.tab === tab)) pinnedTabs.delete(tab);
     await save();
   }
   async function transaction<T>(action: () => PromiseLike<T>) {
-    internal++;
+    transactionDepth++;
     try {
       return await action();
     } finally {
       try {
         await capture();
-        if (internal === 1) await save();
+        if (transactionDepth === 1) await save();
       } finally {
-        internal--;
+        transactionDepth--;
       }
     }
   }
   async function setShape(name: ShapeName) {
-    await opener.reshape(() =>
-      vscode.commands.executeCommand(
-        "vscode.setEditorLayout",
-        structuredClone(SHAPES[name].layout),
-      ),
-    );
+    await editors.setShape(name);
     shape = name;
   }
-  function eligible(slot: Slot, reserved = new Set<number>()) {
+  function canReplaceSlot(slot: LayoutSlot, reserved = new Set<number>()) {
     if (slot.pinned || reserved.has(slot.column)) return false;
     // Opening a preview must not close a reviewer-owned preview, even an inactive one.
     return (
@@ -216,65 +173,31 @@ function createLayoutEngine(
       (!slot.group.activeTab || opener.disposable(slot.group.activeTab))
     );
   }
-  function preferred(role: AnchorRole, reserved: Set<number>) {
-    const pref = prefs.get(role);
-    if (!pref || pref.kind !== "replace") return null;
-    return slots().find(
-      (slot) => slot.slot === pref.slot && eligible(slot, reserved),
+  function chooseSlot(record: AnchorRecord, reserved: Set<number>) {
+    const currentSlots = slots();
+    return choosePlacementSlot(
+      record,
+      currentSlots,
+      currentSlots.filter((slot) => canReplaceSlot(slot, reserved)),
+      shape,
+      savedLayouts.preference(record.anchor.role),
     );
   }
-  function choose(record: AnchorRecord, reserved: Set<number>) {
-    const currentSlots = slots(),
-      available = currentSlots.filter((slot) => eligible(slot, reserved));
-    // Only the grid can place repeated colors diagonally.
-    const collisions = (slot: Slot) =>
-      shape !== "grid"
-        ? 0
-        : currentSlots.filter(
-            (other) =>
-              other.record &&
-              other.column !== slot.column &&
-              other.column + slot.column !== 5 &&
-              (other.record.anchor.n - 1) % 6 === (record.anchor.n - 1) % 6,
-          ).length;
-    return (
-      available
-        .filter((slot) => !slot.group.activeTab)
-        .sort(
-          (a, b) => collisions(a) - collisions(b) || a.column - b.column,
-        )[0] ||
-      preferred(record.anchor.role, reserved) ||
-      available.sort(
-        (a, b) =>
-          a.lastActive - b.lastActive ||
-          collisions(a) - collisions(b) ||
-          a.column - b.column,
-      )[0]
-    );
-  }
-  async function put(
+  async function openInSlot(
     record: AnchorRecord,
-    slot: Slot | undefined,
+    slot: LayoutSlot | undefined,
     focus: boolean,
   ) {
-    const prior = slot?.group.activeTab;
-    const entry = await opener.open(record, slot?.column, { focus });
-    if (!entry) return null;
-    // Reusing a hidden tab must still retire the preview it replaces.
-    if (
-      prior &&
-      prior !== entry.tab &&
-      entry.column === slot?.column &&
-      opener.disposable(prior)
-    )
-      await vscode.window.tabGroups.close(prior, true);
-    activity.set(entry.tab, ++clock);
+    const entry = await editors.openInSlot(record, slot, focus);
+    if (entry) activity.set(entry.tab, ++activityClock);
     return entry;
   }
-  const unique = (wanted: AnchorRecord[]) =>
+  const uniqueSources = (wanted: AnchorRecord[]) =>
     wanted.filter(
       (record, i) =>
-        wanted.findIndex((other) => token(other) === token(record)) === i,
+        wanted.findIndex(
+          (other) => anchorUriKey(other) === anchorUriKey(record),
+        ) === i,
     );
   function safeToReshape() {
     return !customized && pins.size === 0;
@@ -289,23 +212,18 @@ function createLayoutEngine(
     );
   }
   async function save() {
-    if (!state || suspended || deferred || !actualLayout) return;
-    const stop = state.plan.stops[state.stopIndex];
-    layouts[stop.id] = {
-      identity: stopIdentity(state, stop),
+    if (!state || persistenceSuspended || restoreDeferred || !actualLayout)
+      return;
+    await savedLayouts.save(state, {
       layout: structuredClone(actualLayout),
       customized,
-      sequence,
-      override,
+      sequence: sequenceMode,
+      override: sequenceOverride,
       slots: slots().map((slot) => ({
         anchor: slot.anchor ?? null,
         pinned: Boolean(slot.anchor && slot.pinned),
         lastActive: slot.lastActive,
       })),
-    };
-    await storage.write(state, {
-      layouts,
-      preferences: Object.fromEntries(prefs),
     });
   }
   async function restore(saved: SavedStopLayout) {
@@ -324,26 +242,29 @@ function createLayoutEngine(
       await capture();
     }
     customized = saved.customized || protectedWork;
-    sequence = saved.sequence;
-    override = saved.override;
+    sequenceMode = saved.sequence;
+    sequenceOverride = saved.override;
     for (const [i, entry] of saved.slots.entries()) {
       const record = records.find((record) => record.anchor.n === entry.anchor);
       if (!record) continue;
       const existing = opener.find(record);
       const slot =
         slots().find((slot) => slot.column === existing?.column) || slots()[i];
-      if (!slot || (slot.group.activeTab !== existing?.tab && !eligible(slot)))
+      if (
+        !slot ||
+        (slot.group.activeTab !== existing?.tab && !canReplaceSlot(slot))
+      )
         continue;
-      const opened = await put(record, slot, false);
+      const opened = await openInSlot(record, slot, false);
       if (!opened) continue;
       activity.set(opened.tab, entry.lastActive);
-      clock = Math.max(clock, entry.lastActive);
+      activityClock = Math.max(activityClock, entry.lastActive);
       if (entry.pinned) {
-        pins.add(token(record));
+        pins.add(anchorUriKey(record));
         pinnedTabs.add(opened.tab);
       }
     }
-    restored = true;
+    restoredLayoutPending = true;
   }
   async function begin(nextState: TourState, nextRecords: AnchorRecord[]) {
     await observe();
@@ -358,27 +279,25 @@ function createLayoutEngine(
       stopId !== nextStop.id ||
       (state && stopIdentity(state, state.plan.stops[state.stopIndex])) !==
         stopIdentity(nextState, nextStop);
-    const resume = suspended && nextState.mode !== "paused";
+    const resume = persistenceSuspended && nextState.mode !== "paused";
     if (changedStop) {
-      deferred = nextState.mode !== "following";
+      restoreDeferred = nextState.mode !== "following";
       for (const tab of pinnedTabs) opener.keep(tab);
       pins.clear();
       pinnedTabs.clear();
       activity.clear();
-      clock = 0;
-      sequence = false;
-      override = false;
+      activityClock = 0;
+      sequenceMode = false;
+      sequenceOverride = false;
       unplaced = [];
-      restored = false;
+      restoredLayoutPending = false;
       if (newTour) {
-        const stored = storage.read(nextState);
-        layouts = stored.layouts;
-        prefs = new Map(Object.entries(stored.preferences));
+        savedLayouts.load(nextState);
       }
       customized =
         groups().some((group) =>
           group.tabs.some((tab) => !opener.disposable(tab)),
-        ) || groups().length > cap();
+        ) || groups().length > maxGroups();
     }
     state = nextState;
     tourId = state.tourId;
@@ -394,13 +313,18 @@ function createLayoutEngine(
           : priority.length;
       return rank(a) - rank(b);
     });
-    if (!expected) await capture();
-    if ((changedStop || resume || deferred) && state.mode === "following") {
-      suspended = deferred = false;
-      const saved = layouts[stopId];
-      if (compatible(saved, state, nextStop, cap()))
-        await transaction(() => restore(saved));
-      else delete layouts[stopId];
+    if (!expectedGeometry) await capture();
+    if (
+      (changedStop || resume || restoreDeferred) &&
+      state.mode === "following"
+    ) {
+      persistenceSuspended = restoreDeferred = false;
+      const saved = savedLayouts.readCompatibleStop(
+        state,
+        nextStop,
+        maxGroups(),
+      );
+      if (saved) await transaction(() => restore(saved));
     }
   }
   async function apply(
@@ -410,26 +334,28 @@ function createLayoutEngine(
   ) {
     if (state.mode !== "following" && !focus) return;
     await observe();
-    if (restored && !focus) {
-      restored = false;
-      unplaced = unique(wanted)
+    if (restoredLayoutPending && !focus) {
+      restoredLayoutPending = false;
+      unplaced = uniqueSources(wanted)
         .filter((record) => !visible(record))
         .map((record) => record.anchor.n);
       return;
     }
-    restored = false;
+    restoredLayoutPending = false;
     return transaction(async () => {
-      const all = unique(wanted),
-        requested = sequence ? all.slice(0, 1) : all.slice(0, cap());
+      const all = uniqueSources(wanted);
+      const requested = sequenceMode
+        ? all.slice(0, 1)
+        : all.slice(0, maxGroups());
       unplaced = all
         .slice(requested.length)
         .filter((record) => !visible(record))
         .map((record) => record.anchor.n);
       const missing = requested.filter((record) => !visible(record));
-      if (missing.length && safeToReshape() && !sequence) {
+      if (missing.length && safeToReshape() && !sequenceMode) {
         const empty = slots().filter((slot) => !slot.group.activeTab).length;
         const required = Math.min(
-          cap(),
+          maxGroups(),
           groups().length + Math.max(0, missing.length - empty),
         );
         if (required > groups().length) {
@@ -459,7 +385,7 @@ function createLayoutEngine(
       for (const record of requested) {
         const open = visible(record);
         if (open) {
-          if (open.activeTab) activity.set(open.activeTab, ++clock);
+          if (open.activeTab) activity.set(open.activeTab, ++activityClock);
           if (focus && record === requested[0])
             await opener.open(record, open.viewColumn, { focus: true });
           continue;
@@ -468,57 +394,50 @@ function createLayoutEngine(
         let slot = existing
           ? slots().find(
               (slot) =>
-                slot.column === existing.column && eligible(slot, reserved),
+                slot.column === existing.column &&
+                canReplaceSlot(slot, reserved),
             )
           : null;
-        if (!existing) slot = choose(record, reserved);
+        if (!existing) slot = chooseSlot(record, reserved);
         if (!slot) {
           unplaced.push(record.anchor.n);
           continue;
         }
-        const entry = await put(record, slot, focus || record === requested[0]);
+        const entry = await openInSlot(
+          record,
+          slot,
+          focus || record === requested[0],
+        );
         if (entry) reserved.add(entry.column);
         else unplaced.push(record.anchor.n);
       }
       // Collapse only untouched tour layouts; short files do not indicate crowding.
       if (
         config().get("sequenceFallback", true) &&
-        !sequence &&
-        !override &&
+        !sequenceMode &&
+        !sequenceOverride &&
         groups().length > 1 &&
         safeToCollapse() &&
         vscode.window.visibleTextEditors.some(cramped)
       ) {
-        const before = geometry(
-          await vscode.commands.executeCommand<EditorLayout>(
-            "vscode.getEditorLayout",
-          ),
-        );
+        const before = geometry(await editors.readLayout());
         await new Promise((resolve) => setTimeout(resolve, 100));
-        if (
-          before !==
-          geometry(
-            await vscode.commands.executeCommand<EditorLayout>(
-              "vscode.getEditorLayout",
-            ),
-          )
-        )
-          customized = true;
+        if (before !== geometry(await editors.readLayout())) customized = true;
       }
       if (
         config().get("sequenceFallback", true) &&
-        !sequence &&
-        !override &&
+        !sequenceMode &&
+        !sequenceOverride &&
         groups().length > 1 &&
         safeToCollapse() &&
         vscode.window.visibleTextEditors.some(cramped)
       ) {
-        sequence = true;
+        sequenceMode = true;
         const first = requested[0];
         const retained = first && opener.find(first)?.tab;
         await opener.closeExcept((tab) => tab === retained);
         await setShape("single");
-        if (first) await put(first, slots()[0], true);
+        if (first) await openInSlot(first, slots()[0], true);
         unplaced = all
           .filter((record) => !visible(record))
           .map((record) => record.anchor.n);
@@ -526,12 +445,14 @@ function createLayoutEngine(
     });
   }
   async function companion(record: AnchorRecord, reserved: Set<number>) {
-    if (sequence) return null;
+    if (sequenceMode) return null;
     const found = opener.find(record, true);
     if (found && !reserved.has(found.column))
       return opener.open(record, found.column, { companion: true });
-    let slot = slots().find((slot) => eligible(slot, reserved) && !slot.record);
-    if (!slot && groups().length < cap() && safeToReshape()) {
+    let slot = slots().find(
+      (slot) => canReplaceSlot(slot, reserved) && !slot.record,
+    );
+    if (!slot && groups().length < maxGroups() && safeToReshape()) {
       const name = shapeFor(
         groups().length + 1,
         config().get<LayoutOrientationSetting>("orientation", "auto"),
@@ -546,14 +467,14 @@ function createLayoutEngine(
     }
     return slot ? opener.open(record, slot.column, { companion: true }) : null;
   }
-  function options(n: number): PlacementChoice[] {
-    const record = records.find((record) => record.anchor.n === n);
+  function options(anchorNumber: number): PlacementChoice[] {
+    const record = records.find((record) => record.anchor.n === anchorNumber);
     if (!record) return [];
     const result: PlacementChoice[] = [{ kind: "auto" }, { kind: "peek" }];
     const origin = slots().find(
       (slot) => slot.column === opener.find(record)?.column,
     );
-    if (origin?.pinned || pins.has(token(record))) return result;
+    if (origin?.pinned || pins.has(anchorUriKey(record))) return result;
     for (const slot of slots())
       if (slot.anchor && slot.column !== origin?.column && !slot.pinned) {
         // Replacement may cover a kept tab, but must preserve pins and reviewer previews.
@@ -563,97 +484,83 @@ function createLayoutEngine(
           )
         )
           result.push({ kind: "replace", of: slot.anchor });
-        if (shape && groups().length < cap())
+        if (shape && groups().length < maxGroups())
           for (const kind of ["below", "beside"] as const) {
             const next = splitShape(shape, slot.slot, kind);
-            if (next && SHAPES[next[0]].slots.length <= cap())
+            if (next && SHAPES[next[0]].slots.length <= maxGroups())
               result.push({ kind, of: slot.anchor });
           }
       }
     return result;
   }
+  async function resetLayout(state: TourState) {
+    // Reset closes only disposable tour previews.
+    pins.clear();
+    pinnedTabs.clear();
+    sequenceMode = false;
+    sequenceOverride = false;
+    restoredLayoutPending = false;
+    const protectedTabs = groups().some((group) =>
+      group.tabs.some((tab) => !opener.disposable(tab)),
+    );
+    if (!protectedTabs) {
+      await opener.closeExcept(() => false);
+      await setShape("single");
+    }
+    customized = protectedTabs;
+    const beat = state.plan.stops[state.stopIndex].beats[state.beatIndex];
+    await apply(
+      state,
+      beat.active.flatMap((n) =>
+        records.filter((record) => record.anchor.n === n).slice(0, 1),
+      ),
+      { focus: true },
+    );
+  }
+  function setAnchorPinned(record: AnchorRecord, pinned: unknown) {
+    if (typeof pinned !== "boolean" || !visible(record))
+      throw invalid("Only a visible anchor can be pinned.");
+    const tab = visible(record)?.activeTab;
+    if (pinned) {
+      pins.add(anchorUriKey(record));
+      if (tab) pinnedTabs.add(tab);
+    } else {
+      pins.delete(anchorUriKey(record));
+      if (tab) pinnedTabs.delete(tab);
+    }
+  }
   async function action(body: Record<string, unknown>, state: TourState) {
     await observe();
     return transaction(async () => {
       if (body.action === "overrideSequence") {
-        sequence = false;
-        override = true;
+        sequenceMode = false;
+        sequenceOverride = true;
         return;
       }
       if (body.action === "reset") {
-        // Reset closes only disposable tour previews.
-        pins.clear();
-        pinnedTabs.clear();
-        sequence = false;
-        override = false;
-        restored = false;
-        const protectedTabs = groups().some((group) =>
-          group.tabs.some((tab) => !opener.disposable(tab)),
-        );
-        if (!protectedTabs) {
-          await opener.closeExcept(() => false);
-          await setShape("single");
-        }
-        customized = protectedTabs;
-        const beat = state.plan.stops[state.stopIndex].beats[state.beatIndex];
-        await apply(
-          state,
-          beat.active.flatMap((n) =>
-            records.filter((record) => record.anchor.n === n).slice(0, 1),
-          ),
-          { focus: true },
-        );
+        await resetLayout(state);
         return;
       }
       const record = records.find((record) => record.anchor.n === body.anchor);
       if (!record) throw invalid("Choose an anchor from the current stop.");
       if (body.action === "pin") {
-        if (typeof body.pinned !== "boolean" || !visible(record))
-          throw invalid("Only a visible anchor can be pinned.");
-        const tab = visible(record)?.activeTab;
-        if (body.pinned) {
-          pins.add(token(record));
-          if (tab) pinnedTabs.add(tab);
-        } else {
-          pins.delete(token(record));
-          if (tab) pinnedTabs.delete(tab);
-        }
+        setAnchorPinned(record, body.pinned);
         return;
       }
       if (body.action !== "place") throw invalid("Unknown layout action.");
       const input = body.placement;
       const placement = isRecord(input)
         ? options(record.anchor.n).find(
-            (o) =>
-              o.kind === input.kind &&
-              ("of" in o ? o.of : undefined) === input.of,
+            (option) =>
+              option.kind === input.kind &&
+              ("of" in option ? option.of : undefined) === input.of,
           )
         : undefined;
       if (!placement) throw invalid("That placement is no longer available.");
       if (body.remember !== undefined && typeof body.remember !== "boolean")
         throw invalid("Remember must be true or false.");
       if (placement.kind === "peek") {
-        const editor = vscode.window.activeTextEditor;
-        if (!editor) throw invalid("Focus an editor before peeking.");
-        await vscode.commands.executeCommand(
-          "editor.action.goToLocations",
-          editor.document.uri,
-          editor.selection.active,
-          [
-            new vscode.Location(
-              record.target,
-              new vscode.Range(
-                record.anchor.context.startLine - 1,
-                0,
-                record.anchor.context.endLine - 1,
-                0,
-              ),
-            ),
-          ],
-          "peek",
-          undefined,
-          true,
-        );
+        await editors.peek(record);
         return;
       }
       if (placement.kind === "auto") {
@@ -662,7 +569,7 @@ function createLayoutEngine(
       }
       let slot = slots().find((slot) => slot.anchor === placement.of);
       if (!slot) throw invalid("That placement is no longer available.");
-      const pref = { kind: placement.kind, slot: slot.slot };
+      const preference = { kind: placement.kind, slot: slot.slot };
       if (placement.kind !== "replace") {
         const split = shape && splitShape(shape, slot.slot, placement.kind);
         if (!split) throw invalid("That placement is no longer available.");
@@ -691,125 +598,48 @@ function createLayoutEngine(
       if (existing && existing.column !== slot.column) {
         const prior = slot.group.activeTab;
         placed = await opener.move(record, slot.column);
-        if (prior && prior !== placed?.tab && opener.disposable(prior))
-          await vscode.window.tabGroups.close(prior, true);
-      } else placed = await put(record, slot, true);
+        await editors.closeReplacedPreview(prior, placed?.tab);
+      } else placed = await openInSlot(record, slot, true);
       if (!placed)
         throw invalid("That editor is protected. Choose another placement.");
       await capture();
       const destination = slots().find((slot) => slot.column === placed.column);
       customized = true;
-      sequence = false;
+      sequenceMode = false;
       if (body.remember)
-        prefs.set(record.anchor.role, {
-          ...pref,
+        savedLayouts.remember(record.anchor.role, {
+          ...preference,
           kind: "replace",
           slot: destination?.slot || slot.slot,
         });
     });
   }
-  function preview(n: number, option: PlacementChoice): PreviewCell[] {
+  function preview(
+    anchorNumber: number,
+    option: PlacementChoice,
+  ): PreviewCell[] {
     if (option.kind === "auto" || option.kind === "peek") return [];
-    const target = slots().find((slot) => slot.anchor === option.of);
-    let nextShape = shape,
-      destination = target?.slot;
-    if (!target || !shape) return [];
-    nextShape = shape;
-    if (option.kind !== "replace") {
-      const split = splitShape(shape, target.slot, option.kind);
-      if (!split) return [];
-      [nextShape, destination] = split;
-    }
-    if (!destination) return [];
-    const values = new Map(
-      slots().map((slot) => [
-        slot.slot,
-        slot.anchor === n ? null : slot.anchor,
-      ]),
+    const moving = records.find((record) => record.anchor.n === anchorNumber);
+    const originColumn = moving ? opener.find(moving)?.column : undefined;
+    const closeEmptyGroups = vscode.workspace
+      .getConfiguration("workbench.editor")
+      .get("closeEmptyGroups", true);
+    return placementPreview(
+      anchorNumber,
+      option,
+      shape,
+      slots(),
+      originColumn,
+      closeEmptyGroups,
     );
-    // Splitting renames the old target leaf to its first half.
-    if (option.kind !== "replace") {
-      const oldSlots = SHAPES[shape].slots,
-        newSlots = SHAPES[nextShape].slots;
-      const remaining = newSlots.filter((name) => name !== destination);
-      oldSlots.forEach((_name, index) =>
-        values.set(
-          remaining[index],
-          slots()[index]?.anchor === n ? null : slots()[index]?.anchor,
-        ),
-      );
-    }
-    values.set(destination, n);
-    const moving = records.find((record) => record.anchor.n === n),
-      existing = moving && opener.find(moving);
-    const originIndex = slots().findIndex(
-      (slot) => slot.column === existing?.column,
-    );
-    const closeOrigin =
-      originIndex >= 0 &&
-      groups()[originIndex].tabs.length === 1 &&
-      vscode.workspace
-        .getConfiguration("workbench.editor")
-        .get("closeEmptyGroups", true);
-    const remaining = SHAPES[nextShape].slots.filter(
-      (name) => option.kind === "replace" || name !== destination,
-    );
-    const removedSlot = closeOrigin ? remaining[originIndex] : undefined;
-    let index = 0;
-    // Remove the empty source group before sizing the placement diagram.
-    const prepare = (
-      node: EditorGroupLayout,
-      orientation: number,
-    ): PreviewNode | null => {
-      if (!node.groups) {
-        const slot = SHAPES[nextShape].slots[index++];
-        return slot === removedSlot
-          ? null
-          : { ...node, anchor: values.get(slot) };
-      }
-      const direction = node.orientation ?? orientation;
-      const children = node.groups.flatMap((group) => {
-        const child = prepare(group, 1 - direction);
-        return child ? [child] : [];
-      });
-      if (!children.length) return null;
-      if (children.length === 1) return { ...children[0], size: node.size };
-      return { ...node, orientation: direction, groups: children };
-    };
-    const walk = (
-      node: PreviewNode,
-      x: number,
-      y: number,
-      w: number,
-      h: number,
-    ): PreviewCell[] => {
-      if (!node.groups) return [{ x, y, w, h, anchor: node.anchor }];
-      const direction = node.orientation,
-        total = node.groups.reduce((v, group) => v + (group.size || 1), 0);
-      let offset = 0;
-      return node.groups.flatMap((group) => {
-        const ratio = (group.size || 1) / total;
-        const cells = walk(
-          group,
-          x + (direction === 0 ? offset * w : 0),
-          y + (direction === 1 ? offset * h : 0),
-          direction === 0 ? w * ratio : w,
-          direction === 1 ? h * ratio : h,
-        );
-        offset += ratio;
-        return cells;
-      });
-    };
-    const tree = prepare(SHAPES[nextShape].layout, 0);
-    return tree ? walk(tree, 0, 0, 1, 1) : [];
   }
   function snapshot(): LayoutSnapshot {
     return {
       shape: shape || "custom",
-      cap: cap(),
+      cap: maxGroups(),
       customized,
-      sequence,
-      sequenceOverride: override,
+      sequence: sequenceMode,
+      sequenceOverride,
       unplaced: [...unplaced],
       slots: slots().map(({ slot, column, anchor, pinned }) => ({
         slot,
@@ -826,13 +656,13 @@ function createLayoutEngine(
           })),
         ]),
       ),
-      preferences: Object.fromEntries(prefs),
+      preferences: savedLayouts.preferences(),
     };
   }
   async function suspend() {
     await observe();
     await save();
-    suspended = true;
+    persistenceSuspended = true;
     // A pin protects its tab at exit, including after the engine is cleared.
     for (const tab of pinnedTabs) opener.keep(tab);
     await opener.reshape(() =>
@@ -846,17 +676,22 @@ function createLayoutEngine(
     records = [];
     pins.clear();
     pinnedTabs.clear();
-    prefs.clear();
+    savedLayouts.clear();
     activity.clear();
-    tourId = stopId = expected = undefined;
-    tabs = [];
-    customized = sequence = override = false;
+    tourId = undefined;
+    stopId = undefined;
+    expectedGeometry = undefined;
+    observedTabs = [];
+    customized = false;
+    sequenceMode = false;
+    sequenceOverride = false;
     shape = "single";
     unplaced = [];
     state = undefined;
-    layouts = {};
     actualLayout = undefined;
-    restored = suspended = deferred = false;
+    restoredLayoutPending = false;
+    persistenceSuspended = false;
+    restoreDeferred = false;
   }
   return {
     begin,

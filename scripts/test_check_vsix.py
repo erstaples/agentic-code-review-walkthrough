@@ -34,7 +34,7 @@ class ArchiveChecks(unittest.TestCase):
         return checker.inspect(self.vsix, self.root)
 
     def test_current_allowlisted_archive(self):
-        self.assertEqual(self.inspect(), 11)
+        self.assertEqual(self.inspect(), 12)
 
     def test_rejects_source_tests_dependencies_and_legacy_entry(self):
         for name in ('extension/extension.js', 'extension/src/extension.ts',

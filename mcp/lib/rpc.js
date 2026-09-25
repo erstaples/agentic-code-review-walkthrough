@@ -11,8 +11,7 @@ function parseLines(buffer) {
     try {
       messages.push(JSON.parse(line));
     } catch {
-      // A malformed line cannot be attributed to a request id, so there is
-      // nobody to answer. Dropping it keeps the stream alive.
+      // Ignore malformed lines without stopping the stream.
     }
   }
   return { messages, rest };
@@ -36,18 +35,27 @@ function createDispatcher({ serverInfo, tools, callTool }) {
         const { name, arguments: args } = message.params || {};
         try {
           const result = await callTool(name, args || {});
-          return reply({ content: [{ type: "text", text: JSON.stringify(result, null, 2) }] });
+          return reply({
+            content: [{ type: "text", text: JSON.stringify(result, null, 2) }],
+          });
         } catch (err) {
           const errorObj = {
             code: err?.code || "internal_error",
             message: err?.message || String(err),
             ...(err?.details === undefined ? {} : { details: err.details }),
           };
-          return reply({ content: [{ type: "text", text: JSON.stringify(errorObj) }], isError: true });
+          return reply({
+            content: [{ type: "text", text: JSON.stringify(errorObj) }],
+            isError: true,
+          });
         }
       }
       default:
-        return { jsonrpc: "2.0", id: message.id, error: { code: -32601, message: `unknown method: ${message.method}` } };
+        return {
+          jsonrpc: "2.0",
+          id: message.id,
+          error: { code: -32601, message: `unknown method: ${message.method}` },
+        };
     }
   }
 

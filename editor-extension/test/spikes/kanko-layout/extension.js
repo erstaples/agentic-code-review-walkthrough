@@ -10,7 +10,11 @@ exports.activate = (context) => {
   const record = (type, value) => {
     const event = { type, value };
     events.push(event);
-    if (output) fs.appendFileSync(path.join(output, "events.jsonl"), JSON.stringify(event) + "\n");
+    if (output)
+      fs.appendFileSync(
+        path.join(output, "events.jsonl"),
+        JSON.stringify(event) + "\n",
+      );
   };
   let picker;
   context.subscriptions.push(
@@ -22,26 +26,57 @@ exports.activate = (context) => {
     }),
     vscode.window.registerFileDecorationProvider({
       provideFileDecoration(uri) {
-        if (!["file", "kanko-rev"].includes(uri.scheme) || !uri.path.endsWith("service.ts")) return;
-        if (uri.scheme === "kanko-rev" && JSON.parse(uri.query).ref !== process.env.KANKO_SPIKE_HEAD) return;
+        if (
+          !["file", "kanko-rev"].includes(uri.scheme) ||
+          !uri.path.endsWith("service.ts")
+        )
+          return;
+        if (
+          uri.scheme === "kanko-rev" &&
+          JSON.parse(uri.query).ref !== process.env.KANKO_SPIKE_HEAD
+        )
+          return;
         record("badge-request", { scheme: uri.scheme, side: "head" });
-        return { badge: uri.scheme === "file" ? "1" : "99", color: new vscode.ThemeColor("charts.purple"), tooltip: "Kankō spike anchor" };
+        return {
+          badge: uri.scheme === "file" ? "1" : "99",
+          color: new vscode.ThemeColor("charts.purple"),
+          tooltip: "Kankō spike anchor",
+        };
       },
     }),
     vscode.commands.registerCommand("kankoSpike.quickPick", async () => {
       picker?.dispose();
       picker = vscode.window.createQuickPick();
       picker.title = "Kankō spike anchors";
-      picker.items = [{ label: "① service.ts", detail: "top" }, { label: "② service.ts", detail: "bottom left" }, { label: "99 evidence.go", detail: "not open" }];
-      picker.onDidAccept(() => { record("quick-pick", "enter"); picker.hide(); });
-      picker.onDidHide(() => vscode.commands.executeCommand("setContext", "kankoSpike.quickPickOpen", false));
-      await vscode.commands.executeCommand("setContext", "kankoSpike.quickPickOpen", true);
+      picker.items = [
+        { label: "① service.ts", detail: "top" },
+        { label: "② service.ts", detail: "bottom left" },
+        { label: "99 evidence.go", detail: "not open" },
+      ];
+      picker.onDidAccept(() => {
+        record("quick-pick", "enter");
+        picker.hide();
+      });
+      picker.onDidHide(() =>
+        vscode.commands.executeCommand(
+          "setContext",
+          "kankoSpike.quickPickOpen",
+          false,
+        ),
+      );
+      await vscode.commands.executeCommand(
+        "setContext",
+        "kankoSpike.quickPickOpen",
+        true,
+      );
       picker.show();
     }),
-    ...["peek", "replace"].map((action) => vscode.commands.registerCommand(`kankoSpike.${action}`, () => {
-      record("quick-pick", action);
-      picker?.hide();
-    })),
+    ...["peek", "replace"].map((action) =>
+      vscode.commands.registerCommand(`kankoSpike.${action}`, () => {
+        record("quick-pick", action);
+        picker?.hide();
+      }),
+    ),
     { dispose: () => picker?.dispose() },
   );
   return { events, record };

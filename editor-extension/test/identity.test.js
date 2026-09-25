@@ -14,19 +14,25 @@ test("the first stop establishes the identity", () => {
 test("a matching later stop is accepted", () => {
   const id = createIdentity();
   id.check({ base, head });
-  id.check({ base: { sha: "aaaa111", name: "whatever" }, head: { sha: "bbbb222", name: "other" } });
+  id.check({
+    base: { sha: "aaaa111", name: "whatever" },
+    head: { sha: "bbbb222", name: "other" },
+  });
   assert.strictEqual(id.current().base.sha, "aaaa111");
 });
 
 test("a different sha is rejected with diff_identity_mismatch", () => {
   const id = createIdentity();
   id.check({ base, head });
-  assert.throws(() => id.check({ base, head: { sha: "cccc333", name: "HEAD" } }), (err) => {
-    assert.strictEqual(err.code, "diff_identity_mismatch");
-    assert.match(err.message, /bbbb222/);
-    assert.match(err.message, /cccc333/);
-    return true;
-  });
+  assert.throws(
+    () => id.check({ base, head: { sha: "cccc333", name: "HEAD" } }),
+    (err) => {
+      assert.strictEqual(err.code, "diff_identity_mismatch");
+      assert.match(err.message, /bbbb222/);
+      assert.match(err.message, /cccc333/);
+      return true;
+    },
+  );
 });
 
 test("sideFor maps a ref back to its side", () => {
@@ -69,7 +75,7 @@ test("check rejects malformed shape with diff_identity_mismatch", () => {
     (err) => {
       assert.strictEqual(err.code, "diff_identity_mismatch");
       return true;
-    }
+    },
   );
 });
 
