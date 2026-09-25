@@ -17,7 +17,7 @@ export interface ControllerDependencies {
 }
 export type TourController = ReturnType<typeof createTourController>;
 
-import { renderNarration } from "../../lib/narration.js";
+import { renderNarration } from "../../../generated/shared/narration.js";
 const fail = (code: ErrorCode, message: string, details?: unknown) =>
   Object.assign(new Error(message), { code, details });
 

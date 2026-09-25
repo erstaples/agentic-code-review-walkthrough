@@ -4,8 +4,10 @@ const fs = require("node:fs");
 const os = require("node:os");
 const path = require("node:path");
 const vscode = require("vscode");
-const { ReviewMapService } = require("../../../mcp/lib/review-map/service.js");
-const { createCallTool } = require("../../../mcp/lib/tools.js");
+const {
+  ReviewMapService,
+} = require("../../../generated/mcp/lib/review-map/service.js");
+const { createCallTool } = require("../../../generated/mcp/lib/tools.js");
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 module.exports = function register({ test, before }) {
   const fixture = JSON.parse(fs.readFileSync(process.env.KANKO_TOUR_FIXTURE));
@@ -730,8 +732,10 @@ module.exports = function register({ test, before }) {
       stop.anchors = stop.anchors.slice(0, count);
       if (count < 9) stop.beats = stop.beats.slice(0, 1);
     } else {
-      const { tourSources } = require("../../../contract/tour-sources.js"),
-        { hashText, rangeText } = require("../../../contract/tour.js");
+      const {
+          tourSources,
+        } = require("../../../generated/shared/tour-sources.js"),
+        { hashText, rangeText } = require("../../../generated/shared/tour.js");
       const source = tourSources(fixture.workspace, payload.change);
       stop.anchors = Array.from({ length: count }, (_, i) => {
         const a = {
@@ -1052,8 +1056,10 @@ module.exports = function register({ test, before }) {
     const payload = await persistenceFixture();
     await api("kanko_tour_clear");
     await vscode.commands.executeCommand("workbench.action.closeAllEditors");
-    const { tourSources } = require("../../../contract/tour-sources.js"),
-      { hashText } = require("../../../contract/tour.js");
+    const {
+        tourSources,
+      } = require("../../../generated/shared/tour-sources.js"),
+      { hashText } = require("../../../generated/shared/tour.js");
     const source = tourSources(fixture.workspace, payload.change);
     const a = {
       n: 1,

@@ -7,7 +7,7 @@ type SourceState = Pick<PreparedTour, "workspace" | "identity" | "texts">;
 export type AnchorOpener = ReturnType<typeof createAnchorOpener>;
 import * as fs from "node:fs";
 import * as path from "node:path";
-import { filename } from "../../lib/narration.js";
+import { filename } from "../../../generated/shared/narration.js";
 
 // Pinned, edited, or moved tabs permanently leave automatic cleanup.
 function createAnchorOpener(vscode: OpenerApi, changed = () => {}) {

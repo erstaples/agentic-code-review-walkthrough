@@ -18,14 +18,18 @@ interface HostOptions {
   storage?: LayoutState;
 }
 import * as fs from "node:fs";
-import { tourSources } from "../../lib/tour-sources.js";
-import { validateTourPlan } from "../../lib/tour-contract.js";
+import { tourSources } from "../../../generated/shared/tour-sources.js";
+import { validateTourPlan } from "../../../generated/shared/tour.js";
 import { createDecorationRegistry } from "./decoration-registry.js";
 import { createLayoutEngine } from "./layout-engine.js";
 import { createAnchorOpener } from "./anchor-opener.js";
 import { sourceHunks } from "./source-diff.js";
 import { mapRange, seamLineFor, removedBaseLines0 } from "./hunks.js";
-import { anchorNumber, filename, colorIndex } from "../../lib/narration.js";
+import {
+  anchorNumber,
+  filename,
+  colorIndex,
+} from "../../../generated/shared/narration.js";
 
 function createTourHost(
   vscode: HostApi,

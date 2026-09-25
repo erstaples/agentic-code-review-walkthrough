@@ -1,7 +1,7 @@
 import type { PresenterApi } from "./native.js";
 import type { Presenter, PaintEditor } from "./presenter.js";
 import { createPresenter } from "./presenter.js";
-import { colorIndex } from "../../lib/narration.js";
+import { colorIndex } from "../../../generated/shared/narration.js";
 function createDecorationRegistry(vscode: PresenterApi) {
   const sets = new Map<number, Presenter>();
   let opacity = 0.45;

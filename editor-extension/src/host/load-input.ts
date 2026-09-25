@@ -2,7 +2,7 @@ import type {
   ReviewChange,
   ClaimSummary,
   ManifestFile,
-} from "../../lib/contract-types.js";
+} from "../../../generated/shared/types.js";
 import { isRecord } from "./requests.js";
 
 const optionalString = (value: unknown) =>

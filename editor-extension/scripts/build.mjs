@@ -33,16 +33,15 @@ const options = {
         ...(await sources("src")).filter(
           (file) => !file.startsWith("src/webview/"),
         ),
-        ...(await sources("lib")),
       ]
     : ["src/extension.ts"],
   outdir,
   ...(test ? { outbase: "." } : {}),
-  bundle: !test,
+  bundle: true,
   platform: "node",
   format: "cjs",
   target: "node22",
-  external: test ? [] : ["vscode"],
+  external: ["vscode"],
   logLevel: "info",
 };
 const browser = {

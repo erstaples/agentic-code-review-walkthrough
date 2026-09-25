@@ -24,7 +24,7 @@ const files = execFileSync(
       /\.(?:[cm]?js|tsx?)$/.test(file) ||
       /(?:^|\/)tsconfig[^/]*\.json$/.test(file),
   )
-  .filter((file) => !file.startsWith("editor-extension/lib/"))
+  .filter((file) => !file.startsWith("generated/"))
   .filter((file) => existsSync(join(root, file)));
 execFileSync(process.execPath, [prettier, mode, ...new Set(files)], {
   cwd: root,

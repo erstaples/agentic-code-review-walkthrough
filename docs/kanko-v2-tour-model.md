@@ -2,7 +2,7 @@
 
 Phase 2 adds source-backed validation to `CreateTourPlan` and `kanko_map_check`.
 The schema is [tour-plan.schema.json](../schemas/tour-plan.schema.json); the
-shared implementation is [contract/tour.js](../contract/tour.js). [Editor loading and navigation](kanko-v2-tour-loading.md) are available in phase 3.
+shared implementation is [shared/tour.ts](../shared/tour.ts). [Editor loading and navigation](kanko-v2-tour-loading.md) are available in phase 3.
 Creating a plan does not contact the editor.
 
 ## Authoring a plan
@@ -115,6 +115,6 @@ the revision pair, repository catalog, and claims. A loader must supply the same
 inputs and only navigate after `ok` is true. No validator function opens files in
 an editor or changes review state.
 
-`contract/sync.js` copies the dependency-free validator into the VSIX. Tests
-require that copy to match exactly. Phase 3 will connect the editor loader to
-this required contract.
+`npm --prefix editor-extension run runtime:build` generates the shared JavaScript
+used by MCP and the extension. CI rejects stale output. The extension build
+bundles that implementation into the VSIX.

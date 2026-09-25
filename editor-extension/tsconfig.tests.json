@@ -1,0 +1,18 @@
+{
+  "extends": "./tsconfig.runtime.json",
+  "compilerOptions": {
+    "noEmit": true,
+    "declaration": false,
+    "jsx": "react-jsx",
+    "esModuleInterop": true,
+    "lib": ["ES2022", "DOM"],
+    "types": ["node", "vscode", "react", "react-dom"]
+  },
+  "include": [
+    "../test/**/*.ts",
+    "../mcp/test/**/*.ts",
+    "test/*.ts",
+    "test/ui/*.ts"
+  ],
+  "exclude": []
+}

@@ -1,0 +1,953 @@
+{
+  "sourceCommit": "0ae3e6b073de79eaf525b4aeb529ab472ae53c08",
+  "events": [
+    {
+      "actor": {
+        "id": "fixture",
+        "kind": "agent"
+      },
+      "changeRevisionId": "rev_5731f1d2-05ee-4976-b162-8a232fd3ae83",
+      "eventHash": "sha256:97e5b7e9f7bc70c8b6b4ff5dd747709eda56cd71b8f60e2ec156da20fca7dc96",
+      "eventId": "evt_76d31ae6-e524-4f7b-a221-be69c9dbce12",
+      "eventType": "ReviewMapCreated",
+      "expectedAggregateRevision": 0,
+      "mapId": "map_0e88c4be-88ac-4912-b0d0-1658c9a129c6",
+      "occurredAt": "2026-09-25T16:46:45.429Z",
+      "payload": {
+        "actor": {
+          "id": "fixture",
+          "kind": "agent"
+        },
+        "changeRevision": {
+          "createdAt": "2026-09-25T16:46:45.429Z",
+          "id": "rev_5731f1d2-05ee-4976-b162-8a232fd3ae83",
+          "kind": "committed",
+          "labels": {
+            "base": "80fb755a8d39748d52eab333211285e59a1faa0e",
+            "head": "46ff58f4a0e568c216822778225e3ded18c9ee61"
+          },
+          "manifest": {
+            "baseCommit": "80fb755a8d39748d52eab333211285e59a1faa0e",
+            "diffMode": "two-dot",
+            "effectiveBase": "80fb755a8d39748d52eab333211285e59a1faa0e",
+            "files": [
+              {
+                "kind": "M",
+                "newBlob": "294186e497a23bf3fbfde12aacc7f720f668fe9a",
+                "newMode": "100644",
+                "oldBlob": "90be1f3056c4f471f977a28497b8d4b392c55a02",
+                "oldMode": "100644",
+                "oldPath": "file.txt",
+                "path": "file.txt",
+                "similarity": null
+              }
+            ],
+            "headCommit": "46ff58f4a0e568c216822778225e3ded18c9ee61",
+            "kind": "committed"
+          },
+          "manifestDigest": "sha256:6e585dc4b497b481cacdeda413d0020329bdc51abd38312b0d5277c2dd7378ac",
+          "state": "current"
+        },
+        "mapId": "map_0e88c4be-88ac-4912-b0d0-1658c9a129c6",
+        "occurredAt": "2026-09-25T16:46:45.429Z",
+        "repository": {
+          "commonDir": "/private/tmp/kanko-old-replay-GvWJJP/repo/.git",
+          "key": "ea2b7b615680a85c7e0d959060a2ba6c6ffbd5fefbb8b6731b3b24d082e6ab13",
+          "workspace": "/private/tmp/kanko-old-replay-GvWJJP/repo"
+        },
+        "title": "Saved JavaScript events"
+      },
+      "previousEventHash": null,
+      "schemaVersion": 2,
+      "sequence": 1
+    },
+    {
+      "actor": {
+        "id": "fixture",
+        "kind": "agent"
+      },
+      "changeRevisionId": "rev_5731f1d2-05ee-4976-b162-8a232fd3ae83",
+      "eventHash": "sha256:6470243a52c7f097a45e38ecb313d7df86957c1b826856079f796e6696af2a2f",
+      "eventId": "evt_8f1c7356-0667-4f55-958b-a3e856ca23b8",
+      "eventType": "ThesisSet",
+      "expectedAggregateRevision": 1,
+      "mapId": "map_0e88c4be-88ac-4912-b0d0-1658c9a129c6",
+      "occurredAt": "2026-09-25T16:46:45.679Z",
+      "payload": {
+        "thesis": {
+          "provenance": [
+            {
+              "kind": "user-stated",
+              "source": {
+                "type": "test"
+              }
+            }
+          ],
+          "summary": "Preserve saved review history."
+        }
+      },
+      "previousEventHash": "sha256:97e5b7e9f7bc70c8b6b4ff5dd747709eda56cd71b8f60e2ec156da20fca7dc96",
+      "schemaVersion": 2,
+      "sequence": 2
+    },
+    {
+      "actor": {
+        "id": "fixture",
+        "kind": "agent"
+      },
+      "changeRevisionId": "rev_5731f1d2-05ee-4976-b162-8a232fd3ae83",
+      "eventHash": "sha256:224ac5d637423ad94c65d289991ede21ae3a48ab1a3c7de93d8ad9de6bfa39ae",
+      "eventId": "evt_7653d74b-2500-4650-8ed4-c05183e98ac6",
+      "eventType": "RequirementAdded",
+      "expectedAggregateRevision": 1,
+      "mapId": "map_0e88c4be-88ac-4912-b0d0-1658c9a129c6",
+      "occurredAt": "2026-09-25T16:46:45.687Z",
+      "payload": {
+        "collection": "requirements",
+        "entity": {
+          "createdAt": "2026-09-25T16:46:45.516Z",
+          "createdBy": {
+            "id": "fixture",
+            "kind": "agent"
+          },
+          "entityType": "requirement",
+          "id": "requirement",
+          "provenance": [
+            {
+              "actor": {
+                "id": "fixture",
+                "kind": "agent"
+              },
+              "capturedAt": "2026-09-25T16:46:45.516Z",
+              "kind": "user-stated",
+              "source": {
+                "type": "test"
+              }
+            }
+          ],
+          "statement": "Keep existing data.",
+          "status": "active",
+          "updatedAt": "2026-09-25T16:46:45.516Z",
+          "version": 1
+        },
+        "kind": "requirement"
+      },
+      "previousEventHash": "sha256:6470243a52c7f097a45e38ecb313d7df86957c1b826856079f796e6696af2a2f",
+      "schemaVersion": 2,
+      "sequence": 3
+    },
+    {
+      "actor": {
+        "id": "fixture",
+        "kind": "agent"
+      },
+      "changeRevisionId": "rev_5731f1d2-05ee-4976-b162-8a232fd3ae83",
+      "eventHash": "sha256:459356620610b65de6bc74dae59dd6402356d3223793e4d4f2029e3b248fd04e",
+      "eventId": "evt_70b1a68e-7f62-4de3-a2ef-d55c5ed49cbb",
+      "eventType": "ClaimAdded",
+      "expectedAggregateRevision": 1,
+      "mapId": "map_0e88c4be-88ac-4912-b0d0-1658c9a129c6",
+      "occurredAt": "2026-09-25T16:46:45.695Z",
+      "payload": {
+        "collection": "claims",
+        "entity": {
+          "createdAt": "2026-09-25T16:46:45.516Z",
+          "createdBy": {
+            "id": "fixture",
+            "kind": "agent"
+          },
+          "disposition": "supported",
+          "entityType": "claim",
+          "id": "claim",
+          "provenance": [
+            {
+              "actor": {
+                "id": "fixture",
+                "kind": "agent"
+              },
+              "capturedAt": "2026-09-25T16:46:45.516Z",
+              "kind": "user-stated",
+              "source": {
+                "type": "test"
+              }
+            },
+            {
+              "kind": "user-stated",
+              "source": {
+                "type": "test"
+              }
+            }
+          ],
+          "statement": "Existing events and receipts are preserved.",
+          "status": "active",
+          "updatedAt": "2026-09-25T16:46:45.679Z",
+          "version": 2
+        },
+        "kind": "claim"
+      },
+      "previousEventHash": "sha256:224ac5d637423ad94c65d289991ede21ae3a48ab1a3c7de93d8ad9de6bfa39ae",
+      "schemaVersion": 2,
+      "sequence": 4
+    },
+    {
+      "actor": {
+        "id": "fixture",
+        "kind": "agent"
+      },
+      "changeRevisionId": "rev_5731f1d2-05ee-4976-b162-8a232fd3ae83",
+      "eventHash": "sha256:68e3e935ae2bac3a0ba9f04539bd6e7416a3d62be4e3a74737d7fb1327d9beb1",
+      "eventId": "evt_6533a946-d341-45d5-b0fb-40f5fc5c6dd6",
+      "eventType": "RiskAdded",
+      "expectedAggregateRevision": 1,
+      "mapId": "map_0e88c4be-88ac-4912-b0d0-1658c9a129c6",
+      "occurredAt": "2026-09-25T16:46:45.701Z",
+      "payload": {
+        "collection": "risks",
+        "entity": {
+          "concern": "Replay could change state.",
+          "createdAt": "2026-09-25T16:46:45.516Z",
+          "createdBy": {
+            "id": "fixture",
+            "kind": "agent"
+          },
+          "disposition": "mitigated",
+          "entityType": "risk",
+          "id": "risk",
+          "provenance": [
+            {
+              "actor": {
+                "id": "fixture",
+                "kind": "agent"
+              },
+              "capturedAt": "2026-09-25T16:46:45.516Z",
+              "kind": "user-stated",
+              "source": {
+                "type": "test"
+              }
+            }
+          ],
+          "status": "active",
+          "updatedAt": "2026-09-25T16:46:45.516Z",
+          "version": 1
+        },
+        "kind": "risk"
+      },
+      "previousEventHash": "sha256:459356620610b65de6bc74dae59dd6402356d3223793e4d4f2029e3b248fd04e",
+      "schemaVersion": 2,
+      "sequence": 5
+    },
+    {
+      "actor": {
+        "id": "fixture",
+        "kind": "agent"
+      },
+      "changeRevisionId": "rev_5731f1d2-05ee-4976-b162-8a232fd3ae83",
+      "eventHash": "sha256:779dea64ddfda41e3e28929aa102cd9ff36f96ec3a48213c84ff51d3ac42c476",
+      "eventId": "evt_6961cfd2-ab85-4716-b997-0f9ba2900960",
+      "eventType": "EvidenceAdded",
+      "expectedAggregateRevision": 1,
+      "mapId": "map_0e88c4be-88ac-4912-b0d0-1658c9a129c6",
+      "occurredAt": "2026-09-25T16:46:45.708Z",
+      "payload": {
+        "collection": "evidence",
+        "entity": {
+          "changeRevisionId": "rev_5731f1d2-05ee-4976-b162-8a232fd3ae83",
+          "createdAt": "2026-09-25T16:46:45.516Z",
+          "createdBy": {
+            "id": "fixture",
+            "kind": "agent"
+          },
+          "entityType": "evidence",
+          "freshness": "current",
+          "id": "evidence",
+          "observation": "Saved events replay.",
+          "provenance": [
+            {
+              "actor": {
+                "id": "fixture",
+                "kind": "agent"
+              },
+              "capturedAt": "2026-09-25T16:46:45.516Z",
+              "kind": "user-stated",
+              "source": {
+                "type": "test"
+              }
+            }
+          ],
+          "result": "passed",
+          "status": "active",
+          "updatedAt": "2026-09-25T16:46:45.516Z",
+          "version": 1
+        },
+        "kind": "evidence"
+      },
+      "previousEventHash": "sha256:68e3e935ae2bac3a0ba9f04539bd6e7416a3d62be4e3a74737d7fb1327d9beb1",
+      "schemaVersion": 2,
+      "sequence": 6
+    },
+    {
+      "actor": {
+        "id": "fixture",
+        "kind": "agent"
+      },
+      "changeRevisionId": "rev_5731f1d2-05ee-4976-b162-8a232fd3ae83",
+      "eventHash": "sha256:2e2e85bc0bbad2925b7a61470cce25494c68bab6c7ce6db2f0a74da4a706cbfb",
+      "eventId": "evt_87876ddc-0862-48f1-9789-462e71245c5c",
+      "eventType": "DecisionAdded",
+      "expectedAggregateRevision": 1,
+      "mapId": "map_0e88c4be-88ac-4912-b0d0-1658c9a129c6",
+      "occurredAt": "2026-09-25T16:46:45.714Z",
+      "payload": {
+        "collection": "decisions",
+        "entity": {
+          "chosen": "Keep JSON fields.",
+          "createdAt": "2026-09-25T16:46:45.516Z",
+          "createdBy": {
+            "id": "fixture",
+            "kind": "agent"
+          },
+          "entityType": "decision",
+          "id": "decision",
+          "provenance": [
+            {
+              "actor": {
+                "id": "fixture",
+                "kind": "agent"
+              },
+              "capturedAt": "2026-09-25T16:46:45.516Z",
+              "kind": "user-stated",
+              "source": {
+                "type": "test"
+              }
+            }
+          ],
+          "status": "active",
+          "updatedAt": "2026-09-25T16:46:45.516Z",
+          "version": 1
+        },
+        "kind": "decision"
+      },
+      "previousEventHash": "sha256:779dea64ddfda41e3e28929aa102cd9ff36f96ec3a48213c84ff51d3ac42c476",
+      "schemaVersion": 2,
+      "sequence": 7
+    },
+    {
+      "actor": {
+        "id": "fixture",
+        "kind": "agent"
+      },
+      "changeRevisionId": "rev_5731f1d2-05ee-4976-b162-8a232fd3ae83",
+      "eventHash": "sha256:dc6cadd3dde04d7d8069bfa571caabc5f61eb2ddfa11956ffdedb8d585bc38c0",
+      "eventId": "evt_7833af96-5479-441d-a2a7-809afc2db09c",
+      "eventType": "AssumptionAdded",
+      "expectedAggregateRevision": 1,
+      "mapId": "map_0e88c4be-88ac-4912-b0d0-1658c9a129c6",
+      "occurredAt": "2026-09-25T16:46:45.720Z",
+      "payload": {
+        "collection": "assumptions",
+        "entity": {
+          "createdAt": "2026-09-25T16:46:45.516Z",
+          "createdBy": {
+            "id": "fixture",
+            "kind": "agent"
+          },
+          "entityType": "assumption",
+          "id": "assumption",
+          "provenance": [
+            {
+              "actor": {
+                "id": "fixture",
+                "kind": "agent"
+              },
+              "capturedAt": "2026-09-25T16:46:45.516Z",
+              "kind": "user-stated",
+              "source": {
+                "type": "test"
+              }
+            }
+          ],
+          "statement": "Existing maps use schema 2.",
+          "status": "active",
+          "updatedAt": "2026-09-25T16:46:45.516Z",
+          "version": 1
+        },
+        "kind": "assumption"
+      },
+      "previousEventHash": "sha256:2e2e85bc0bbad2925b7a61470cce25494c68bab6c7ce6db2f0a74da4a706cbfb",
+      "schemaVersion": 2,
+      "sequence": 8
+    },
+    {
+      "actor": {
+        "id": "fixture",
+        "kind": "agent"
+      },
+      "changeRevisionId": "rev_5731f1d2-05ee-4976-b162-8a232fd3ae83",
+      "eventHash": "sha256:b9d85a4c46d4afe66926231067e190fc23f078e1c40352b149edde2d0236e976",
+      "eventId": "evt_5a642db6-68d9-4089-8365-befb5d245866",
+      "eventType": "InvariantAdded",
+      "expectedAggregateRevision": 1,
+      "mapId": "map_0e88c4be-88ac-4912-b0d0-1658c9a129c6",
+      "occurredAt": "2026-09-25T16:46:45.726Z",
+      "payload": {
+        "collection": "invariants",
+        "entity": {
+          "createdAt": "2026-09-25T16:46:45.516Z",
+          "createdBy": {
+            "id": "fixture",
+            "kind": "agent"
+          },
+          "entityType": "invariant",
+          "id": "invariant",
+          "provenance": [
+            {
+              "actor": {
+                "id": "fixture",
+                "kind": "agent"
+              },
+              "capturedAt": "2026-09-25T16:46:45.516Z",
+              "kind": "user-stated",
+              "source": {
+                "type": "test"
+              }
+            }
+          ],
+          "statement": "History is append-only.",
+          "status": "active",
+          "updatedAt": "2026-09-25T16:46:45.516Z",
+          "version": 1
+        },
+        "kind": "invariant"
+      },
+      "previousEventHash": "sha256:dc6cadd3dde04d7d8069bfa571caabc5f61eb2ddfa11956ffdedb8d585bc38c0",
+      "schemaVersion": 2,
+      "sequence": 9
+    },
+    {
+      "actor": {
+        "id": "fixture",
+        "kind": "agent"
+      },
+      "changeRevisionId": "rev_5731f1d2-05ee-4976-b162-8a232fd3ae83",
+      "eventHash": "sha256:f26d881ae6e9f8663fe43c223aacd65042bb157bd2105e2122e9f2a4d1e899cf",
+      "eventId": "evt_b8b58490-08b8-4d5a-bdda-443bcc5fc6df",
+      "eventType": "QuestionAdded",
+      "expectedAggregateRevision": 1,
+      "mapId": "map_0e88c4be-88ac-4912-b0d0-1658c9a129c6",
+      "occurredAt": "2026-09-25T16:46:45.733Z",
+      "payload": {
+        "collection": "questions",
+        "entity": {
+          "answers": [
+            {
+              "answer": "Yes.",
+              "provenance": [
+                {
+                  "kind": "user-stated",
+                  "source": {
+                    "type": "test"
+                  }
+                }
+              ],
+              "recordedAt": "2026-09-25T16:46:45.679Z"
+            }
+          ],
+          "createdAt": "2026-09-25T16:46:45.516Z",
+          "createdBy": {
+            "id": "fixture",
+            "kind": "agent"
+          },
+          "disposition": "answered",
+          "entityType": "question",
+          "id": "question",
+          "provenance": [
+            {
+              "actor": {
+                "id": "fixture",
+                "kind": "agent"
+              },
+              "capturedAt": "2026-09-25T16:46:45.516Z",
+              "kind": "user-stated",
+              "source": {
+                "type": "test"
+              }
+            }
+          ],
+          "question": "Does the receipt match?",
+          "status": "active",
+          "updatedAt": "2026-09-25T16:46:45.516Z",
+          "version": 1
+        },
+        "kind": "question"
+      },
+      "previousEventHash": "sha256:b9d85a4c46d4afe66926231067e190fc23f078e1c40352b149edde2d0236e976",
+      "schemaVersion": 2,
+      "sequence": 10
+    },
+    {
+      "actor": {
+        "id": "fixture",
+        "kind": "agent"
+      },
+      "changeRevisionId": "rev_5731f1d2-05ee-4976-b162-8a232fd3ae83",
+      "eventHash": "sha256:812dee50e983330ad30f3d53abc4373f012876fda95b8f8c9b80af726cc41084",
+      "eventId": "evt_4f7b8d12-8c05-4742-9dd3-8813e69fb27d",
+      "eventType": "ConcernAdded",
+      "expectedAggregateRevision": 1,
+      "mapId": "map_0e88c4be-88ac-4912-b0d0-1658c9a129c6",
+      "occurredAt": "2026-09-25T16:46:45.739Z",
+      "payload": {
+        "collection": "concerns",
+        "entity": {
+          "concern": "Check malformed input.",
+          "createdAt": "2026-09-25T16:46:45.516Z",
+          "createdBy": {
+            "id": "fixture",
+            "kind": "agent"
+          },
+          "disposition": "open",
+          "entityType": "concern",
+          "id": "concern",
+          "provenance": [
+            {
+              "actor": {
+                "id": "fixture",
+                "kind": "agent"
+              },
+              "capturedAt": "2026-09-25T16:46:45.516Z",
+              "kind": "user-stated",
+              "source": {
+                "type": "test"
+              }
+            }
+          ],
+          "status": "active",
+          "updatedAt": "2026-09-25T16:46:45.516Z",
+          "version": 1
+        },
+        "kind": "concern"
+      },
+      "previousEventHash": "sha256:f26d881ae6e9f8663fe43c223aacd65042bb157bd2105e2122e9f2a4d1e899cf",
+      "schemaVersion": 2,
+      "sequence": 11
+    },
+    {
+      "actor": {
+        "id": "fixture",
+        "kind": "agent"
+      },
+      "changeRevisionId": "rev_5731f1d2-05ee-4976-b162-8a232fd3ae83",
+      "eventHash": "sha256:49e277a7dfaaab18ae8d8e17ffd0902f170803a8f230eda68f4e5204468983ec",
+      "eventId": "evt_8831909f-fcfe-48e3-a602-356c3680b971",
+      "eventType": "CodeReferenceAdded",
+      "expectedAggregateRevision": 1,
+      "mapId": "map_0e88c4be-88ac-4912-b0d0-1658c9a129c6",
+      "occurredAt": "2026-09-25T16:46:45.746Z",
+      "payload": {
+        "collection": "codeReferences",
+        "entity": {
+          "changeRevisionId": "rev_5731f1d2-05ee-4976-b162-8a232fd3ae83",
+          "contentDigest": "sha256:7b9a72466d3960eb2aacccfc848939453490db0678bd4725def3f789b891c919",
+          "createdAt": "2026-09-25T16:46:45.540Z",
+          "createdBy": {
+            "id": "fixture",
+            "kind": "agent"
+          },
+          "endLine": 1,
+          "entityType": "codeReference",
+          "id": "source",
+          "path": "file.txt",
+          "provenance": [
+            {
+              "actor": {
+                "id": "fixture",
+                "kind": "agent"
+              },
+              "capturedAt": "2026-09-25T16:46:45.540Z",
+              "kind": "user-stated",
+              "source": {
+                "type": "test"
+              }
+            }
+          ],
+          "revision": "46ff58f4a0e568c216822778225e3ded18c9ee61",
+          "side": "head",
+          "startLine": 1,
+          "status": "active",
+          "updatedAt": "2026-09-25T16:46:45.540Z",
+          "version": 1
+        },
+        "kind": "codeReference"
+      },
+      "previousEventHash": "sha256:812dee50e983330ad30f3d53abc4373f012876fda95b8f8c9b80af726cc41084",
+      "schemaVersion": 2,
+      "sequence": 12
+    },
+    {
+      "actor": {
+        "id": "fixture",
+        "kind": "agent"
+      },
+      "changeRevisionId": "rev_5731f1d2-05ee-4976-b162-8a232fd3ae83",
+      "eventHash": "sha256:0b02e252f8b72a080f2ac16bd6f64c19473f727d7e0f9fc108b55cbfb05370cf",
+      "eventId": "evt_082725e9-3724-4938-ac83-a14ee8862b4f",
+      "eventType": "RelationshipAdded",
+      "expectedAggregateRevision": 1,
+      "mapId": "map_0e88c4be-88ac-4912-b0d0-1658c9a129c6",
+      "occurredAt": "2026-09-25T16:46:45.752Z",
+      "payload": {
+        "relationship": {
+          "from": "evidence",
+          "id": "relationship",
+          "provenance": [
+            {
+              "kind": "user-stated",
+              "source": {
+                "type": "test"
+              }
+            }
+          ],
+          "to": "claim",
+          "type": "supports"
+        }
+      },
+      "previousEventHash": "sha256:49e277a7dfaaab18ae8d8e17ffd0902f170803a8f230eda68f4e5204468983ec",
+      "schemaVersion": 2,
+      "sequence": 13
+    },
+    {
+      "actor": {
+        "id": "fixture",
+        "kind": "agent"
+      },
+      "changeRevisionId": "rev_5731f1d2-05ee-4976-b162-8a232fd3ae83",
+      "eventHash": "sha256:1a563f3683d46590eb1e1d21f6f0cfae02ee74269d60c3aba4b34cff6770e08d",
+      "eventId": "evt_07e6d365-6bfe-49ee-9436-0787f3852b85",
+      "eventType": "TourPlanCreated",
+      "expectedAggregateRevision": 1,
+      "mapId": "map_0e88c4be-88ac-4912-b0d0-1658c9a129c6",
+      "occurredAt": "2026-09-25T16:46:45.760Z",
+      "payload": {
+        "plan": {
+          "createdAt": "2026-09-25T16:46:45.679Z",
+          "createdBy": {
+            "id": "fixture",
+            "kind": "agent"
+          },
+          "id": "plan",
+          "presentationVersion": 2,
+          "stops": [
+            {
+              "anchors": [
+                {
+                  "change": "modified",
+                  "claimRefs": [],
+                  "contentHash": "sha256:f39592393ef0859cb196a52693d2cea00fb2df784b3c04ae54aa7cadb8e562f8",
+                  "context": {
+                    "endLine": 1,
+                    "startLine": 1
+                  },
+                  "focus": [],
+                  "label": "Changed source",
+                  "n": 1,
+                  "path": "file.txt",
+                  "rev": {
+                    "base": "80fb755a8d39748d52eab333211285e59a1faa0e",
+                    "head": "46ff58f4a0e568c216822778225e3ded18c9ee61"
+                  },
+                  "role": "change",
+                  "side": "head",
+                  "view": "diff"
+                }
+              ],
+              "beats": [
+                {
+                  "active": [
+                    1
+                  ],
+                  "id": "beat",
+                  "narration": "Inspect {{a:1}}."
+                }
+              ],
+              "coveredEntityIds": [
+                "claim"
+              ],
+              "id": "stop",
+              "index": 1,
+              "note": "Checked saved history.",
+              "reviewState": "reviewed",
+              "reviewedAtChangeRevisionId": "rev_5731f1d2-05ee-4976-b162-8a232fd3ae83",
+              "risk": "medium",
+              "title": "Preserve saved history"
+            }
+          ],
+          "title": "Saved JavaScript events",
+          "version": 1
+        }
+      },
+      "previousEventHash": "sha256:0b02e252f8b72a080f2ac16bd6f64c19473f727d7e0f9fc108b55cbfb05370cf",
+      "schemaVersion": 2,
+      "sequence": 14
+    },
+    {
+      "actor": {
+        "id": "fixture",
+        "kind": "agent"
+      },
+      "changeRevisionId": "rev_5731f1d2-05ee-4976-b162-8a232fd3ae83",
+      "eventHash": "sha256:2f8f293d4a4a463bb03eda23a2da83f318f136f775decd4d1a95289529649434",
+      "eventId": "evt_b7a92044-4f1d-4287-b2b2-960d47ddfd0f",
+      "eventType": "ReviewMapPrepared",
+      "expectedAggregateRevision": 1,
+      "mapId": "map_0e88c4be-88ac-4912-b0d0-1658c9a129c6",
+      "occurredAt": "2026-09-25T16:46:45.767Z",
+      "payload": {},
+      "previousEventHash": "sha256:1a563f3683d46590eb1e1d21f6f0cfae02ee74269d60c3aba4b34cff6770e08d",
+      "schemaVersion": 2,
+      "sequence": 15
+    },
+    {
+      "actor": {
+        "id": "fixture",
+        "kind": "agent"
+      },
+      "changeRevisionId": "rev_5731f1d2-05ee-4976-b162-8a232fd3ae83",
+      "eventHash": "sha256:2744078a7831f4f9b4735ca621d1e1d767e60482337d284613060c4bd0157667",
+      "eventId": "evt_ff31a78d-3607-45da-a378-9bca4a8dff64",
+      "eventType": "ReviewSessionStarted",
+      "expectedAggregateRevision": 1,
+      "mapId": "map_0e88c4be-88ac-4912-b0d0-1658c9a129c6",
+      "occurredAt": "2026-09-25T16:46:45.775Z",
+      "payload": {
+        "session": {
+          "changeRevisionId": "rev_5731f1d2-05ee-4976-b162-8a232fd3ae83",
+          "currentStopId": "stop",
+          "id": "session",
+          "outcome": "ready-to-approve",
+          "reviewer": {
+            "id": "fixture",
+            "kind": "reviewer"
+          },
+          "startedAt": "2026-09-25T16:46:45.679Z",
+          "state": "completed",
+          "tourPlanId": "plan",
+          "tourPlanVersion": 1,
+          "updatedAt": "2026-09-25T16:46:45.679Z"
+        }
+      },
+      "previousEventHash": "sha256:2f8f293d4a4a463bb03eda23a2da83f318f136f775decd4d1a95289529649434",
+      "schemaVersion": 2,
+      "sequence": 16
+    },
+    {
+      "actor": {
+        "id": "fixture",
+        "kind": "agent"
+      },
+      "changeRevisionId": "rev_5731f1d2-05ee-4976-b162-8a232fd3ae83",
+      "eventHash": "sha256:3eb558e5fa78f43a87a715412fd483a224e915b1b67ea9b4752bdfd00cf2f852",
+      "eventId": "evt_84824d8b-3788-4238-9cff-55d8cd383bd5",
+      "eventType": "StopStarted",
+      "expectedAggregateRevision": 1,
+      "mapId": "map_0e88c4be-88ac-4912-b0d0-1658c9a129c6",
+      "occurredAt": "2026-09-25T16:46:45.781Z",
+      "payload": {
+        "sessionId": "session",
+        "stopId": "stop"
+      },
+      "previousEventHash": "sha256:2744078a7831f4f9b4735ca621d1e1d767e60482337d284613060c4bd0157667",
+      "schemaVersion": 2,
+      "sequence": 17
+    },
+    {
+      "actor": {
+        "id": "fixture",
+        "kind": "agent"
+      },
+      "changeRevisionId": "rev_5731f1d2-05ee-4976-b162-8a232fd3ae83",
+      "eventHash": "sha256:13f186e75c22f3ac5db0085263113debb277f65c0fe3081a4242fa0401b487b1",
+      "eventId": "evt_61d38e20-4ce0-419a-bc4f-94db3ecd477e",
+      "eventType": "ClaimDispositionChanged",
+      "expectedAggregateRevision": 1,
+      "mapId": "map_0e88c4be-88ac-4912-b0d0-1658c9a129c6",
+      "occurredAt": "2026-09-25T16:46:45.787Z",
+      "payload": {
+        "disposition": "supported",
+        "entityId": "claim",
+        "rationale": null
+      },
+      "previousEventHash": "sha256:3eb558e5fa78f43a87a715412fd483a224e915b1b67ea9b4752bdfd00cf2f852",
+      "schemaVersion": 2,
+      "sequence": 18
+    },
+    {
+      "actor": {
+        "id": "fixture",
+        "kind": "agent"
+      },
+      "changeRevisionId": "rev_5731f1d2-05ee-4976-b162-8a232fd3ae83",
+      "eventHash": "sha256:af94e8a182a43f4fd6ebd26c412c8c668c955492dd21b74a96187dc0cead8819",
+      "eventId": "evt_1cf16e6d-7d02-4103-8979-53b4923bbe69",
+      "eventType": "RiskDispositionChanged",
+      "expectedAggregateRevision": 1,
+      "mapId": "map_0e88c4be-88ac-4912-b0d0-1658c9a129c6",
+      "occurredAt": "2026-09-25T16:46:45.793Z",
+      "payload": {
+        "disposition": "mitigated",
+        "entityId": "risk",
+        "rationale": null
+      },
+      "previousEventHash": "sha256:13f186e75c22f3ac5db0085263113debb277f65c0fe3081a4242fa0401b487b1",
+      "schemaVersion": 2,
+      "sequence": 19
+    },
+    {
+      "actor": {
+        "id": "fixture",
+        "kind": "agent"
+      },
+      "changeRevisionId": "rev_5731f1d2-05ee-4976-b162-8a232fd3ae83",
+      "eventHash": "sha256:d10a8ae291998b9a38186104a12f1037f6ff504cefd2e7d5d718b228f92b24d0",
+      "eventId": "evt_c1fc570c-b456-4232-8a8f-a4d6512c42af",
+      "eventType": "StopReviewStateChanged",
+      "expectedAggregateRevision": 1,
+      "mapId": "map_0e88c4be-88ac-4912-b0d0-1658c9a129c6",
+      "occurredAt": "2026-09-25T16:46:45.800Z",
+      "payload": {
+        "changeRevisionId": "rev_5731f1d2-05ee-4976-b162-8a232fd3ae83",
+        "note": "Checked saved history.",
+        "reviewState": "reviewed",
+        "stopId": "stop"
+      },
+      "previousEventHash": "sha256:af94e8a182a43f4fd6ebd26c412c8c668c955492dd21b74a96187dc0cead8819",
+      "schemaVersion": 2,
+      "sequence": 20
+    },
+    {
+      "actor": {
+        "id": "fixture",
+        "kind": "agent"
+      },
+      "changeRevisionId": "rev_5731f1d2-05ee-4976-b162-8a232fd3ae83",
+      "eventHash": "sha256:7a8eb9145e5d9ca87186786820bd4b1427d8f2569a3ea6dbe2cd999bb3b6b5cb",
+      "eventId": "evt_e53a827d-370f-4926-be1b-a34d8d154f52",
+      "eventType": "AnswerRecorded",
+      "expectedAggregateRevision": 1,
+      "mapId": "map_0e88c4be-88ac-4912-b0d0-1658c9a129c6",
+      "occurredAt": "2026-09-25T16:46:45.806Z",
+      "payload": {
+        "answer": "Yes.",
+        "disposition": "answered",
+        "entityId": "question",
+        "provenance": [
+          {
+            "kind": "user-stated",
+            "source": {
+              "type": "test"
+            }
+          }
+        ]
+      },
+      "previousEventHash": "sha256:d10a8ae291998b9a38186104a12f1037f6ff504cefd2e7d5d718b228f92b24d0",
+      "schemaVersion": 2,
+      "sequence": 21
+    },
+    {
+      "actor": {
+        "id": "fixture",
+        "kind": "agent"
+      },
+      "changeRevisionId": "rev_5731f1d2-05ee-4976-b162-8a232fd3ae83",
+      "eventHash": "sha256:f435e2659a530fb555cb4853e5ac218cb3628a631f23a7f66b81e90a44e66757",
+      "eventId": "evt_b311803b-90c2-4d58-92be-f906e5c63c41",
+      "eventType": "EntityCorrected",
+      "expectedAggregateRevision": 1,
+      "mapId": "map_0e88c4be-88ac-4912-b0d0-1658c9a129c6",
+      "occurredAt": "2026-09-25T16:46:45.812Z",
+      "payload": {
+        "changes": {
+          "statement": "Existing events and receipts are preserved."
+        },
+        "collection": "claims",
+        "entityId": "claim",
+        "provenance": [
+          {
+            "kind": "user-stated",
+            "source": {
+              "type": "test"
+            }
+          }
+        ]
+      },
+      "previousEventHash": "sha256:7a8eb9145e5d9ca87186786820bd4b1427d8f2569a3ea6dbe2cd999bb3b6b5cb",
+      "schemaVersion": 2,
+      "sequence": 22
+    },
+    {
+      "actor": {
+        "id": "fixture",
+        "kind": "agent"
+      },
+      "changeRevisionId": "rev_5731f1d2-05ee-4976-b162-8a232fd3ae83",
+      "eventHash": "sha256:97e1361eab61b831a078f66a0c50cd8525da6b2f67eb1b70bbb5e6a7a70d36c6",
+      "eventId": "evt_3f1cd95b-8ec6-4cc2-9bae-7ed47fb1ade8",
+      "eventType": "PauseReviewSession",
+      "expectedAggregateRevision": 1,
+      "mapId": "map_0e88c4be-88ac-4912-b0d0-1658c9a129c6",
+      "occurredAt": "2026-09-25T16:46:45.819Z",
+      "payload": {
+        "outcome": null,
+        "sessionId": "session"
+      },
+      "previousEventHash": "sha256:f435e2659a530fb555cb4853e5ac218cb3628a631f23a7f66b81e90a44e66757",
+      "schemaVersion": 2,
+      "sequence": 23
+    },
+    {
+      "actor": {
+        "id": "fixture",
+        "kind": "agent"
+      },
+      "changeRevisionId": "rev_5731f1d2-05ee-4976-b162-8a232fd3ae83",
+      "eventHash": "sha256:929366517e6f56becb5d8036b3a1d91f035528aad3056db170081a506b59e5df",
+      "eventId": "evt_e7642faf-0a4d-4dd7-9e72-f683cf1f5e1f",
+      "eventType": "ResumeReviewSession",
+      "expectedAggregateRevision": 1,
+      "mapId": "map_0e88c4be-88ac-4912-b0d0-1658c9a129c6",
+      "occurredAt": "2026-09-25T16:46:45.826Z",
+      "payload": {
+        "outcome": null,
+        "sessionId": "session"
+      },
+      "previousEventHash": "sha256:97e1361eab61b831a078f66a0c50cd8525da6b2f67eb1b70bbb5e6a7a70d36c6",
+      "schemaVersion": 2,
+      "sequence": 24
+    },
+    {
+      "actor": {
+        "id": "fixture",
+        "kind": "agent"
+      },
+      "changeRevisionId": "rev_5731f1d2-05ee-4976-b162-8a232fd3ae83",
+      "eventHash": "sha256:3cdba6edd05b77a465ca88f45caefd320edd4d95f58b35a87be30536c9e24191",
+      "eventId": "evt_980d3080-e151-4e5a-8a74-804b7e7fac05",
+      "eventType": "CompleteReviewSession",
+      "expectedAggregateRevision": 1,
+      "mapId": "map_0e88c4be-88ac-4912-b0d0-1658c9a129c6",
+      "occurredAt": "2026-09-25T16:46:45.832Z",
+      "payload": {
+        "outcome": "ready-to-approve",
+        "sessionId": "session"
+      },
+      "previousEventHash": "sha256:929366517e6f56becb5d8036b3a1d91f035528aad3056db170081a506b59e5df",
+      "schemaVersion": 2,
+      "sequence": 25
+    }
+  ],
+  "stateDigest": "sha256:3f274386d19c94bd6e3c508513f47b0c8b90cacaa8c68da07d47204d744093b4",
+  "receiptOptions": {
+    "receiptId": "rcp_1234",
+    "createdAt": "2026-09-25T00:00:00.000Z"
+  },
+  "receiptDigest": "sha256:9edc499ef16c3f195ad14c2ce03283239976544968d4b5a342d19a06cce3e01a"
+}

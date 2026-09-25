@@ -2,7 +2,9 @@
 const fs = require("node:fs");
 const path = require("node:path");
 const { runTests, downloadAndUnzipVSCode } = require("@vscode/test-electron");
-const { createFixture } = require("../tour-fixture/create.js");
+const {
+  createFixture,
+} = require("../../.test-dist/checks/editor-extension/test/tour-fixture/create.js");
 async function main() {
   const f = createFixture();
   const output = path.resolve(

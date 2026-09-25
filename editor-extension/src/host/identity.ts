@@ -1,4 +1,4 @@
-import type { ProtocolSide } from "../../lib/contract-types.js";
+import type { ProtocolSide } from "../../../generated/shared/types.js";
 
 export interface RevisionRef {
   sha: string;

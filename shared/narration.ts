@@ -1,0 +1,75 @@
+import type { NarrationAnchor, NarrationSurface } from "./types.js";
+
+const escapeHtml = (value: unknown) =>
+  String(value).replace(
+    /[&<>"']/g,
+    (c) =>
+      (
+        ({
+          "&": "&amp;",
+          "<": "&lt;",
+          ">": "&gt;",
+          '"': "&quot;",
+          "'": "&#39;",
+        }) as Record<string, string>
+      )[c],
+  );
+
+const anchorNumber = (n: number) =>
+  n <= 20 ? String.fromCodePoint(0x2460 + n - 1) : `(${n})`;
+
+const filename = (path: string) => path.slice(path.lastIndexOf("/") + 1);
+
+const colorIndex = (n: number) => ((n - 1) % 6) + 1;
+
+function citation(anchor: NarrationAnchor, surface: "terminal" | "receipt") {
+  const range = anchor.context;
+  if (surface === "terminal")
+    return `${anchorNumber(anchor.n)} ${filename(anchor.path)}:${range.startLine}`;
+  const revision =
+    anchor.rev[
+      anchor.side ||
+        (anchor.view === "base" || anchor.change === "deleted"
+          ? "base"
+          : "head")
+    ];
+  return `${anchorNumber(anchor.n)} ${anchor.path}:${range.startLine}–${range.endLine} @${revision.startsWith("WORKTREE:") ? revision : revision.slice(0, 7)}`;
+}
+
+function inlineMarkdown(text: string) {
+  // Deliberately small Markdown subset. Raw HTML, links, images and command
+  // URIs remain inert text; only extension-owned chips can post actions.
+  return escapeHtml(text)
+    .replace(/`([^`\n]+)`/g, "<code>$1</code>")
+    .replace(/\*\*([^*\n]+)\*\*/g, "<strong>$1</strong>")
+    .replace(/\*([^*\n]+)\*/g, "<em>$1</em>");
+}
+
+function renderNarration(
+  text: string,
+  anchors: readonly NarrationAnchor[],
+  surface: NarrationSurface = "terminal",
+): string {
+  if (!["terminal", "sidebar", "receipt"].includes(surface))
+    throw new Error("unknown narration surface");
+  const parts = text.split(/(\{\{a:[1-9]\d*\}\})/g);
+  return parts
+    .map((part) => {
+      const match = /^\{\{a:(\d+)\}\}$/.exec(part);
+      if (!match) return surface === "sidebar" ? inlineMarkdown(part) : part;
+      const anchor = anchors.find((a) => a.n === Number(match[1]));
+      if (!anchor) throw new Error(`Unknown anchor ${match[1]}`);
+      if (surface !== "sidebar") return citation(anchor, surface);
+      const title = `${anchor.path}:${anchor.context.startLine}–${anchor.context.endLine} · ${anchor.label}`;
+      return `<button class="chip color-${colorIndex(anchor.n)}" data-anchor="${anchor.n}" title="${escapeHtml(title)}" aria-label="${escapeHtml(`Open anchor ${anchor.n}: ${title}`)}">${anchor.n}</button>`;
+    })
+    .join("");
+}
+export {
+  escapeHtml,
+  anchorNumber,
+  filename,
+  colorIndex,
+  citation,
+  renderNarration,
+};
