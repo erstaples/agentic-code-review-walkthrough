@@ -23,9 +23,10 @@ Node disagree about the system temporary directory's canonical path.
 
 `src/shared/` defines tours, snapshots, layouts, saved layouts, and messages.
 `src/host/` contains the host implementation, including tab ownership and request
-validation. `src/webview/sidebar.ts` renders the existing sidebar; `bridge.ts`
-owns the VS Code connection and adds the current revision to requests. React
-belongs to slice 5.
+validation. `src/webview/App.tsx` composes the React sidebar; `components/` contains its
+header, rows, placement picker, narration, and navigation. `bridge.ts` owns the
+VS Code connection, rejects older snapshots, and adds the latest revision to
+requests. The host still owns editor movement and saved layouts.
 
 Host and browser configurations use separate Node/VS Code and DOM environments.
 All extension-owned source is strict TypeScript. `lib/` contains only generated,
@@ -54,7 +55,9 @@ install, all Node tests, archive rejection tests, release checks, type checking,
 formatting checks, bundling, packaging, and fresh-build archive comparison.
 `npm run package` also runs the required checks/build via `vscode:prepublish`.
 
-Only the two generated bundles, CSS, icons, and release metadata ship. The
+Only the two generated bundles, CSS, icons, release metadata, and bundled-library
+notices ship. React is included in the production browser bundle; packaging
+excludes dependency folders and needs no runtime install or development server. The
 archive checker has its own explicit allowlist and rebuilds before comparing
 bytes; stale bundles, legacy entry points, source, tests, and dependency folders
 are rejected. This also applies to the publish job's downloaded artifact.
@@ -73,6 +76,11 @@ can set `VSCODE_EXECUTABLE_PATH` to an installed VS Code executable. Set
 `KANKO_TOUR_OUTPUT` to retain native result JSON. Launching GUI applications may
 require permission outside a command sandbox.
 
-The bundle smoke test proves startup and the ready handshake without Node
-globals. It does not establish visual parity, focus, geometry, or accessibility;
-those require the native/UI acceptance in later migration slices.
+`test/sidebar-ui.test.js` runs rendered React interactions through Testing Library
+and jsdom, with an explicit VS Code message fake. It covers current revisions,
+filtering, grouping, windowed keyboard navigation, picker focus and updates,
+disabled actions, escaped narration, and subscription cleanup. These tests run
+in both `test:unit` and `test:all` using the existing Node runner. The browser
+bundle smoke test separately checks startup without Node globals. Actual
+geometry, scrolling, CSP enforcement, themes, and accessibility still require
+native UI acceptance.

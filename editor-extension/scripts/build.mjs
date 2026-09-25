@@ -19,7 +19,7 @@ async function sources(directory) {
         const name = path.join(directory, entry.name);
         return entry.isDirectory()
           ? sources(name)
-          : /\.(ts|js)$/.test(name)
+          : /\.(tsx?|js)$/.test(name)
             ? [name]
             : [];
       }),
@@ -47,15 +47,32 @@ const options = {
 };
 const browser = {
   absWorkingDir: root,
-  entryPoints: ["src/webview/index.ts"],
+  entryPoints: ["src/webview/index.tsx"],
   outfile: path.join(outdir, "webview.js"),
   bundle: true,
   platform: "browser",
   format: "iife",
   target: "es2022",
+  jsx: "automatic",
+  define: { "process.env.NODE_ENV": '"production"' },
+  minify: !test,
+  legalComments: "inline",
   logLevel: "info",
 };
 const builds = [options, browser];
+if (test)
+  builds.push({
+    absWorkingDir: root,
+    entryPoints: (await sources("src/webview")).filter(
+      (file) => !file.endsWith("index.tsx"),
+    ),
+    outdir,
+    outbase: ".",
+    platform: "node",
+    format: "cjs",
+    jsx: "automatic",
+    target: "node22",
+  });
 if (watch) {
   await Promise.all(
     builds.map(async (options) => {
