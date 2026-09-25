@@ -1,33 +1,30 @@
-"use strict";
+import type { ReviewChange, ManifestFile, TourSourceCatalog } from "./types.js";
 
-const fs = require("node:fs");
-const path = require("node:path");
-const { execFileSync } = require("node:child_process");
-const { createHash } = require("node:crypto");
+import * as fs from "node:fs";
+import * as path from "node:path";
+import { execFileSync } from "node:child_process";
+import { createHash } from "node:crypto";
 
-const { validPath } = require("./tour.js");
+import { validPath } from "./tour.js";
 
-/** @typedef {import("./contract-types.js").ReviewChange} ReviewChange */
-/** @typedef {import("./contract-types.js").ManifestFile} ManifestFile */
-/** @typedef {import("./contract-types.js").TourSourceCatalog} TourSourceCatalog */
-
-/** @param {unknown} ok @param {string} code @param {string} message @returns {asserts ok} */
-function invariant(ok, code, message) {
+function invariant(ok: unknown, code: string, message: string): asserts ok {
   if (!ok) throw Object.assign(new Error(message), { code });
 }
-/** @param {Buffer} bytes */
-const digest = (bytes) =>
+
+const digest = (bytes: Buffer) =>
   `sha256:${createHash("sha256").update(bytes).digest("hex")}`;
-/**
- * @overload
- * @param {string} workspace @param {string[]} args @returns {string}
- */
-/**
- * @overload
- * @param {string} workspace @param {string[]} args @param {{ encoding: null }} options @returns {Buffer}
- */
-/** @param {string} workspace @param {string[]} args @param {{ encoding?: null }} [options] @returns {string | Buffer} */
-function git(workspace, args, options = {}) {
+
+function git(workspace: string, args: string[]): string;
+function git(
+  workspace: string,
+  args: string[],
+  options: { encoding: null },
+): Buffer;
+function git(
+  workspace: string,
+  args: string[],
+  options: { encoding?: null } = {},
+): string | Buffer {
   try {
     return execFileSync("git", ["-C", workspace, ...args], {
       encoding: options.encoding === null ? null : "utf8",
@@ -35,15 +32,15 @@ function git(workspace, args, options = {}) {
       stdio: ["ignore", "pipe", "pipe"],
     });
   } catch (error) {
-    const failure = /** @type {Error & { stderr?: Buffer }} */ (error); // execFileSync's documented failure shape
+    const failure = error as Error & { stderr?: Buffer }; // execFileSync's documented failure shape
     throw Object.assign(
       new Error(failure.stderr?.toString().trim() || failure.message),
       { code: "git_failed" },
     );
   }
 }
-/** @param {string} workspace @param {string} base @param {string} head */
-function renamedFiles(workspace, base, head) {
+
+function renamedFiles(workspace: string, base: string, head: string) {
   const fields = git(workspace, [
     "diff",
     "--name-status",
@@ -66,10 +63,8 @@ function renamedFiles(workspace, base, head) {
   return files;
 }
 
-/** @param {string} workspace @param {string} commit */
-function tree(workspace, commit) {
-  /** @type {Map<string, string>} */
-  const entries = new Map();
+function tree(workspace: string, commit: string) {
+  const entries: Map<string, string> = new Map();
   for (const entry of git(workspace, ["ls-tree", "-r", "-z", commit])
     .split("\0")
     .filter(Boolean)) {
@@ -81,13 +76,16 @@ function tree(workspace, commit) {
 
 // Snapshot catalogs once, and read immutable blobs by id. Working bytes are
 // checked against the selected manifest so staged-only tours never read edits.
-/** @param {string} workspace @param {ReviewChange} change @returns {TourSourceCatalog} */
-function tourSources(workspace, change) {
+
+function tourSources(
+  workspace: string,
+  change: ReviewChange,
+): TourSourceCatalog {
   const manifest = change.manifest;
   const base = manifest.effectiveBase || manifest.baselineCommit;
   const head = manifest.headCommit || manifest.currentHead;
-  /** @param {unknown} ref @returns {ref is string} */
-  const pinned = (ref) =>
+
+  const pinned = (ref: unknown): ref is string =>
     typeof ref === "string" && /^[0-9a-f]{40,64}$/.test(ref);
   invariant(
     pinned(base) && pinned(head),
@@ -127,10 +125,10 @@ function tourSources(workspace, change) {
       headTree.delete(f.renamedFrom);
     }
   }
-  /** @type {Map<string, Buffer>} */
-  const cache = new Map();
-  /** @param {string | undefined} blob @returns {Buffer | null} */
-  const readBlob = (blob) => {
+
+  const cache: Map<string, Buffer> = new Map();
+
+  const readBlob = (blob: string | undefined): Buffer | null => {
     if (!blob) return null;
     invariant(
       /^[0-9a-f]{40,64}$/.test(blob),
@@ -144,8 +142,8 @@ function tourSources(workspace, change) {
     }
     return bytes;
   };
-  /** @param {Buffer | null} bytes */
-  const asText = (bytes) => {
+
+  const asText = (bytes: Buffer | null) => {
     if (bytes === null) return null;
     invariant(
       !bytes.includes(0),
@@ -160,8 +158,8 @@ function tourSources(workspace, change) {
     );
     return text;
   };
-  /** @param {ManifestFile} file */
-  const readWorking = (file) => {
+
+  const readWorking = (file: ManifestFile) => {
     if (file.untracked || file.unstaged) {
       if (!file.working) return null; // selected deletion
       const absolute = path.resolve(workspace, file.path);
@@ -226,4 +224,4 @@ function tourSources(workspace, change) {
   };
 }
 
-module.exports = { tourSources };
+export { tourSources };

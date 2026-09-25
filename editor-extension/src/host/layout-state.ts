@@ -1,5 +1,5 @@
 import { createHash } from "node:crypto";
-import { ROLES } from "../../lib/tour-contract.js";
+import { ROLES } from "../../../generated/shared/tour.js";
 import type {
   LayoutMemory,
   RolePreferences,

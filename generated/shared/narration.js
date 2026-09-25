@@ -1,14 +1,18 @@
+// Generated from TypeScript. Run npm run runtime:build in editor-extension.
 "use strict";
-
-/** @typedef {import("./contract-types.js").NarrationAnchor} NarrationAnchor */
-/** @typedef {import("./contract-types.js").NarrationSurface} NarrationSurface */
-
-/** @param {unknown} value */
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.colorIndex =
+  exports.filename =
+  exports.anchorNumber =
+  exports.escapeHtml =
+    void 0;
+exports.citation = citation;
+exports.renderNarration = renderNarration;
 const escapeHtml = (value) =>
   String(value).replace(
     /[&<>"']/g,
     (c) =>
-      /** @type {Record<string, string>} */ ({
+      ({
         "&": "&amp;",
         "<": "&lt;",
         ">": "&gt;",
@@ -16,14 +20,14 @@ const escapeHtml = (value) =>
         "'": "&#39;",
       })[c],
   );
-/** @param {number} n */
+exports.escapeHtml = escapeHtml;
 const anchorNumber = (n) =>
   n <= 20 ? String.fromCodePoint(0x2460 + n - 1) : `(${n})`;
-/** @param {string} path */
+exports.anchorNumber = anchorNumber;
 const filename = (path) => path.slice(path.lastIndexOf("/") + 1);
-/** Anchor identity colors repeat every six numbers. @param {number} n */
+exports.filename = filename;
 const colorIndex = (n) => ((n - 1) % 6) + 1;
-/** @param {NarrationAnchor} anchor @param {"terminal" | "receipt"} surface */
+exports.colorIndex = colorIndex;
 function citation(anchor, surface) {
   const range = anchor.context;
   if (surface === "terminal")
@@ -37,7 +41,6 @@ function citation(anchor, surface) {
     ];
   return `${anchorNumber(anchor.n)} ${anchor.path}:${range.startLine}–${range.endLine} @${revision.startsWith("WORKTREE:") ? revision : revision.slice(0, 7)}`;
 }
-/** @param {string} text */
 function inlineMarkdown(text) {
   // Deliberately small Markdown subset. Raw HTML, links, images and command
   // URIs remain inert text; only extension-owned chips can post actions.
@@ -46,7 +49,6 @@ function inlineMarkdown(text) {
     .replace(/\*\*([^*\n]+)\*\*/g, "<strong>$1</strong>")
     .replace(/\*([^*\n]+)\*/g, "<em>$1</em>");
 }
-/** @param {string} text @param {readonly NarrationAnchor[]} anchors @param {NarrationSurface} [surface] @returns {string} */
 function renderNarration(text, anchors, surface = "terminal") {
   if (!["terminal", "sidebar", "receipt"].includes(surface))
     throw new Error("unknown narration surface");
@@ -63,11 +65,3 @@ function renderNarration(text, anchors, surface = "terminal") {
     })
     .join("");
 }
-module.exports = {
-  escapeHtml,
-  anchorNumber,
-  filename,
-  colorIndex,
-  citation,
-  renderNarration,
-};

@@ -4,8 +4,8 @@ const os = require("node:os");
 const path = require("node:path");
 const cp = require("node:child_process");
 const { ReviewMapService } = require("../../../mcp/lib/review-map/service.js");
-const { tourSources } = require("../../../contract/tour-sources.js");
-const { hashText, rangeText } = require("../../../contract/tour.js");
+const { tourSources } = require("../../../generated/shared/tour-sources.js");
+const { hashText, rangeText } = require("../../../generated/shared/tour.js");
 function createFixture() {
   const root = fs.realpathSync(
     fs.mkdtempSync(path.join(os.tmpdir(), "kanko-tour-")),

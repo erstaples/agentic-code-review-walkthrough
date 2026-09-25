@@ -1,6 +1,6 @@
 "use strict";
 
-const { PROTOCOL_VERSION } = require("../../contract/protocol.js");
+const { PROTOCOL_VERSION } = require("../../generated/shared/protocol.js");
 
 async function request(lock, method, route, body) {
   const url =

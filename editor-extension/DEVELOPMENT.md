@@ -15,8 +15,8 @@ npm run watch
 `watch` rebuilds both bundles as source changes. Run type checking separately;
 esbuild does not check types. `npm run format` formats handwritten JavaScript and TypeScript throughout the
 repository, plus TypeScript configurations. The root formatter settings also
-apply to MCP, tests and fixtures. Generated extension copies are excluded; run
-the shared-source sync after editing their originals. CI checks formatting
+apply to MCP, tests and fixtures. Generated runtime files are excluded; rebuild them after editing their
+TypeScript sources. CI checks formatting
 before tests. `npm run test:unit` compiles once
 and runs the extension's existing Node test runner; `test:all` also runs the
 repository, shared protocol, and direct-Node MCP suites. Tests import compiled
@@ -32,12 +32,12 @@ VS Code connection, rejects older snapshots, and adds the latest revision to
 requests. The host still owns editor movement and saved layouts.
 
 Host and browser configurations use separate Node/VS Code and DOM environments.
-All extension-owned source is strict TypeScript. `lib/` contains only generated,
-checked JavaScript and declarations copied from `../contract/`; MCP still runs
-those shared modules directly without installation or compilation. Run
-`node ../contract/sync.js` after changing their canonical sources.
+The host, sidebar and shared runtime are strict TypeScript. Shared source lives
+in `../shared/`; `npm run runtime:build` generates JavaScript and declarations
+in `../generated/shared/`. MCP and the extension use that same output.
+`npm run runtime:check` rejects stale generated files before packaging.
 
-`typecheck` also checks the shared JavaScript and compile-time tests. Those tests
+`typecheck` also checks the shared runtime and compile-time tests. Those tests
 cover invalid messages, unchecked data, snapshots, and small injected API fakes.
 Runtime validation remains necessary for external input.
 

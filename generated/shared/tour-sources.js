@@ -1,48 +1,36 @@
+// Generated from TypeScript. Run npm run runtime:build in editor-extension.
 "use strict";
-
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.tourSources = tourSources;
 const fs = require("node:fs");
 const path = require("node:path");
-const { execFileSync } = require("node:child_process");
-const { createHash } = require("node:crypto");
-
-const { validPath } = require("./tour-contract.js");
-
-/** @typedef {import("./contract-types.js").ReviewChange} ReviewChange */
-/** @typedef {import("./contract-types.js").ManifestFile} ManifestFile */
-/** @typedef {import("./contract-types.js").TourSourceCatalog} TourSourceCatalog */
-
-/** @param {unknown} ok @param {string} code @param {string} message @returns {asserts ok} */
+const node_child_process_1 = require("node:child_process");
+const node_crypto_1 = require("node:crypto");
+const tour_js_1 = require("./tour.js");
 function invariant(ok, code, message) {
   if (!ok) throw Object.assign(new Error(message), { code });
 }
-/** @param {Buffer} bytes */
 const digest = (bytes) =>
-  `sha256:${createHash("sha256").update(bytes).digest("hex")}`;
-/**
- * @overload
- * @param {string} workspace @param {string[]} args @returns {string}
- */
-/**
- * @overload
- * @param {string} workspace @param {string[]} args @param {{ encoding: null }} options @returns {Buffer}
- */
-/** @param {string} workspace @param {string[]} args @param {{ encoding?: null }} [options] @returns {string | Buffer} */
+  `sha256:${(0, node_crypto_1.createHash)("sha256").update(bytes).digest("hex")}`;
 function git(workspace, args, options = {}) {
   try {
-    return execFileSync("git", ["-C", workspace, ...args], {
-      encoding: options.encoding === null ? null : "utf8",
-      maxBuffer: 32 * 1024 * 1024,
-      stdio: ["ignore", "pipe", "pipe"],
-    });
+    return (0, node_child_process_1.execFileSync)(
+      "git",
+      ["-C", workspace, ...args],
+      {
+        encoding: options.encoding === null ? null : "utf8",
+        maxBuffer: 32 * 1024 * 1024,
+        stdio: ["ignore", "pipe", "pipe"],
+      },
+    );
   } catch (error) {
-    const failure = /** @type {Error & { stderr?: Buffer }} */ (error); // execFileSync's documented failure shape
+    const failure = error; // execFileSync's documented failure shape
     throw Object.assign(
       new Error(failure.stderr?.toString().trim() || failure.message),
       { code: "git_failed" },
     );
   }
 }
-/** @param {string} workspace @param {string} base @param {string} head */
 function renamedFiles(workspace, base, head) {
   const fields = git(workspace, [
     "diff",
@@ -65,10 +53,7 @@ function renamedFiles(workspace, base, head) {
   }
   return files;
 }
-
-/** @param {string} workspace @param {string} commit */
 function tree(workspace, commit) {
-  /** @type {Map<string, string>} */
   const entries = new Map();
   for (const entry of git(workspace, ["ls-tree", "-r", "-z", commit])
     .split("\0")
@@ -78,15 +63,12 @@ function tree(workspace, commit) {
   }
   return entries;
 }
-
 // Snapshot catalogs once, and read immutable blobs by id. Working bytes are
 // checked against the selected manifest so staged-only tours never read edits.
-/** @param {string} workspace @param {ReviewChange} change @returns {TourSourceCatalog} */
 function tourSources(workspace, change) {
   const manifest = change.manifest;
   const base = manifest.effectiveBase || manifest.baselineCommit;
   const head = manifest.headCommit || manifest.currentHead;
-  /** @param {unknown} ref @returns {ref is string} */
   const pinned = (ref) =>
     typeof ref === "string" && /^[0-9a-f]{40,64}$/.test(ref);
   invariant(
@@ -98,9 +80,9 @@ function tourSources(workspace, change) {
     Array.isArray(manifest.files) &&
       manifest.files.every(
         (f) =>
-          validPath(f.path) &&
-          (!f.renamedFrom || validPath(f.renamedFrom)) &&
-          (!f.oldPath || validPath(f.oldPath)),
+          (0, tour_js_1.validPath)(f.path) &&
+          (!f.renamedFrom || (0, tour_js_1.validPath)(f.renamedFrom)) &&
+          (!f.oldPath || (0, tour_js_1.validPath)(f.oldPath)),
       ),
     "invalid_path",
     "manifest paths must stay inside the repository",
@@ -127,9 +109,7 @@ function tourSources(workspace, change) {
       headTree.delete(f.renamedFrom);
     }
   }
-  /** @type {Map<string, Buffer>} */
   const cache = new Map();
-  /** @param {string | undefined} blob @returns {Buffer | null} */
   const readBlob = (blob) => {
     if (!blob) return null;
     invariant(
@@ -144,7 +124,6 @@ function tourSources(workspace, change) {
     }
     return bytes;
   };
-  /** @param {Buffer | null} bytes */
   const asText = (bytes) => {
     if (bytes === null) return null;
     invariant(
@@ -160,7 +139,6 @@ function tourSources(workspace, change) {
     );
     return text;
   };
-  /** @param {ManifestFile} file */
   const readWorking = (file) => {
     if (file.untracked || file.unstaged) {
       if (!file.working) return null; // selected deletion
@@ -204,7 +182,7 @@ function tourSources(workspace, change) {
     ],
     readSource(anchor) {
       invariant(
-        validPath(anchor.path),
+        (0, tour_js_1.validPath)(anchor.path),
         "invalid_path",
         "anchor path must stay inside the repository",
       );
@@ -225,5 +203,3 @@ function tourSources(workspace, change) {
     },
   };
 }
-
-module.exports = { tourSources };

@@ -513,12 +513,14 @@
     "check:release": "node ../scripts/check-extension-release.js",
     "build": "node scripts/build.mjs",
     "watch": "node scripts/build.mjs --watch",
-    "typecheck": "tsc -p tsconfig.host.json && tsc -p tsconfig.webview.json && tsc -p tsconfig.contract.json && tsc -p tsconfig.types.json",
+    "typecheck": "tsc -p tsconfig.host.json && tsc -p tsconfig.webview.json && tsc -p tsconfig.runtime.json --noEmit && tsc -p tsconfig.types.json",
     "format:check": "node ../scripts/format.mjs --check",
     "format": "node ../scripts/format.mjs --write",
     "build:test": "node scripts/build.mjs --test",
     "test:all": "npm run build:test && node --test ../test/*.test.js ../mcp/test/*.test.js test/*.test.js",
-    "vscode:prepublish": "npm run typecheck && npm run format:check && npm run build"
+    "vscode:prepublish": "npm run runtime:check && npm run typecheck && npm run format:check && npm run build",
+    "runtime:build": "node ../scripts/build-runtime.mjs --write",
+    "runtime:check": "node ../scripts/build-runtime.mjs --check"
   },
   "homepage": "https://github.com/getkanko/kanko#readme",
   "bugs": {

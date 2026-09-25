@@ -8,7 +8,7 @@ const {
   validateTourPlan,
   hashText,
   rangeText,
-} = require("../contract/tour.js");
+} = require("../generated/shared/tour.js");
 
 const text =
   Array.from({ length: 120 }, (_, n) => `line ${n + 1}`).join("\n") + "\n";
@@ -312,17 +312,6 @@ test("range hashing preserves established CRLF bytes but excludes nonexistent EO
   );
   assert.equal(rangeText("", { startLine: 1, endLine: 1 }), null);
   assert.equal(rangeText("a\n", { startLine: 2, endLine: 2 }), null);
-});
-
-test("the packaged tour validator is an exact copy of the shared source", () => {
-  assert.equal(
-    fs.readFileSync(
-      path.join(__dirname, "../editor-extension/lib/tour-contract.js"),
-      "utf8",
-    ),
-    fs.readFileSync(path.join(__dirname, "../contract/tour.js"), "utf8"),
-    "run node contract/sync.js",
-  );
 });
 
 test("optional metadata remains unchanged and is not treated as validated", () => {

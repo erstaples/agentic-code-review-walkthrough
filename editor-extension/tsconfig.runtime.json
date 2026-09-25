@@ -1,0 +1,17 @@
+{
+  "compilerOptions": {
+    "target": "ES2022",
+    "module": "Node16",
+    "moduleResolution": "Node16",
+    "strict": true,
+    "noEmitOnError": true,
+    "declaration": true,
+    "rootDir": "..",
+    "outDir": "../generated",
+    "types": ["node"],
+    "typeRoots": ["./node_modules/@types"],
+    "forceConsistentCasingInFileNames": true,
+    "esModuleInterop": false
+  },
+  "include": ["../shared/**/*.ts"]
+}

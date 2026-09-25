@@ -1,4 +1,4 @@
-// Types for the JavaScript modules used by MCP and the extension.
+// Tour data used by MCP and the extension.
 
 export type ProtocolVersion = 3;
 

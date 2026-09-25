@@ -7,10 +7,10 @@ const os = require("node:os");
 const path = require("node:path");
 const { execFileSync } = require("node:child_process");
 const { ReviewMapService } = require("../lib/review-map/service.js");
-const { tourSources } = require("../../contract/tour-sources.js");
+const { tourSources } = require("../../generated/shared/tour-sources.js");
 const { createDispatcher } = require("../lib/rpc.js");
 const { TOOLS, createCallTool } = require("../lib/tools.js");
-const { hashText } = require("../../contract/tour.js");
+const { hashText } = require("../../generated/shared/tour.js");
 
 const actor = { kind: "agent", id: "test" };
 const provenance = [{ kind: "execution-observed", source: { type: "test" } }];

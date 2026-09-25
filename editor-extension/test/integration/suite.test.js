@@ -730,8 +730,10 @@ module.exports = function register({ test, before }) {
       stop.anchors = stop.anchors.slice(0, count);
       if (count < 9) stop.beats = stop.beats.slice(0, 1);
     } else {
-      const { tourSources } = require("../../../contract/tour-sources.js"),
-        { hashText, rangeText } = require("../../../contract/tour.js");
+      const {
+          tourSources,
+        } = require("../../../generated/shared/tour-sources.js"),
+        { hashText, rangeText } = require("../../../generated/shared/tour.js");
       const source = tourSources(fixture.workspace, payload.change);
       stop.anchors = Array.from({ length: count }, (_, i) => {
         const a = {
@@ -1052,8 +1054,10 @@ module.exports = function register({ test, before }) {
     const payload = await persistenceFixture();
     await api("kanko_tour_clear");
     await vscode.commands.executeCommand("workbench.action.closeAllEditors");
-    const { tourSources } = require("../../../contract/tour-sources.js"),
-      { hashText } = require("../../../contract/tour.js");
+    const {
+        tourSources,
+      } = require("../../../generated/shared/tour-sources.js"),
+      { hashText } = require("../../../generated/shared/tour.js");
     const source = tourSources(fixture.workspace, payload.change);
     const a = {
       n: 1,

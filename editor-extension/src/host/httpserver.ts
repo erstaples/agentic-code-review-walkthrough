@@ -20,7 +20,7 @@ function isErrorCode(value: string): value is ErrorCode {
 
 import * as http from "node:http";
 import * as crypto from "node:crypto";
-import { ERROR_CODES } from "../../lib/contract.js";
+import { ERROR_CODES } from "../../../generated/shared/protocol.js";
 
 const KNOWN_CODES: ReadonlySet<string> = new Set(ERROR_CODES);
 

@@ -1,7 +1,5 @@
-// Types for the JavaScript modules used by MCP and the extension.
-
+// Generated from TypeScript. Run npm run runtime:build in editor-extension.
 export type ProtocolVersion = 3;
-
 export type ErrorCode =
   | "unauthorized"
   | "protocol_mismatch"
@@ -16,13 +14,11 @@ export type ErrorCode =
   | "no_tour"
   | "stale_presentation"
   | "navigation_boundary";
-
 /** `working` refers to the working tree. */
 export type ProtocolSide = "base" | "head" | "working";
 export type ProtocolMode = "diff" | "file";
 export type StopType =
   "context" | "implementation" | "risk" | "evidence" | "limitation";
-
 export interface ProtocolConstants {
   PROTOCOL_VERSION: ProtocolVersion;
   ERROR_CODES: readonly ErrorCode[];
@@ -30,16 +26,13 @@ export interface ProtocolConstants {
   MODES: readonly ProtocolMode[];
   STOP_TYPES: readonly StopType[];
 }
-
 /** Line numbers start at 1 and include both endpoints. */
 export interface LineRange {
   startLine: number;
   endLine: number;
 }
-
 /** A `sha256:<64 lowercase hex>` digest of source text. */
 export type ContentHash = `sha256:${string}`;
-
 /** The revision used for line numbers; `head` may represent a working-tree snapshot. */
 export type SourceSide = "base" | "head";
 export type AnchorRole =
@@ -48,20 +41,17 @@ export type AnchorView = "diff" | "head" | "base";
 export type ChangeKind = "modified" | "added" | "deleted" | "unchanged";
 export type FocusKind = "added" | "removed" | "unchanged";
 export type Risk = "low" | "medium" | "high";
-
 /** `head` is a commit ID or `WORKTREE:<digest>`. */
 export interface Revisions {
   base: string;
   head: string;
 }
-
 export interface FocusSpan {
   side: SourceSide;
   range: LineRange;
   contentHash?: ContentHash;
   kind?: FocusKind;
 }
-
 /** Checked anchor with defaults applied. */
 export interface TourAnchor {
   /** Array position + 1 within this stop. */
@@ -80,7 +70,6 @@ export interface TourAnchor {
   focus: FocusSpan[];
   claimRefs: string[];
 }
-
 export interface Beat {
   id: string;
   /** Markdown narration that cites files only through `{{a:N}}` tokens. */
@@ -88,7 +77,6 @@ export interface Beat {
   /** Anchor numbers in display priority order. */
   active: number[];
 }
-
 export interface TourStop {
   id: string;
   title: string;
@@ -99,7 +87,6 @@ export interface TourStop {
   type?: unknown;
   coveredEntityIds?: unknown;
 }
-
 /** Checked plan; optional metadata is copied without validation. */
 export interface TourPlan {
   presentationVersion: 2;
@@ -107,7 +94,6 @@ export interface TourPlan {
   id?: unknown;
   title?: unknown;
 }
-
 export type TourAnchorInput = Omit<
   TourAnchor,
   "side" | "focus" | "claimRefs"
@@ -116,16 +102,13 @@ export type TourAnchorInput = Omit<
   focus?: FocusSpan[] | null;
   claimRefs?: string[] | null;
 };
-
 export type TourStopInput = Omit<TourStop, "anchors"> & {
   anchors: TourAnchorInput[];
 };
 export type TourPlanInput = Omit<TourPlan, "stops"> & {
   stops: TourStopInput[];
 };
-
 export type FindingSeverity = "error" | "warning";
-
 export type FindingCode =
   | "invalid_stops"
   | "unsupported_version"
@@ -169,7 +152,6 @@ export type FindingCode =
   | "overlap_conflict"
   | "overlapping_anchors"
   | "observed_without_evidence";
-
 export interface Finding {
   severity: FindingSeverity;
   code: FindingCode;
@@ -183,27 +165,30 @@ export interface Finding {
   /** `observed_without_evidence`: the claim lacking evidence. */
   claimId?: string;
 }
-
 export type ValidationResult =
-  | { ok: true; plan: TourPlan; findings: Finding[] }
-  | { ok: false; plan: null; findings: Finding[] };
-
+  | {
+      ok: true;
+      plan: TourPlan;
+      findings: Finding[];
+    }
+  | {
+      ok: false;
+      plan: null;
+      findings: Finding[];
+    };
 /** Base and head text for one anchor; `null` means the file is absent there. */
 export interface SourceTexts {
   base: string | null;
   head: string | null;
 }
-
 /** Throws if a revision cannot be read; returns null only for an absent file. */
 export type SourceReader = (anchor: TourAnchor) => SourceTexts;
-
 export interface ClaimSummary {
   id: string;
   truthStatus?: string;
   status?: string;
   disposition?: string;
 }
-
 export interface ValidateOptions {
   hardLimit?: number;
   readSource?: SourceReader;
@@ -211,14 +196,12 @@ export interface ValidateOptions {
   revisions?: Revisions;
   repositoryPaths?: string[];
 }
-
 export interface AnchorLimits {
   recommended: 7;
   hard: 24;
   maximum: 99;
   active: 3;
 }
-
 export interface ManifestFile {
   path: string;
   kind?: string;
@@ -229,10 +212,14 @@ export interface ManifestFile {
   staged?: boolean;
   unstaged?: boolean;
   untracked?: boolean;
-  indexEntry?: { stage: number; blob?: string } | null;
-  working?: { digest: string } | null;
+  indexEntry?: {
+    stage: number;
+    blob?: string;
+  } | null;
+  working?: {
+    digest: string;
+  } | null;
 }
-
 export interface ChangeManifest {
   kind?: string;
   effectiveBase?: string;
@@ -241,20 +228,16 @@ export interface ChangeManifest {
   currentHead?: string;
   files: ManifestFile[];
 }
-
 export interface ReviewChange {
   manifest: ChangeManifest;
   manifestDigest: string;
 }
-
 export interface TourSourceCatalog {
   revisions: Revisions;
   repositoryPaths: string[];
   readSource: SourceReader;
 }
-
 export type NarrationSurface = "terminal" | "sidebar" | "receipt";
-
 export type NarrationAnchor = Pick<
   TourAnchor,
   "n" | "path" | "label" | "context" | "rev" | "view" | "change"

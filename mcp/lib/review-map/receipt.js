@@ -3,7 +3,7 @@
 const { canonicalize, digest, id } = require("./canonical.js");
 const { invariant } = require("./errors.js");
 const { PRODUCER_VERSION, SCHEMA_VERSION } = require("./domain.js");
-const { renderNarration } = require("../../../contract/narration.js");
+const { renderNarration } = require("../../../generated/shared/narration.js");
 
 function sortedValues(collection) {
   return Object.values(collection)

@@ -152,7 +152,7 @@ test("an unexpected handler error does not leak as a crash", async () => {
 });
 
 test("recognised error codes come from the shared contract, not a local copy", async () => {
-  const { ERROR_CODES } = require("./compiled.js")("lib/contract.js");
+  const { ERROR_CODES } = require("../../generated/shared/protocol.js");
   for (const code of ERROR_CODES) {
     const err = Object.assign(new Error(`synthetic ${code}`), { code });
     await withServer(

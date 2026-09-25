@@ -8,8 +8,8 @@ const fs = require("node:fs"),
 const assert = require("node:assert/strict");
 const { createFixture } = require("../tour-fixture/create.js");
 const { ReviewMapService } = require("../../../mcp/lib/review-map/service.js");
-const { tourSources } = require("../../../contract/tour-sources.js");
-const { hashText, rangeText } = require("../../../contract/tour.js");
+const { tourSources } = require("../../../generated/shared/tour-sources.js");
+const { hashText, rangeText } = require("../../../generated/shared/tour.js");
 const [output, action = "snapshot", countText = "3"] = process.argv.slice(2);
 if (!output)
   throw new Error(

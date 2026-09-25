@@ -4,7 +4,7 @@ const assert = require("node:assert/strict");
 const { createTourController } = require("./compiled.js")(
   "src/host/tour-controller.js",
 );
-const { renderNarration } = require("./compiled.js")("lib/narration.js");
+const { renderNarration } = require("../../generated/shared/narration.js");
 const anchor = {
   n: 1,
   path: "src/check.js",

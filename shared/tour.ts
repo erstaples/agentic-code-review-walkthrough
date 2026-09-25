@@ -1,22 +1,21 @@
-"use strict";
+import type {
+  AnchorRole,
+  ContentHash,
+  Finding,
+  FindingCode,
+  FindingSeverity,
+  LineRange,
+  SourceTexts,
+  TourAnchor,
+  TourPlan,
+  ValidateOptions,
+  ValidationResult,
+} from "./types.js";
 
 // Used by MCP and the extension.
-const { createHash } = require("node:crypto");
+import { createHash } from "node:crypto";
 
-/** @typedef {import("./contract-types.js").AnchorRole} AnchorRole */
-/** @typedef {import("./contract-types.js").ContentHash} ContentHash */
-/** @typedef {import("./contract-types.js").Finding} Finding */
-/** @typedef {import("./contract-types.js").FindingCode} FindingCode */
-/** @typedef {import("./contract-types.js").FindingSeverity} FindingSeverity */
-/** @typedef {import("./contract-types.js").LineRange} LineRange */
-/** @typedef {import("./contract-types.js").SourceTexts} SourceTexts */
-/** @typedef {import("./contract-types.js").TourAnchor} TourAnchor */
-/** @typedef {import("./contract-types.js").TourPlan} TourPlan */
-/** @typedef {import("./contract-types.js").ValidateOptions} ValidateOptions */
-/** @typedef {import("./contract-types.js").ValidationResult} ValidationResult */
-
-/** @type {readonly AnchorRole[]} */
-const ROLES = [
+const ROLES: readonly AnchorRole[] = [
   "change",
   "evidence",
   "callee",
@@ -25,40 +24,44 @@ const ROLES = [
   "schema",
   "context",
 ];
-/** @type {import("./contract-types.js").AnchorLimits} */
-const LIMITS = { recommended: 7, hard: 24, maximum: 99, active: 3 };
-/** @param {string} text @returns {ContentHash} */
-const hashText = (text) =>
+
+const LIMITS: import("./types.js").AnchorLimits = {
+  recommended: 7,
+  hard: 24,
+  maximum: 99,
+  active: 3,
+};
+
+const hashText = (text: string): ContentHash =>
   `sha256:${createHash("sha256").update(text).digest("hex")}`;
-/** @param {unknown} value @returns {value is Record<string, unknown>} */
-const object = (value) =>
+
+const object = (value: unknown): value is Record<string, unknown> =>
   value !== null && typeof value === "object" && !Array.isArray(value);
-/** @param {unknown} value @returns {value is unknown[]} */
-const array = (value) => Array.isArray(value);
-/** @param {unknown} value @returns {value is string} */
-const nonempty = (value) =>
+
+const array = (value: unknown): value is unknown[] => Array.isArray(value);
+
+const nonempty = (value: unknown): value is string =>
   typeof value === "string" && value.trim().length > 0;
-/** @param {unknown} value @returns {value is number} */
-const positiveInteger = (value) =>
+
+const positiveInteger = (value: unknown): value is number =>
   typeof value === "number" && Number.isInteger(value) && value > 0;
-/** A 1-based inclusive range. @param {unknown} range @returns {range is LineRange} */
-const validRange = (range) =>
+
+const validRange = (range: unknown): range is LineRange =>
   object(range) &&
   positiveInteger(range.startLine) &&
   positiveInteger(range.endLine) &&
   range.endLine >= range.startLine;
-/** Repository-relative, without traversal. @param {unknown} value @returns {value is string} */
-const validPath = (value) =>
+
+const validPath = (value: unknown): value is string =>
   nonempty(value) &&
   !/[\\\x00-\x1f:]/.test(value) &&
   !value.startsWith("/") &&
   value.split("/").every((part) => part && part !== "." && part !== "..");
-/** @param {unknown} value @returns {value is ContentHash} */
-const validHash = (value) =>
+
+const validHash = (value: unknown): value is ContentHash =>
   typeof value === "string" && /^sha256:[0-9a-f]{64}$/.test(value);
 
-/** @param {unknown} text @param {unknown} range @returns {string | null} */
-function rangeText(text, range) {
+function rangeText(text: unknown, range: unknown): string | null {
   if (typeof text !== "string" || !validRange(range)) return null;
   // Match the existing presentation hash: LF separators, CR bytes preserved.
   const lines = text.split("\n");
@@ -68,8 +71,7 @@ function rangeText(text, range) {
     : lines.slice(range.startLine - 1, range.endLine).join("\n");
 }
 
-/** @param {number} [value] */
-function assertHardLimit(value = LIMITS.hard) {
+function assertHardLimit(value: number = LIMITS.hard) {
   if (!Number.isInteger(value) || value < 1 || value > LIMITS.maximum)
     throw new RangeError(
       "anchor hard limit must be an integer from 1 through 99",
@@ -78,23 +80,34 @@ function assertHardLimit(value = LIMITS.hard) {
 }
 
 // Source readers must throw on read failures and use null for absent files.
-/** @param {unknown} input @param {ValidateOptions} [options] @returns {ValidationResult} */
-function validateTourPlan(input, options = {}) {
+
+function validateTourPlan(
+  input: unknown,
+  options: ValidateOptions = {},
+): ValidationResult {
   const hardLimit = assertHardLimit(options.hardLimit);
-  /** @type {Finding[]} */
-  const findings = [];
-  /** @param {FindingSeverity} severity @param {FindingCode} code @param {string} location @param {string} message @param {Partial<Finding>} [extra] */
-  const add = (severity, code, location, message, extra = {}) =>
-    findings.push({ severity, code, location, message, ...extra });
-  /** @param {FindingCode} code @param {string} location @param {string} message */
-  const error = (code, location, message) =>
+
+  const findings: Finding[] = [];
+
+  const add = (
+    severity: FindingSeverity,
+    code: FindingCode,
+    location: string,
+    message: string,
+    extra: Partial<Finding> = {},
+  ) => findings.push({ severity, code, location, message, ...extra });
+
+  const error = (code: FindingCode, location: string, message: string) =>
     add("error", code, location, message);
   if (!object(input) || !array(input.stops) || !input.stops.length) {
     error("invalid_stops", "stops", "Provide at least one stop.");
     return { ok: false, plan: null, findings };
   }
-  /** @type {Record<string, unknown> & { stops: unknown[] }} */
-  const plan = structuredClone({ ...input, stops: input.stops });
+
+  const plan: Record<string, unknown> & { stops: unknown[] } = structuredClone({
+    ...input,
+    stops: input.stops,
+  });
   if (plan.presentationVersion !== 2)
     error(
       "unsupported_version",
@@ -107,10 +120,10 @@ function validateTourPlan(input, options = {}) {
       "stops",
       "Supply a revision-pinned source reader before accepting this tour.",
     );
-  /** @type {Set<unknown>} */
-  const stopIds = new Set();
-  /** @type {Map<TourAnchor, SourceTexts>} */
-  const sources = new Map();
+
+  const stopIds: Set<unknown> = new Set();
+
+  const sources: Map<TourAnchor, SourceTexts> = new Map();
   const claims = options.claims || [];
   const knownClaims = new Set(claims.map((claim) => claim.id));
   for (const [si, stop] of plan.stops.entries()) {
@@ -300,9 +313,7 @@ function validateTourPlan(input, options = {}) {
       )
         continue;
       // Only anchors that passed every field check reach the source reader.
-      const checkedAnchor = /** @type {TourAnchor} */ (
-        /** @type {unknown} */ (anchor)
-      );
+      const checkedAnchor = anchor as unknown as TourAnchor;
       let source;
       try {
         source = options.readSource(checkedAnchor);
@@ -310,7 +321,7 @@ function validateTourPlan(input, options = {}) {
         error(
           "source_unavailable",
           aloc,
-          `Cannot resolve ${anchor.path}: ${/** @type {Error} */ (e).message}`,
+          `Cannot resolve ${anchor.path}: ${(e as Error).message}`,
         );
         continue;
       }
@@ -488,12 +499,12 @@ function validateTourPlan(input, options = {}) {
     return { ok: false, plan: null, findings };
 
   // All fields used below have passed validation.
-  const validated = /** @type {TourPlan} */ (/** @type {unknown} */ (plan));
+  const validated = plan as unknown as TourPlan;
   for (const [si, stop] of validated.stops.entries()) {
     // Connected overlap groups include transitive ranges; array order determines
     // the survivor. Never merge different coordinate systems or semantic roles.
-    /** @type {TourAnchor[][]} */
-    const groups = [];
+
+    const groups: TourAnchor[][] = [];
     for (const anchor of stop.anchors) {
       const hits = groups.filter((g) =>
         g.some(
@@ -509,8 +520,8 @@ function validateTourPlan(input, options = {}) {
       groups.push(group);
     }
     groups.sort((a, b) => a[0].n - b[0].n);
-    /** @type {Map<number, number>} */
-    const renumber = new Map();
+
+    const renumber: Map<number, number> = new Map();
     stop.anchors = groups.map((group, index) => {
       const first = group[0];
       group.forEach((a) => renumber.set(a.n, index + 1));
@@ -542,11 +553,9 @@ function validateTourPlan(input, options = {}) {
             endLine: Math.max(...group.map((a) => a.context.endLine)),
           };
           // The merged range uses already-checked source lines.
-          const source = /** @type {SourceTexts} */ (sources.get(first));
+          const source = sources.get(first) as SourceTexts;
           first.contentHash = hashText(
-            /** @type {string} */ (
-              rangeText(source[first.side], first.context)
-            ),
+            rangeText(source[first.side], first.context) as string,
           );
           add(
             "warning",
@@ -562,9 +571,7 @@ function validateTourPlan(input, options = {}) {
     for (const beat of stop.beats) {
       // Validation guaranteed each active number names an anchor in this stop.
       beat.active = [
-        ...new Set(
-          beat.active.map((n) => /** @type {number} */ (renumber.get(n))),
-        ),
+        ...new Set(beat.active.map((n) => renumber.get(n) as number)),
       ];
       beat.narration = beat.narration.replace(
         /\{\{a:(\d+)\}\}/g,
@@ -597,7 +604,7 @@ function validateTourPlan(input, options = {}) {
   return ok ? { ok, plan: validated, findings } : { ok, plan: null, findings };
 }
 
-module.exports = {
+export {
   ROLES,
   LIMITS,
   hashText,

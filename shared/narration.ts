@@ -1,30 +1,28 @@
-"use strict";
+import type { NarrationAnchor, NarrationSurface } from "./types.js";
 
-/** @typedef {import("./contract-types.js").NarrationAnchor} NarrationAnchor */
-/** @typedef {import("./contract-types.js").NarrationSurface} NarrationSurface */
-
-/** @param {unknown} value */
-const escapeHtml = (value) =>
+const escapeHtml = (value: unknown) =>
   String(value).replace(
     /[&<>"']/g,
     (c) =>
-      /** @type {Record<string, string>} */ ({
-        "&": "&amp;",
-        "<": "&lt;",
-        ">": "&gt;",
-        '"': "&quot;",
-        "'": "&#39;",
-      })[c],
+      (
+        ({
+          "&": "&amp;",
+          "<": "&lt;",
+          ">": "&gt;",
+          '"': "&quot;",
+          "'": "&#39;",
+        }) as Record<string, string>
+      )[c],
   );
-/** @param {number} n */
-const anchorNumber = (n) =>
+
+const anchorNumber = (n: number) =>
   n <= 20 ? String.fromCodePoint(0x2460 + n - 1) : `(${n})`;
-/** @param {string} path */
-const filename = (path) => path.slice(path.lastIndexOf("/") + 1);
-/** Anchor identity colors repeat every six numbers. @param {number} n */
-const colorIndex = (n) => ((n - 1) % 6) + 1;
-/** @param {NarrationAnchor} anchor @param {"terminal" | "receipt"} surface */
-function citation(anchor, surface) {
+
+const filename = (path: string) => path.slice(path.lastIndexOf("/") + 1);
+
+const colorIndex = (n: number) => ((n - 1) % 6) + 1;
+
+function citation(anchor: NarrationAnchor, surface: "terminal" | "receipt") {
   const range = anchor.context;
   if (surface === "terminal")
     return `${anchorNumber(anchor.n)} ${filename(anchor.path)}:${range.startLine}`;
@@ -37,8 +35,8 @@ function citation(anchor, surface) {
     ];
   return `${anchorNumber(anchor.n)} ${anchor.path}:${range.startLine}–${range.endLine} @${revision.startsWith("WORKTREE:") ? revision : revision.slice(0, 7)}`;
 }
-/** @param {string} text */
-function inlineMarkdown(text) {
+
+function inlineMarkdown(text: string) {
   // Deliberately small Markdown subset. Raw HTML, links, images and command
   // URIs remain inert text; only extension-owned chips can post actions.
   return escapeHtml(text)
@@ -46,8 +44,12 @@ function inlineMarkdown(text) {
     .replace(/\*\*([^*\n]+)\*\*/g, "<strong>$1</strong>")
     .replace(/\*([^*\n]+)\*/g, "<em>$1</em>");
 }
-/** @param {string} text @param {readonly NarrationAnchor[]} anchors @param {NarrationSurface} [surface] @returns {string} */
-function renderNarration(text, anchors, surface = "terminal") {
+
+function renderNarration(
+  text: string,
+  anchors: readonly NarrationAnchor[],
+  surface: NarrationSurface = "terminal",
+): string {
   if (!["terminal", "sidebar", "receipt"].includes(surface))
     throw new Error("unknown narration surface");
   const parts = text.split(/(\{\{a:[1-9]\d*\}\})/g);
@@ -63,7 +65,7 @@ function renderNarration(text, anchors, surface = "terminal") {
     })
     .join("");
 }
-module.exports = {
+export {
   escapeHtml,
   anchorNumber,
   filename,

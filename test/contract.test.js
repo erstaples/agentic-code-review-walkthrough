@@ -2,7 +2,7 @@ const { test } = require("node:test");
 const assert = require("node:assert");
 const fs = require("node:fs");
 const path = require("node:path");
-const contract = require("../contract/protocol.js");
+const contract = require("../generated/shared/protocol.js");
 const fixtures = require("../contract/fixtures.json");
 
 test("the protocol version is 3", () => {
@@ -111,70 +111,3 @@ test("line numbers in fixtures are 1-based", () => {
   };
   scan(fixtures);
 });
-
-test("the extension's generated contract copy has not drifted", () => {
-  const generated = path.join(
-    __dirname,
-    "..",
-    "editor-extension",
-    "lib",
-    "contract.js",
-  );
-  assert.ok(fs.existsSync(generated), "run: node contract/sync.js");
-  const theirs = require(generated);
-  assert.deepStrictEqual(
-    {
-      v: theirs.PROTOCOL_VERSION,
-      e: theirs.ERROR_CODES,
-      s: theirs.SIDES,
-      m: theirs.MODES,
-      t: theirs.STOP_TYPES,
-    },
-    {
-      v: contract.PROTOCOL_VERSION,
-      e: contract.ERROR_CODES,
-      s: contract.SIDES,
-      m: contract.MODES,
-      t: contract.STOP_TYPES,
-    },
-  );
-});
-
-test("the extension's copy of the contract type declarations has not drifted", () => {
-  const canonical = fs.readFileSync(
-    path.join(__dirname, "..", "contract", "contract-types.d.ts"),
-    "utf8",
-  );
-  const copy = fs.readFileSync(
-    path.join(
-      __dirname,
-      "..",
-      "editor-extension",
-      "lib",
-      "contract-types.d.ts",
-    ),
-    "utf8",
-  );
-  assert.equal(copy, canonical, "run node contract/sync.js");
-});
-
-for (const name of ["tour", "tour-sources", "narration"])
-  test(`shared ${name} implementation matches the packaged copy`, () => {
-    const source = fs
-      .readFileSync(
-        path.join(__dirname, "..", "contract", `${name}.js`),
-        "utf8",
-      )
-      .replace('require("./tour.js")', 'require("./tour-contract.js")');
-    const copy = fs.readFileSync(
-      path.join(
-        __dirname,
-        "..",
-        "editor-extension",
-        "lib",
-        `${name === "tour" ? "tour-contract" : name}.js`,
-      ),
-      "utf8",
-    );
-    assert.equal(copy, source, "run node contract/sync.js");
-  });

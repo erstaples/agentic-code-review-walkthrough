@@ -21,8 +21,8 @@ const { ReviewMapError, invariant } = require("./errors.js");
 const {
   assertHardLimit,
   validateTourPlan,
-} = require("../../../contract/tour.js");
-const { tourSources } = require("../../../contract/tour-sources.js");
+} = require("../../../generated/shared/tour.js");
+const { tourSources } = require("../../../generated/shared/tour-sources.js");
 
 const REVIEW_COMMANDS = new Set([
   "StartReviewSession",

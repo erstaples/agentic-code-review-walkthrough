@@ -24,4 +24,4 @@ export type {
   TourStop,
   TourStopInput,
   ValidationResult,
-} from "../../lib/contract-types.js";
+} from "../../../generated/shared/types.js";

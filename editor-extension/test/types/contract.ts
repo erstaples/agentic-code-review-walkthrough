@@ -4,14 +4,14 @@ import type {
   ProtocolMode,
   ProtocolSide,
   StopType,
-} from "../../../contract/contract-types.js";
+} from "../../../generated/shared/types.js";
 import {
   ERROR_CODES,
   MODES,
   SIDES,
   STOP_TYPES,
-} from "../../../contract/protocol.js";
-import { validateTourPlan } from "../../../contract/tour.js";
+} from "../../../generated/shared/protocol.js";
+import { validateTourPlan } from "../../../generated/shared/tour.js";
 import type { Equal, Expect } from "./assert.js";
 
 export type Checks = [

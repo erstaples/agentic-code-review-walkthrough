@@ -15,8 +15,8 @@ const {
   resolveChange,
   repositoryIdentity,
 } = require("../lib/review-map/git-adapter.js");
-const { tourSources } = require("../../contract/tour-sources.js");
-const { hashText } = require("../../contract/tour.js");
+const { tourSources } = require("../../generated/shared/tour-sources.js");
+const { hashText } = require("../../generated/shared/tour.js");
 
 const actor = { kind: "agent", id: "test-agent" };
 const provenance = [
