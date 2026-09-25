@@ -508,9 +508,9 @@
     "check:release": "node ../scripts/check-extension-release.js",
     "build": "node scripts/build.mjs",
     "watch": "node scripts/build.mjs --watch",
-    "typecheck": "tsc -p tsconfig.host.json && tsc -p tsconfig.webview.json",
-    "format:check": "prettier --check \"src/**/*.ts\" \"scripts/*.mjs\" \"tsconfig*.json\"",
-    "format": "prettier --write \"src/**/*.ts\" \"scripts/*.mjs\" \"tsconfig*.json\"",
+    "typecheck": "tsc -p tsconfig.host.json && tsc -p tsconfig.webview.json && tsc -p tsconfig.contract.json && tsc -p tsconfig.types.json",
+    "format:check": "prettier --check \"src/**/*.ts\" \"test/types/*.ts\" \"scripts/*.mjs\" \"tsconfig*.json\"",
+    "format": "prettier --write \"src/**/*.ts\" \"test/types/*.ts\" \"scripts/*.mjs\" \"tsconfig*.json\"",
     "build:test": "node scripts/build.mjs --test",
     "test:all": "npm run build:test && node --test ../test/*.test.js ../mcp/test/*.test.js test/*.test.js",
     "vscode:prepublish": "npm run typecheck && npm run format:check && npm run build"

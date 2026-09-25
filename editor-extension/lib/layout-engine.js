@@ -1,6 +1,6 @@
 "use strict";
-const { SHAPES, shapeFor, splitShape, geometry, cramped } = require("./layout-model.js");
-const { createLayoutState, stopIdentity, compatible } = require("./layout-state.js");
+const { SHAPES, shapeFor, splitShape, geometry, cramped } = require("../src/host/layout-model.js");
+const { createLayoutState, stopIdentity, compatible } = require("../src/host/layout-state.js");
 const uriKey = uri => uri?.toString();
 const invalid = message => Object.assign(new Error(message), { code: "bad_request" });
 

@@ -85,6 +85,12 @@ test("the extension's generated contract copy has not drifted", () => {
   );
 });
 
+test("the extension's copy of the contract type declarations has not drifted", () => {
+  const canonical = fs.readFileSync(path.join(__dirname, "..", "contract", "contract-types.d.ts"), "utf8");
+  const copy = fs.readFileSync(path.join(__dirname, "..", "editor-extension", "lib", "contract-types.d.ts"), "utf8");
+  assert.equal(copy, canonical, "run node contract/sync.js");
+});
+
 for (const name of ["tour", "tour-sources", "narration"]) test(`shared ${name} implementation matches the packaged copy`, () => {
   const source = fs.readFileSync(path.join(__dirname, "..", "contract", `${name}.js`), "utf8").replace('require("./tour.js")', 'require("./tour-contract.js")');
   const copy = fs.readFileSync(path.join(__dirname, "..", "editor-extension", "lib", `${name === "tour" ? "tour-contract" : name}.js`), "utf8");

@@ -1,6 +1,6 @@
 "use strict";
 const test = require('node:test'), assert = require('node:assert/strict');
-const { SHAPES, geometry, cramped, shapeFor } = require("./compiled.js")("lib/layout-model.js");
+const { SHAPES, geometry, cramped, shapeFor } = require("./compiled.js")("src/host/layout-model.js");
 const { createLayoutEngine } = require("./compiled.js")("lib/layout-engine.js");
 function fixture({cap=3,orientation='stacked',diff=false,storage}={}) {
   let layout=structuredClone(SHAPES.single.layout), current=1;
@@ -72,7 +72,7 @@ test('reset clears tour pins and customization but preserves role preferences an
 
 function memory() {
   const values = new Map();
-  return require("./compiled.js")("lib/layout-state.js").createLayoutState({get:k=>values.get(k),update:async(k,v)=>values.set(k,structuredClone(v))});
+  return require("./compiled.js")("src/host/layout-state.js").createLayoutState({get:k=>values.get(k),update:async(k,v)=>values.set(k,structuredClone(v))});
 }
 test('returning to a stop restores its resized arrangement and excludes a closed anchor', async()=>{
   const f=fixture({storage:memory()});await f.apply(1,2);f.resize();
@@ -132,4 +132,26 @@ test('visiting a saved stop while Exploring defers restoration until Following',
 test('automatic grid placement separates repeated colors when a diagonal slot is available',async()=>{
   const f=fixture({cap:4});await f.apply(1,7,2,3);
   assert.deepEqual(f.engine.snapshot().slots.map(s=>s.anchor),[1,2,3,7]);
+});
+
+test('a corrupt saved root is discarded before any editor layout command', async () => {
+  const storage = memory();
+  const first = fixture({ storage });
+  await first.apply(1);
+  const value = storage.read(first.state);
+  value.layouts.a.layout = {};
+  await storage.write(first.state, value);
+  const next = fixture({ storage });
+  await next.apply(2);
+  assert.deepEqual(next.calls, []);
+  assert.deepEqual(next.engine.snapshot().slots.map(slot => slot.anchor), [2]);
+});
+
+test('remembered destinations use column labels in a custom arrangement', async () => {
+  const f = fixture();
+  await f.vscode.commands.executeCommand('vscode.setEditorLayout', { orientation: 0, groups: [{}, {}, {}] });
+  await f.apply(1, 2);
+  await f.engine.action({ action: 'place', anchor: 3, placement: { kind: 'replace', of: 2 }, remember: true }, f.state);
+  assert.equal(f.engine.snapshot().shape, 'custom');
+  assert.deepEqual(f.engine.snapshot().preferences.change, { kind: 'replace', slot: 'group2' });
 });

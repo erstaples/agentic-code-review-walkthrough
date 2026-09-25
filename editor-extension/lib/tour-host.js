@@ -6,12 +6,12 @@ const { createDecorationRegistry } = require("./decoration-registry.js");
 const { createLayoutEngine } = require("./layout-engine.js");
 const { createAnchorOpener } = require("./anchor-opener.js");
 const { sourceHunks } = require("./source-diff.js");
-const { mapRange, seamLineFor, removedBaseLines0 } = require("./hunks.js");
+const { mapRange, seamLineFor, removedBaseLines0 } = require("../src/host/hunks.js");
 const { anchorNumber, filename, colorIndex } = require("./narration.js");
 
 /**
  * @param {object} vscode
- * @param {{ changed?: () => void, explore?: () => void, storage?: ReturnType<typeof import('./layout-state.js').createLayoutState> }} options
+ * @param {{ changed?: () => void, explore?: () => void, storage?: import('../src/host/layout-state.js').LayoutState }} options
  */
 function createTourHost(vscode, { changed = () => {}, explore = () => {}, storage } = {}) {
   const registry = createDecorationRegistry(vscode);
