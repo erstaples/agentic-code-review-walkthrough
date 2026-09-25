@@ -1,8 +1,8 @@
 # Reviewer-controlled tour layouts
 
-Task 5 supplies layout policy independently of the full anchor picker (task 6)
-and saved arrangements/restoration (task 7). Settings and commands use the
-current Kankō names; there are no compatibility aliases.
+The layout engine controls automatic placement, explicit placement choices,
+and saved stop arrangements. The [sidebar](kanko-v2-sidebar.md) provides the
+anchor picker. Settings and commands use the current Kankō names.
 
 ## Following and ownership
 
@@ -59,9 +59,12 @@ locations without allocating a slot or changing presentation identity.
 Remembering a choice saves its resulting positional slot for that anchor's role,
 not the referenced anchor number (which belongs to one stop). Later automatic
 placements use that destination only when it is still present and eligible.
-Preferences last for the loaded tour. Persisting them and per-stop reset are
-part of task 7. Full mouse/keyboard placement controls are part of task 6; the
-command palette already provides **Kankō: Toggle Pin on Active Tour Anchor**.
+Preferences and compatible stop arrangements persist in VS Code profile state,
+keyed to workspace and tour identity. Source/anchor changes and incompatible group
+limits invalidate saved arrangements. Reset clears stop pins and customization
+while preserving role destinations and reviewer-owned tabs. Saved state never
+restores ownership of an existing tab. The sidebar supplies mouse/keyboard
+placement controls; the command palette includes **Kankō: Toggle Pin on Active Tour Anchor**.
 
 ## Sequence
 

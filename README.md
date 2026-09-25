@@ -39,7 +39,8 @@ presentation without recording review acceptance.
 An agent loads the complete authored plan and advances it through public MCP
 operations. Invalid plans return findings before changing the current display.
 Up to three active anchors are presented with matching numbered colors, labels,
-and tab badges. Layout placement and the complete anchor list are subsequent phases.
+and tab badges. The sidebar lists every anchor in the stop and provides
+placement, pinning, filtering, and saved stop arrangements.
 
 Questions, concerns, and decisions become sourced review map entries when they
 matter beyond the current conversation. At closeout you can save an immutable
@@ -247,12 +248,14 @@ under review stays still while you annotate it.
 
 - Presentation opens up to three active anchors in native diffs or source views.
   Matching head content uses a real file; other revisions use read-only documents.
-  Layout placement and the complete anchor list are later phases.
+  The sidebar retains the complete stop inventory and offers explicit placement
+  within the configured group limit.
 - Selecting code with the mouse or keyboard switches to Exploring. Paused
-  removes decorations while leaving the editor arrangement in place.
+  removes decorations and releases disposable tour previews while protecting
+  reviewer-owned tabs.
 - Ending a tour removes highlights, the sidebar snapshot, and untouched tour
-  previews. Reviewer-owned, pinned, dirty, or moved tabs stay open. Exact layout
-  restoration is a later phase.
+  previews. Reviewer-owned, pinned, dirty, or moved tabs stay open. Layout
+  restoration uses compatible saved stop arrangements and preserves reviewer-owned tabs.
 - Changed working trees conservatively invalidate review state and stale evidence.
   A loaded tour retains its captured source until it is reloaded.
 - Review map claims and review decisions remain in the agent conversation; this
@@ -260,9 +263,10 @@ under review stays still while you annotate it.
 
 ## Development
 
-The MCP server runs directly with Node.js 22 or newer and has no runtime
-dependencies or compilation step. The editor extension uses TypeScript and
-esbuild during development; its VSIX includes locally built host and browser
+The MCP launcher runs checked-in generated JavaScript with Node.js 22 or newer
+and requires no runtime dependency installation or user-side compilation. Developers
+maintain strict TypeScript in `mcp/` and `shared/` and regenerate runtime output.
+The editor extension uses TypeScript and esbuild during development; its VSIX includes locally built host and browser
 bundles and needs no package download at installation time.
 
 ```
@@ -270,7 +274,7 @@ mcp/               stdio MCP server — editor proxy and review map service
 editor-extension/  VS Code extension — HTTP server, decorations, diff views
 schemas/           versioned review map, event, receipt, and tool contracts
 skills/            implementation-capture and walkthrough procedures
-docs/              design spec
+docs/              current guides and verification history
 ```
 
 Run the repository, contract, MCP, and compiled extension tests with:
@@ -288,7 +292,10 @@ system temporary directories differently from Node. The MCP and contract tests
 are compiled with the extension tests by `npm --prefix editor-extension run test:all`.
 
 See [extension development](editor-extension/DEVELOPMENT.md) for build, watch,
-packaging, and isolated native test instructions.
+packaging, and isolated native test instructions. The [documentation index](docs/README.md)
+covers current guides and historical verification. Track feature specifications,
+implementation plans, and progress in [GitHub issues](https://github.com/getkanko/kanko/issues)
+and Projects, following the [repository workflow](AGENTS.md).
 
 ## Prior art
 

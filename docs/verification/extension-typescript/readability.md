@@ -49,3 +49,7 @@ failure remains unexplained; this slice does not claim to fix it.
 These are automated runtime and rendered-component checks. This slice does not
 claim new human UI acceptance, theme screenshots, screen-reader verification or
 responsiveness measurements. Those remain in slice 6.
+
+Documentation maintenance note (September 25, 2026): outstanding slice 6 work
+will be tracked in GitHub issues instead of a committed implementation plan.
+The results and limits above remain historical.

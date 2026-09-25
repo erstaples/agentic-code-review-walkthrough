@@ -62,3 +62,7 @@ screenshots, and responsiveness comparisons. The earlier intermittent Linux
 saved-pin failure did not recur; it is not claimed fixed. jsdom establishes
 rendered behavior, not native layout geometry or CSP enforcement; those were
 checked separately in the real editor for the interactions listed above.
+
+Documentation maintenance note (September 25, 2026): outstanding slice 6 work
+will be tracked in GitHub issues instead of a committed implementation plan.
+The results and limits above remain historical.

@@ -6,3 +6,6 @@ node_modules/
 editor-extension/dist/
 editor-extension/.test-dist/
 __pycache__/
+
+# Project specifications and task plans live in GitHub issues.
+docs/superpowers/
