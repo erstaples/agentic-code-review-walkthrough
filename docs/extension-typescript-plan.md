@@ -2,7 +2,8 @@
 
 Date: September 24, 2026
 
-Status: Planned; implementation has not started
+Status: Slice 1 complete, including clean-checkout and packaged native acceptance.
+Slices 2–6 have not started.
 
 Baseline: `dev` at `4f66b0b` (merged v2 persistence and acceptance work)
 
@@ -97,28 +98,32 @@ evidence as work lands. Implementation work should maintain a Kankō review map.
 
 ### Slice 1 — Build foundation and baseline (0.5–1 day)
 
-- [ ] Run the existing repository, contract, MCP, extension-unit, and packaged
+- [x] Run the existing repository, contract, MCP, extension-unit, and packaged
   native integration checks from the baseline. Record actual results and platform.
   Existing reports are comparison material, not fresh proof.
-- [ ] Add TypeScript, matching Node/VS Code types, esbuild, scoped formatting,
+- [x] Add TypeScript, matching Node/VS Code types, esbuild, scoped formatting,
   strict host/browser configurations, and reproducible lockfile updates.
-- [ ] Introduce `build`, `watch`, `typecheck`, and `format:check` scripts. Connect
+- [x] Introduce `build`, `watch`, `typecheck`, and `format:check` scripts. Connect
   `vscode:prepublish` to the required checks/build so a clean package cannot omit
   compilation. Initially allow unmigrated JavaScript while converted modules are
   checked strictly.
-- [ ] Prove the pipeline by converting the activation entry point and a small
+- [x] Prove the pipeline by converting the activation entry point and a small
   pure helper. Keep the rest behaviorally unchanged.
-- [ ] Update `package.json` entry point/files, local development instructions,
+- [x] Update `package.json` entry point/files, local development instructions,
   `scripts/build-vsix.sh`, and `.github/workflows/extension.yml` for generated
   artifacts. Preserve the supported VS Code/Node versions.
-- [ ] Adapt `scripts/check-vsix.py`: validate an explicit artifact allowlist,
+- [x] Adapt `scripts/check-vsix.py`: validate an explicit artifact allowlist,
   compare packaged files with fresh build output, and reject tests, source-only
   files, stale legacy entry points, and accidental dependency directories. Avoid
   weakening it to a check that merely confirms the archive opens.
-- [ ] Preserve the existing Node test runner. Compile migrated modules into an
+- [x] Preserve the existing Node test runner. Compile migrated modules into an
   ignored test output directory and update test imports through a small shared
   test helper. Compile once before running the tests. Native integration continues
   to exercise the actual extracted VSIX, not the test output.
+
+Evidence: [slice 1 verification](verification/extension-typescript/slice-1.md).
+The matching VS Code 1.139 type package is not yet published; 1.138 types are
+pinned without lowering the supported engine version.
 
 **Exit:** A clean checkout can install development dependencies, check types,
 run the existing tests, build/package, pass archive inspection, and activate the

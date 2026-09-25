@@ -1,6 +1,6 @@
 const { test } = require("node:test");
 const assert = require("node:assert");
-const { formatCitation, selectedLines, shortRef } = require("../lib/citation.js");
+const { formatCitation, selectedLines, shortRef } = require("./compiled.js")("src/host/citation.js");
 
 const selection = (startLine, startCharacter, endLine, endCharacter) => ({
   isEmpty: startLine === endLine && startCharacter === endCharacter,

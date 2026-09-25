@@ -19,6 +19,7 @@ function createTourController({ prepare, present, clear, publish, layoutAction }
       receiptNarration: renderNarration(beat.narration, stop.anchors, "receipt"),
     });
   }
+  /** @template T @param {() => Promise<T>} action @returns {Promise<T>} */
   function run(action) { const result = queue.then(action); queue = result.catch(() => {}); return result; }
   function guard(expected) {
     if (!current) throw fail("no_tour", "Load a tour first.");

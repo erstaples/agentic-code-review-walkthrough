@@ -253,9 +253,10 @@ under review stays still while you annotate it.
 
 ## Development
 
-The runtime is dependency-free JavaScript. Plugin installation doesn't
-run `npm install`, so depending on an SDK would mean vendoring `node_modules`
-into the repository.
+The MCP server runs directly with Node.js 22 or newer and has no runtime
+dependencies or compilation step. The editor extension uses TypeScript and
+esbuild during development; its VSIX includes locally built host and browser
+bundles and needs no package download at installation time.
 
 ```
 mcp/               stdio MCP server — editor proxy and review map service
@@ -265,11 +266,22 @@ skills/            implementation-capture and walkthrough procedures
 docs/              design spec
 ```
 
-Run the full dependency-free suite with:
+Run the repository, contract, MCP, and compiled extension tests with:
 
 ```sh
-node --test test/*.test.js mcp/test/*.test.js editor-extension/test/*.test.js
+cd editor-extension
+npm ci
+npm run typecheck
+npm run format:check
+npm run test:all
 ```
+
+On macOS, prefix the test command with `TMPDIR=/private/tmp` if Git resolves
+system temporary directories differently from Node. The MCP and contract tests
+also run independently with plain `node --test test/*.test.js mcp/test/*.test.js`.
+
+See [extension development](editor-extension/DEVELOPMENT.md) for build, watch,
+packaging, and isolated native test instructions.
 
 ## Prior art
 

@@ -3,7 +3,7 @@ const assert = require("node:assert");
 const fs = require("node:fs");
 const os = require("node:os");
 const path = require("node:path");
-const { writeLock, removeLock } = require("../lib/lockfile.js");
+const { writeLock, removeLock } = require("./compiled.js")("lib/lockfile.js");
 
 const tmp = () => fs.mkdtempSync(path.join(os.tmpdir(), "tourlock-"));
 

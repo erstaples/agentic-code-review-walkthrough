@@ -1,8 +1,8 @@
 "use strict";
 const { test } = require("node:test");
 const assert = require("node:assert/strict");
-const { createTourController } = require("../lib/tour-controller.js");
-const { renderNarration } = require("../lib/narration.js");
+const { createTourController } = require("./compiled.js")("lib/tour-controller.js");
+const { renderNarration } = require("./compiled.js")("lib/narration.js");
 const anchor = { n: 1, path: 'src/check.js', label: 'the check', side: 'head', context: { startLine: 2, endLine: 4 }, rev: { base: 'a'.repeat(40), head: 'b'.repeat(40) } };
 const plan = { id: 'p', title: 'Tour', stops: [ { id: 's1', anchors: [anchor], beats: [{ id: 'b1', narration: 'Inspect {{a:1}}.', active: [1] }, { id: 'b2', narration: 'Confirm {{a:1}}.', active: [1] }] }, { id: 's2', anchors: [anchor], beats: [{ id: 'b3', narration: 'End at {{a:1}}.', active: [] }] }] };
 function harness() {
