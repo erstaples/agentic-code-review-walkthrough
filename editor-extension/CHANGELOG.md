@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.1.1
+
+- Compile the extension and MCP runtime from TypeScript, with a React tour sidebar.
+- Share one release version across the extension, plugins, and MCP runtime.
+- Add a synchronized version bump command and `vX.Y.Z` release tags.
+
 ## 0.1.0
 
 - Initial Kankō extension release under the `getkankodev.kanko` identity.

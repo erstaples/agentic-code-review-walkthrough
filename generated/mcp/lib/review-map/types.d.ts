@@ -173,6 +173,7 @@ export interface ReceiptRef {
   createdAt: string;
 }
 export interface NewMap {
+  producerVersion?: string;
   mapId: string;
   title: string;
   repository: {

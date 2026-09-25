@@ -79,7 +79,14 @@ To rebuild the VSIX from the repository root:
 This requires Node.js 22 or newer, npm, and Python 3.9 or newer. It installs
 locked dependencies, checks release metadata, rebuilds and validates the VSIX,
 and prints its absolute path. The filename follows the package name and version
-in `editor-extension/package.json`, currently `editor-extension/kanko-0.1.0.vsix`.
+in root `plugin.json`; the output is `editor-extension/kanko-<version>.vsix`.
+The extension, MCP runtime, and Claude/Codex plugins share that release version.
+To prepare a release, add notes under `## Unreleased` in
+`editor-extension/CHANGELOG.md`, then run `node scripts/version.js bump patch`
+(or `minor`, `major`, or an explicit version). Required manifest copies and the
+checked-in runtime are updated together. See the
+[release procedure](docs/extension-publication.md#release-procedure) for checks
+and publishing with a `vX.Y.Z` tag.
 It replaces that version's existing package without publishing or installing it.
 From `editor-extension`, the same command is available as `npm run rebuild:vsix`.
 

@@ -7,10 +7,12 @@ import { TOOLS, createCallTool } from "./lib/tools.js";
 import { ReviewMapService } from "./lib/review-map/service.js";
 import { PROTOCOL_VERSION } from "./lib/bridge.js";
 
+import { version } from "../plugin.json";
+
 const LOCK_DIR = path.join(os.homedir(), ".kanko", "tour");
 
 const dispatcher = createDispatcher({
-  serverInfo: { name: "kanko", version: "0.1.0" },
+  serverInfo: { name: "kanko", version },
   tools: TOOLS,
   callTool: createCallTool({
     resolveLock: (workspace) =>

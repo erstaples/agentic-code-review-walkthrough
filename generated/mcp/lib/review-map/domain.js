@@ -13,9 +13,10 @@ exports.currentRevision = currentRevision;
 const readers_js_1 = require("./readers.js");
 const canonical_js_1 = require("./canonical.js");
 const errors_js_1 = require("./errors.js");
+const plugin_json_1 = require("../../../plugin.json");
 const SCHEMA_VERSION = 2;
 exports.SCHEMA_VERSION = SCHEMA_VERSION;
-const PRODUCER_VERSION = "0.1.0";
+const PRODUCER_VERSION = plugin_json_1.version;
 exports.PRODUCER_VERSION = PRODUCER_VERSION;
 const PROVENANCE_KINDS = new Set([
   "user-stated",
@@ -127,6 +128,9 @@ function validateProvenance(provenance, required = true) {
   }
 }
 function newAggregate({
+  // Events written before producerVersion was stored always used 0.1.0.
+  // Keep this historical default fixed so upgrades preserve state/receipt hashes.
+  producerVersion = "0.1.0",
   mapId,
   title,
   repository,
@@ -136,7 +140,7 @@ function newAggregate({
 }) {
   return {
     schemaVersion: SCHEMA_VERSION,
-    producerVersion: PRODUCER_VERSION,
+    producerVersion,
     id: mapId,
     title,
     createdAt: occurredAt,

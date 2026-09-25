@@ -8,9 +8,10 @@ const discovery_js_1 = require("./lib/discovery.js");
 const tools_js_1 = require("./lib/tools.js");
 const service_js_1 = require("./lib/review-map/service.js");
 const bridge_js_1 = require("./lib/bridge.js");
+const plugin_json_1 = require("../plugin.json");
 const LOCK_DIR = path.join(os.homedir(), ".kanko", "tour");
 const dispatcher = (0, rpc_js_1.createDispatcher)({
-  serverInfo: { name: "kanko", version: "0.1.0" },
+  serverInfo: { name: "kanko", version: plugin_json_1.version },
   tools: tools_js_1.TOOLS,
   callTool: (0, tools_js_1.createCallTool)({
     resolveLock: (workspace) =>

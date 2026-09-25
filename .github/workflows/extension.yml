@@ -4,11 +4,11 @@ on:
   pull_request:
   push:
     branches: [main, dev]
-    tags: ['extension-v*']
+    tags: ['v*']
   workflow_dispatch:
     inputs:
       publish:
-        description: 'Publish to Marketplace and GitHub (select an extension-v tag)'
+        description: 'Publish to Marketplace and GitHub (select a vX.Y.Z tag)'
         type: boolean
         default: false
 
@@ -104,7 +104,7 @@ jobs:
   publish:
     needs: [build, integration]
     if: >-
-      startsWith(github.ref, 'refs/tags/extension-v') &&
+      startsWith(github.ref, 'refs/tags/v') &&
       (github.event_name == 'push' || (github.event_name == 'workflow_dispatch' && inputs.publish))
     runs-on: ubuntu-latest
     timeout-minutes: 15

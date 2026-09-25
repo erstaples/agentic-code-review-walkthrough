@@ -21,8 +21,10 @@ import { readActor, readCommand } from "./readers.js";
 import { id } from "./canonical.js";
 import { ReviewMapError, invariant } from "./errors.js";
 
+import { version } from "../../../plugin.json";
+
 const SCHEMA_VERSION = 2;
-const PRODUCER_VERSION = "0.1.0";
+const PRODUCER_VERSION = version;
 const PROVENANCE_KINDS = new Set([
   "user-stated",
   "source-document",
@@ -137,6 +139,9 @@ function validateProvenance(provenance: Provenance[], required = true) {
 }
 
 function newAggregate({
+  // Events written before producerVersion was stored always used 0.1.0.
+  // Keep this historical default fixed so upgrades preserve state/receipt hashes.
+  producerVersion = "0.1.0",
   mapId,
   title,
   repository,
@@ -146,7 +151,7 @@ function newAggregate({
 }: NewMap): Aggregate {
   return {
     schemaVersion: SCHEMA_VERSION,
-    producerVersion: PRODUCER_VERSION,
+    producerVersion,
     id: mapId,
     title,
     createdAt: occurredAt,

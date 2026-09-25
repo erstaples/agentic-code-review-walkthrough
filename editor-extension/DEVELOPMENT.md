@@ -70,7 +70,8 @@ are rejected. This also applies to the publish job's downloaded artifact.
 Native tests must use the extracted VSIX, not `.test-dist`:
 
 ```sh
-unzip -q editor-extension/kanko-0.1.0.vsix -d /private/tmp/kanko-package-test
+version=$(node -p 'require("./plugin.json").version')
+unzip -q "editor-extension/kanko-$version.vsix" -d /private/tmp/kanko-package-test
 EXTENSION_PATH=/private/tmp/kanko-package-test/extension \
   npm --prefix editor-extension run test:integration
 ```

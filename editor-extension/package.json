@@ -519,7 +519,7 @@
     "format": "node ../scripts/format.mjs --write",
     "build:test": "node scripts/build.mjs --test && node scripts/build-tests.mjs",
     "test:all": "npm run build:test && node --test --test-concurrency=4 .test-dist/checks/test/*.test.js .test-dist/checks/mcp/test/*.test.js .test-dist/checks/editor-extension/test/*.test.js test/*.test.js",
-    "vscode:prepublish": "npm run runtime:check && npm run typecheck && npm run format:check && npm run build",
+    "vscode:prepublish": "npm run check:release && npm run runtime:check && npm run typecheck && npm run format:check && npm run build",
     "runtime:build": "node ../scripts/build-runtime.mjs --write",
     "runtime:check": "node ../scripts/build-runtime.mjs --check"
   },

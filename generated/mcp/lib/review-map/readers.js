@@ -251,6 +251,7 @@ const sessionChange = object({ sessionId: string, outcome: nullable(string) });
 const correctionFields = { ...entityFields, provenance: optional(provenance) };
 const payloadChecks = {
   ReviewMapCreated: object({
+    producerVersion: optional(string),
     mapId: string,
     title: string,
     repository: object({ key: string, workspace: string, commonDir: string }),

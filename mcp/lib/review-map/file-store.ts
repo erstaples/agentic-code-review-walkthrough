@@ -323,6 +323,7 @@ class FileReviewMapStore {
       manifestDigest: identity.manifestDigest,
     };
     const payload = {
+      producerVersion: PRODUCER_VERSION,
       mapId,
       title: title || "Untitled change",
       repository: {
