@@ -1,7 +1,7 @@
 "use strict";
 const { test } = require("node:test");
 const assert = require("node:assert/strict");
-const { createCallTool } = require("../../mcp/lib/tools.js");
+const { createCallTool } = require("../../generated/mcp/lib/tools.js");
 const { startServer } = require("./compiled.js")("src/host/httpserver.js");
 
 test("load validates the authored review map before sending it to the extension", async (t) => {

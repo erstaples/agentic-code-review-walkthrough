@@ -4,8 +4,10 @@ const fs = require("node:fs");
 const os = require("node:os");
 const path = require("node:path");
 const vscode = require("vscode");
-const { ReviewMapService } = require("../../../mcp/lib/review-map/service.js");
-const { createCallTool } = require("../../../mcp/lib/tools.js");
+const {
+  ReviewMapService,
+} = require("../../../generated/mcp/lib/review-map/service.js");
+const { createCallTool } = require("../../../generated/mcp/lib/tools.js");
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 module.exports = function register({ test, before }) {
   const fixture = JSON.parse(fs.readFileSync(process.env.KANKO_TOUR_FIXTURE));

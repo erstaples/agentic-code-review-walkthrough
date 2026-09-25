@@ -6,8 +6,12 @@ const fs = require("node:fs"),
   os = require("node:os"),
   cp = require("node:child_process");
 const assert = require("node:assert/strict");
-const { createFixture } = require("../tour-fixture/create.js");
-const { ReviewMapService } = require("../../../mcp/lib/review-map/service.js");
+const {
+  createFixture,
+} = require("../../.test-dist/checks/editor-extension/test/tour-fixture/create.js");
+const {
+  ReviewMapService,
+} = require("../../../generated/mcp/lib/review-map/service.js");
 const { tourSources } = require("../../../generated/shared/tour-sources.js");
 const { hashText, rangeText } = require("../../../generated/shared/tour.js");
 const [output, action = "snapshot", countText = "3"] = process.argv.slice(2);

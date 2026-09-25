@@ -54,7 +54,9 @@ for (const [filename, text] of output) {
   if (relative.startsWith("..") || path.isAbsolute(relative))
     throw new Error(`Unexpected output: ${filename}`);
   const formatted = await prettier.format(
-    `// Generated from TypeScript. Run npm run runtime:build in editor-extension.\n${text}`,
+    filename.endsWith(".json")
+      ? text
+      : `// Generated from TypeScript. Run npm run runtime:build in editor-extension.\n${text}`,
     { ...options, filepath: filename },
   );
   expected.set(relative, formatted);

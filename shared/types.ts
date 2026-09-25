@@ -195,7 +195,9 @@ export interface SourceTexts {
 }
 
 /** Throws if a revision cannot be read; returns null only for an absent file. */
-export type SourceReader = (anchor: TourAnchor) => SourceTexts;
+export type SourceReader = (
+  anchor: Pick<TourAnchor, "path" | "rev">,
+) => SourceTexts;
 
 export interface ClaimSummary {
   id: string;
@@ -222,15 +224,15 @@ export interface AnchorLimits {
 export interface ManifestFile {
   path: string;
   kind?: string;
-  oldPath?: string;
-  renamedFrom?: string;
+  oldPath?: string | null;
+  renamedFrom?: string | null;
   index?: string;
   worktree?: string;
   staged?: boolean;
   unstaged?: boolean;
   untracked?: boolean;
   indexEntry?: { stage: number; blob?: string } | null;
-  working?: { digest: string } | null;
+  working?: { digest: string | null } | null;
 }
 
 export interface ChangeManifest {

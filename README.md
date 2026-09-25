@@ -278,7 +278,7 @@ npm run test:all
 
 On macOS, prefix the test command with `TMPDIR=/private/tmp` if Git resolves
 system temporary directories differently from Node. The MCP and contract tests
-also run independently with plain `node --test test/*.test.js mcp/test/*.test.js`.
+are compiled with the extension tests by `npm --prefix editor-extension run test:all`.
 
 See [extension development](editor-extension/DEVELOPMENT.md) for build, watch,
 packaging, and isolated native test instructions.
