@@ -1,20 +1,22 @@
-"use strict";
-const test = require("node:test");
-const assert = require("node:assert/strict");
-const fs = require("node:fs");
-const path = require("node:path");
-const { JSDOM } = require("jsdom");
-const { waitFor } = require("@testing-library/dom");
-const { createTourView } = require("./compiled.js")("src/host/tour-view.js");
+import { webviewFixture } from "./webview-fixture.js";
+import { uri } from "./factories.js";
+import { present } from "../../test/assertions.js";
+import test = require("node:test");
+import assert = require("node:assert/strict");
+import * as fs from "node:fs";
+import * as path from "node:path";
+import { JSDOM } from "jsdom";
+import { waitFor } from "@testing-library/dom";
+import { createTourView } from "../src/host/tour-view.js";
 
 test("the browser bundle starts without Node globals and sends the ready handshake", async () => {
-  const messages = [];
+  const messages: unknown[] = [];
   const dom = new JSDOM('<div id="root"></div>', {
     runScripts: "outside-only",
     pretendToBeVisual: true,
   });
   dom.window.acquireVsCodeApi = () => ({
-    postMessage: (value) => messages.push(value),
+    postMessage: (value: unknown) => messages.push(value),
   });
   dom.window.ResizeObserver = class {
     observe() {}
@@ -28,7 +30,7 @@ test("the browser bundle starts without Node globals and sends the ready handsha
     );
     await waitFor(
       () => assert.equal(JSON.stringify(messages), '[{"type":"ready"}]'),
-      { container: dom.window.document },
+      { container: dom.window.document.body },
     );
     assert.match(
       dom.window.document.body.textContent,
@@ -36,7 +38,7 @@ test("the browser bundle starts without Node globals and sends the ready handsha
     );
     dom.window.dispatchEvent(new dom.window.Event("pagehide"));
     assert.equal(
-      dom.window.document.getElementById("root").childNodes.length,
+      present(dom.window.document.getElementById("root")).childNodes.length,
       0,
     );
   } finally {
@@ -45,21 +47,17 @@ test("the browser bundle starts without Node globals and sends the ready handsha
 });
 
 test("the provider loads only the local browser bundle under its nonce CSP", () => {
-  const webview = {
-    asWebviewUri: (uri) => uri,
-    cspSource: "vscode-resource:",
-    postMessage() {},
-    onDidReceiveMessage: () => ({ dispose() {} }),
-  };
-  const api = { Uri: { joinPath: (...parts) => parts.join("/") } };
-  createTourView(api, "extension", () => ({})).resolveWebviewView({
-    webview,
-    onDidDispose() {},
-  });
-  assert.deepEqual(webview.options.localResourceRoots, [
-    "extension/media",
-    "extension/dist",
-  ]);
+  const f = webviewFixture();
+  const { webview } = f;
+  createTourView(
+    f.api,
+    uri("extension"),
+    () => f.controller,
+  ).resolveWebviewView(f.view);
+  assert.deepEqual(
+    webview.options.localResourceRoots?.map((value) => value.toString()),
+    ["extension/media", "extension/dist"],
+  );
   const scripts = [
     ...webview.html.matchAll(/<script nonce="([^"]+)" src="([^"]+)"/g),
   ];

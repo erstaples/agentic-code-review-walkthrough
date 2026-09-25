@@ -1,5 +1,19 @@
-function snapshot(count = 7, overrides = {}) {
-  const roles = [
+import type {
+  LoadedTourSnapshot,
+  LayoutSnapshot,
+} from "../../src/shared/snapshot.js";
+import type { AnchorRole } from "../../src/shared/tour.js";
+import { anchor } from "../factories.js";
+function snapshot(
+  count = 7,
+  overrides: Partial<Omit<LoadedTourSnapshot, "presentation">> = {},
+): LoadedTourSnapshot & {
+  presentation: {
+    anchors: LoadedTourSnapshot["presentation"]["anchors"];
+    layout: LayoutSnapshot;
+  };
+} {
+  const roles: AnchorRole[] = [
     "change",
     "evidence",
     "caller",
@@ -8,17 +22,19 @@ function snapshot(count = 7, overrides = {}) {
     "schema",
     "context",
   ];
-  const anchors = Array.from({ length: count }, (_, i) => ({
-    n: i + 1,
-    role: roles[i % 7],
-    path: `src/file-${i + 1}.ts`,
-    label: `Source ${i + 1}`,
-    view: "head",
-    change: "added",
-    rev: { base: "abcdef0123", head: "123456abcd" },
-    context: { startLine: 1, endLine: 10 },
-    contentHash: "sha256:test",
-  }));
+  const anchors = Array.from({ length: count }, (_, i) =>
+    anchor({
+      n: i + 1,
+      role: roles[i % 7],
+      path: `src/file-${i + 1}.ts`,
+      label: `Source ${i + 1}`,
+      view: "head",
+      change: "added",
+      rev: { base: "abcdef0123", head: "123456abcd" },
+      context: { startLine: 1, endLine: 10 },
+      contentHash: "sha256:test",
+    }),
+  );
   const beat = { id: "first", narration: "Inspect {{a:1}}", active: [1] };
   return {
     loaded: true,
@@ -63,10 +79,10 @@ function snapshot(count = 7, overrides = {}) {
           anchors.map((a) => [
             a.n,
             [
-              { kind: "auto" },
+              { kind: "auto", preview: [] },
               { kind: "replace", of: 1, preview: [] },
               { kind: "below", of: 1, preview: [] },
-              { kind: "peek" },
+              { kind: "peek", preview: [] },
             ],
           ]),
         ),
@@ -79,4 +95,4 @@ function snapshot(count = 7, overrides = {}) {
     ...overrides,
   };
 }
-module.exports = { snapshot };
+export { snapshot };

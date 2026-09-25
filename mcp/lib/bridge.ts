@@ -4,7 +4,7 @@ import type { BridgeLock } from "./discovery.js";
 import { PROTOCOL_VERSION } from "../../shared/protocol.js";
 
 async function request(
-  lock: BridgeLock,
+  lock: Pick<BridgeLock, "port" | "authToken">,
   method: string,
   route: string,
   body: Record<string, unknown>,

@@ -1,6 +1,7 @@
-const { test } = require("node:test");
-const assert = require("node:assert");
-const { createIdentity } = require("./compiled.js")("src/host/identity.js");
+import { errorFields } from "../../generated/mcp/lib/input.js";
+import { test } from "node:test";
+import assert = require("node:assert");
+import { createIdentity } from "../src/host/identity.js";
 
 const base = { sha: "aaaa111", name: "main" };
 const head = { sha: "bbbb222", name: "HEAD" };
@@ -18,7 +19,7 @@ test("a matching later stop is accepted", () => {
     base: { sha: "aaaa111", name: "whatever" },
     head: { sha: "bbbb222", name: "other" },
   });
-  assert.strictEqual(id.current().base.sha, "aaaa111");
+  assert.strictEqual(id.current()?.base.sha, "aaaa111");
 });
 
 test("a different sha is rejected with diff_identity_mismatch", () => {
@@ -27,9 +28,9 @@ test("a different sha is rejected with diff_identity_mismatch", () => {
   assert.throws(
     () => id.check({ base, head: { sha: "cccc333", name: "HEAD" } }),
     (err) => {
-      assert.strictEqual(err.code, "diff_identity_mismatch");
-      assert.match(err.message, /bbbb222/);
-      assert.match(err.message, /cccc333/);
+      assert.strictEqual(errorFields(err).code, "diff_identity_mismatch");
+      assert.match(errorFields(err).message, /bbbb222/);
+      assert.match(errorFields(err).message, /cccc333/);
       return true;
     },
   );
@@ -54,7 +55,7 @@ test("reset allows a new tour in the same window", () => {
   id.check({ base, head });
   id.reset();
   id.check({ base, head: { sha: "cccc333", name: "HEAD" } });
-  assert.strictEqual(id.current().head.sha, "cccc333");
+  assert.strictEqual(id.current()?.head.sha, "cccc333");
 });
 
 test("sideFor before any identity is established is null", () => {
@@ -73,7 +74,7 @@ test("check rejects malformed shape with diff_identity_mismatch", () => {
   assert.throws(
     () => id.check({ base: { sha: "aaaa111" }, head: { name: "HEAD" } }),
     (err) => {
-      assert.strictEqual(err.code, "diff_identity_mismatch");
+      assert.strictEqual(errorFields(err).code, "diff_identity_mismatch");
       return true;
     },
   );
@@ -83,7 +84,9 @@ test("current returns a copy, not a live reference", () => {
   const id = createIdentity();
   id.check({ base, head });
   const first = id.current();
+  assert.ok(first);
   first.base.sha = "mutated";
   const second = id.current();
+  assert.ok(second);
   assert.strictEqual(second.base.sha, "aaaa111");
 });

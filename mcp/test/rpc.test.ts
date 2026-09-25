@@ -1,11 +1,3 @@
-import { errorFields } from "../../generated/mcp/lib/input.js";
-import {
-  record,
-  records,
-  string,
-  openedMap,
-  findings,
-} from "../../test/assertions.js";
 import { test } from "node:test";
 import * as assert from "node:assert";
 import { createDispatcher, parseLines } from "../../generated/mcp/lib/rpc.js";

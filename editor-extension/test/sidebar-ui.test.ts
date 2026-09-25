@@ -1,31 +1,37 @@
-"use strict";
-const { dom, observers } = require("./ui/environment.js");
-const { test, afterEach, after } = require("node:test");
-const assert = require("node:assert/strict");
-const React = require("react");
-const {
+import type {
+  LoadedTourSnapshot,
+  TourSnapshot,
+} from "../src/shared/snapshot.js";
+import type { SidebarMessage } from "../src/shared/messages.js";
+import { present } from "../../test/assertions.js";
+import { dom, observers } from "./ui/environment.js";
+import { test, afterEach, after } from "node:test";
+import assert = require("node:assert/strict");
+import * as React from "react";
+import {
   render,
   screen,
   within,
   act,
   cleanup,
   fireEvent,
-} = require("@testing-library/react");
-const userEvent = require("@testing-library/user-event").default;
-const { App } = require("./compiled.js")("src/webview/App.js");
-const { createBridge } = require("./compiled.js")("src/webview/bridge.js");
-const { snapshot } = require("./ui/snapshot.js");
+} from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
+import { App } from "../src/webview/App.js";
+import { createBridge } from "../src/webview/bridge.js";
+import { snapshot } from "./ui/snapshot.js";
 afterEach(cleanup);
 after(() => dom.window.close());
-function setup(s = snapshot()) {
-  const messages = [];
+function setup(s: LoadedTourSnapshot | null = snapshot()) {
+  const messages: SidebarMessage[] = [];
   const bridge = createBridge({ postMessage: (m) => messages.push(m) }, window);
   const rendered = render(React.createElement(App, { bridge }));
-  const receive = (data) =>
+  const receive = (data: unknown) =>
     act(() =>
       window.dispatchEvent(new window.MessageEvent("message", { data })),
     );
-  const update = (next) => receive({ type: "snapshot", snapshot: next });
+  const update = (next: TourSnapshot) =>
+    receive({ type: "snapshot", snapshot: next });
   if (s) update(s);
   return {
     ...rendered,
@@ -36,7 +42,8 @@ function setup(s = snapshot()) {
     user: userEvent.setup({ document }),
   };
 }
-const button = (name) => screen.getByRole("button", { name, exact: true });
+const button = (name: string | RegExp) =>
+  screen.getByRole<HTMLButtonElement>("button", { name });
 const region = () =>
   screen.getByRole("region", {
     name: "Stop anchor list. Use arrow keys to navigate rows.",
@@ -83,15 +90,18 @@ test("ready handshake, ordered messages and actions use the latest accepted revi
 
 test("filter and grouping survive snapshots and reset when the stop changes", async () => {
   const f = setup(snapshot(24));
-  await f.user.type(screen.getByRole("searchbox"), "file-24");
+  await f.user.type(screen.getByRole<HTMLInputElement>("searchbox"), "file-24");
   assert.ok(button("Anchor 24: src/file-24.ts"));
   f.update(snapshot(24, { revision: 2 }));
-  assert.equal(screen.getByRole("searchbox").value, "file-24");
+  assert.equal(
+    screen.getByRole<HTMLInputElement>("searchbox").value,
+    "file-24",
+  );
   await f.user.click(button("Order"));
   const next = snapshot(24, { revision: 3 });
   next.stop.id = "next";
   f.update(next);
-  assert.equal(screen.getByRole("searchbox").value, "");
+  assert.equal(screen.getByRole<HTMLInputElement>("searchbox").value, "");
   assert.equal(button("Order").getAttribute("aria-pressed"), "true");
   await f.user.click(button("Role"));
   const section = button("Callers, 4 anchors");
@@ -105,13 +115,15 @@ test("picker preserves focus and remembered choice across a snapshot, then Escap
   await f.user.click(button("Open anchor 3: file-3.ts"));
   assert.equal(document.activeElement, button("Replace 1 in top"));
   await f.user.click(
-    screen.getByRole("checkbox", { name: "Remember for caller anchors" }),
+    screen.getByRole<HTMLInputElement>("checkbox", {
+      name: "Remember for caller anchors",
+    }),
   );
   const tile = button("Below 1 in top");
   tile.focus();
   f.update(snapshot(7, { revision: 2 }));
   assert.equal(document.activeElement, tile);
-  assert.equal(screen.getByRole("checkbox").checked, true);
+  assert.equal(screen.getByRole<HTMLInputElement>("checkbox").checked, true);
   await f.user.click(tile);
   assert.deepEqual(f.messages.at(-1), {
     type: "layout",
@@ -163,7 +175,7 @@ test("paused state disables rows, picker, narration and reset actions", async ()
 
 test("remembered placements send directly and explicit moves still open the picker", async () => {
   const s = snapshot();
-  s.presentation.layout.preferences.caller = { slot: "top" };
+  s.presentation.layout.preferences.caller = { kind: "replace", slot: "top" };
   const f = setup(s);
   await f.user.click(button("Open anchor 3: file-3.ts"));
   assert.deepEqual(f.messages.at(-1), {
@@ -189,14 +201,14 @@ test("windowed keyboard navigation reaches anchor 99 and retains a search filter
   await f.user.keyboard("{End}");
   assert.equal(document.activeElement, button("Anchor 99: src/file-99.ts"));
   assert.ok(region().scrollTop > 5000);
-  await f.user.type(screen.getByRole("searchbox"), "file-9");
+  await f.user.type(screen.getByRole<HTMLInputElement>("searchbox"), "file-9");
   const matches = within(region())
     .getAllByRole("button")
     .filter((b) => b.dataset.anchor);
   matches[0].focus();
   await f.user.keyboard("{End}");
   assert.equal(document.activeElement, button("Anchor 99: src/file-99.ts"));
-  assert.equal(screen.getByRole("searchbox").value, "file-9");
+  assert.equal(screen.getByRole<HTMLInputElement>("searchbox").value, "file-9");
   await f.user.keyboard("{Home}");
   assert.equal(document.activeElement, button("Anchor 9: src/file-9.ts"));
 });
@@ -220,6 +232,7 @@ test("numeric shortcuts open two-digit anchors and Alt+0 requests native search"
 test("narration stays escaped, exposes live text, and dispatches only numbered chips", async () => {
   const f = setup();
   const narration = document.getElementById("narration");
+  assert.ok(narration);
   assert.equal(narration.getAttribute("aria-live"), "polite");
   assert.equal(narration.querySelector("img"), null);
   assert.ok(narration.textContent.includes("<img src=x onerror=alert(1)>"));
@@ -234,8 +247,9 @@ test("narration stays escaped, exposes live text, and dispatches only numbered c
   f.update(snapshot(7, { revision: 2 }));
   assert.equal(document.activeElement, chip);
   assert.ok(
-    narration.compareDocumentPosition(document.getElementById("inventory")) &
-      Node.DOCUMENT_POSITION_PRECEDING,
+    narration.compareDocumentPosition(
+      present(document.getElementById("inventory")),
+    ) & Node.DOCUMENT_POSITION_PRECEDING,
   );
 });
 
@@ -252,7 +266,7 @@ test("pin, reset, sequence override, stop navigation and end send typed requests
     ["Show multiple groups", { type: "sequenceOverride" }],
     ["Next stop", { type: "navigate", action: "nextStop" }],
     ["End tour", { type: "clear" }],
-  ]) {
+  ] as [string, Record<string, unknown>][]) {
     await f.user.click(button(name));
     assert.deepEqual(f.messages.at(-1), { ...expected, revision: 1 });
   }
@@ -272,7 +286,10 @@ test("all required inventory counts retain accessible role labels and bounded ro
     else
       assert.ok(button("Change: focus anchor 1").dataset.tooltip === "Change");
     if (count >= 5) {
-      await f.user.type(screen.getByRole("searchbox"), `file-${count}.ts`);
+      await f.user.type(
+        screen.getByRole<HTMLInputElement>("searchbox"),
+        `file-${count}.ts`,
+      );
       assert.ok(button(`Anchor ${count}: src/file-${count}.ts`));
     }
     f.unmount();
@@ -294,9 +311,9 @@ test("unmount removes message and keyboard listeners and disconnects observers",
 test("closing a picker keeps a filter entered while it was open", async () => {
   const f = setup();
   await f.user.click(button("Open anchor 3: file-3.ts"));
-  await f.user.type(screen.getByRole("searchbox"), "file-7");
+  await f.user.type(screen.getByRole<HTMLInputElement>("searchbox"), "file-7");
   await f.user.keyboard("{Escape}");
-  assert.equal(screen.getByRole("searchbox").value, "file-7");
+  assert.equal(screen.getByRole<HTMLInputElement>("searchbox").value, "file-7");
   assert.equal(document.activeElement, region());
   assert.equal(
     screen.queryByRole("region", { name: "Placement picker" }),
@@ -309,7 +326,7 @@ test("a removed placement choice returns focus to an available choice", async ()
   await f.user.click(button("Open anchor 3: file-3.ts"));
   assert.equal(document.activeElement, button("Replace 1 in top"));
   const next = snapshot(7, { revision: 2 });
-  next.presentation.layout.options[3] = [{ kind: "peek" }];
+  next.presentation.layout.options[3] = [{ kind: "peek", preview: [] }];
   f.update(next);
   assert.equal(
     document.activeElement?.getAttribute("aria-label"),

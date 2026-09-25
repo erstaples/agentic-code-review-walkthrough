@@ -1,15 +1,19 @@
-"use strict";
-const test = require("node:test"),
-  assert = require("node:assert/strict");
-const { createLayoutState, compatible, stopIdentity } =
-  require("./compiled.js")("src/host/layout-state.js");
+import { anchor } from "./factories.js";
+import type { SavedStopLayout } from "../src/shared/layout.js";
+import test = require("node:test");
+import assert = require("node:assert/strict");
+import {
+  createLayoutState,
+  compatible,
+  stopIdentity,
+} from "../src/host/layout-state.js";
 const state = {
     workspace: "/workspace",
     tourId: "tour",
     identity: "sha256:one",
   },
-  stop = { anchors: [{ n: 1, path: "a.js" }], beats: [] };
-const saved = () => ({
+  stop = { anchors: [anchor()], beats: [] };
+const saved = (): SavedStopLayout => ({
   identity: stopIdentity(state, stop),
   layout: { orientation: 1, groups: [{}] },
   slots: [{ anchor: 1, pinned: true, lastActive: 1 }],
@@ -18,21 +22,28 @@ const saved = () => ({
   override: false,
 });
 test("profile state is isolated by workspace and tour, while revision changes retain only role choices", async () => {
-  const data = new Map(),
+  const data = new Map<string, unknown>(),
     store = createLayoutState({
       get: (k) => data.get(k),
-      update: async (k, v) => data.set(k, v),
+      update: async (k, v) => {
+        data.set(k, v);
+      },
     });
   await store.write(state, {
     layouts: { one: saved() },
-    preferences: {
-      evidence: { kind: "replace", slot: "bottom" },
-      invalid: { kind: "peek" },
-      change: { kind: "command", slot: "top" },
-    },
+    preferences: Object.assign(
+      {
+        evidence: { kind: "replace" as const, slot: "bottom" as const },
+        change: Object.assign(
+          { kind: "replace" as const, slot: "top" as const },
+          { kind: "command" },
+        ),
+      },
+      { invalid: { kind: "peek" } },
+    ),
   });
   assert.deepEqual(store.read(state).preferences, {
-    evidence: { kind: "replace", slot: "bottom" },
+    evidence: { kind: "replace" as const, slot: "bottom" as const },
   });
   assert.deepEqual(store.read({ ...state, identity: "changed" }).layouts, {});
   assert.deepEqual(store.read({ ...state, tourId: "another" }), {
@@ -47,12 +58,12 @@ test("profile state is isolated by workspace and tour, while revision changes re
 test("untrusted state cannot restore unknown anchors, duplicate anchors, invalid geometry, or wrong source identity", () => {
   assert.equal(compatible(saved(), state, stop, 3), true);
   for (const mutate of [
-    (s) => (s.identity = "old"),
-    (s) => (s.slots[0].anchor = 99),
-    (s) => (s.layout.groups[0].size = -1),
-    (s) => (s.layout.orientation = 8),
-    (s) => (s.slots[0].pinned = "yes"),
-    (s) => {
+    (s: SavedStopLayout) => (s.identity = "old"),
+    (s: SavedStopLayout) => (s.slots[0].anchor = 99),
+    (s: SavedStopLayout) => (s.layout.groups[0].size = -1),
+    (s: SavedStopLayout) => Object.assign(s.layout, { orientation: 8 }),
+    (s: SavedStopLayout) => Object.assign(s.slots[0], { pinned: "yes" }),
+    (s: SavedStopLayout) => {
       s.layout.groups.push({});
       s.slots.push(s.slots[0]);
     },

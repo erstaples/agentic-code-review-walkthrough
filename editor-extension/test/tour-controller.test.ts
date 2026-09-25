@@ -1,23 +1,35 @@
-"use strict";
-const { test } = require("node:test");
-const assert = require("node:assert/strict");
-const { createTourController } = require("./compiled.js")(
-  "src/host/tour-controller.js",
-);
-const { renderNarration } = require("../../generated/shared/narration.js");
-const anchor = {
+import {
+  anchor as makeAnchor,
+  stop as makeStop,
+  state as makeState,
+} from "./factories.js";
+import { snapshot as uiSnapshot } from "./ui/snapshot.js";
+import type { TourState } from "../src/host/state.js";
+import type {
+  TourSnapshot,
+  LoadedTourSnapshot,
+} from "../src/shared/snapshot.js";
+import { record, present } from "../../test/assertions.js";
+import { errorFields } from "../../generated/mcp/lib/input.js";
+import { test } from "node:test";
+import assert = require("node:assert/strict");
+import { createTourController } from "../src/host/tour-controller.js";
+import { renderNarration } from "../../generated/shared/narration.js";
+const anchor = makeAnchor({
   n: 1,
   path: "src/check.js",
   label: "the check",
   side: "head",
   context: { startLine: 2, endLine: 4 },
   rev: { base: "a".repeat(40), head: "b".repeat(40) },
-};
+});
 const plan = {
+  presentationVersion: 2 as const,
   id: "p",
   title: "Tour",
   stops: [
     {
+      ...makeStop(),
       id: "s1",
       anchors: [anchor],
       beats: [
@@ -26,6 +38,7 @@ const plan = {
       ],
     },
     {
+      ...makeStop(),
       id: "s2",
       anchors: [anchor],
       beats: [{ id: "b3", narration: "End at {{a:1}}.", active: [] }],
@@ -33,27 +46,45 @@ const plan = {
   ],
 };
 function harness() {
-  const presented = [],
-    published = [];
+  const presented: TourState[] = [],
+    published: TourSnapshot[] = [];
   const controller = createTourController({
     prepare: async (body) => {
-      if (body.invalid) throw new Error("Invalid tour");
-      return { plan: structuredClone(plan), tourId: "t", findings: [] };
+      if (record(body).invalid) throw new Error("Invalid tour");
+      return {
+        ...makeState(),
+        plan: structuredClone(plan),
+        tourId: "t",
+        findings: [],
+      };
     },
     present: async (state) => {
       presented.push(state);
       return { anchors: [] };
     },
     clear: async () => {},
+    layoutAction: async () => ({ anchors: [] }),
     publish: (value) => published.push(value),
   });
-  return { controller, presented, published };
+  function loaded(value: TourSnapshot): LoadedTourSnapshot {
+    assert.ok(value.loaded);
+    return value;
+  }
+  const checked = {
+    ...controller,
+    load: async (body: unknown) => loaded(await controller.load(body)),
+    navigate: async (body: unknown) => loaded(await controller.navigate(body)),
+    setState: async (body: unknown) => loaded(await controller.setState(body)),
+    focus: async (body: unknown) => loaded(await controller.focus(body)),
+    snapshot: () => loaded(controller.snapshot()),
+  };
+  return { controller: checked, presented, published, loaded };
 }
 test("load, navigation, goto and state return complete snapshots", async () => {
   const { controller: c } = harness();
   await assert.rejects(
     c.navigate({ action: "nextBeat" }),
-    (e) => e.code === "no_tour",
+    (e) => errorFields(e).code === "no_tour",
   );
   let s = await c.load({});
   assert.equal(s.stopIndex, 0);
@@ -66,7 +97,7 @@ test("load, navigation, goto and state return complete snapshots", async () => {
   assert.equal(s.stop.id, "s2");
   await assert.rejects(
     c.navigate({ action: "nextBeat" }),
-    (e) => e.code === "navigation_boundary",
+    (e) => errorFields(e).code === "navigation_boundary",
   );
   s = await c.navigate({ action: "previousBeat" });
   assert.equal(s.beat.id, "b2");
@@ -133,19 +164,23 @@ test("narration escapes hostile HTML and exposes only numbered focus intents", (
   assert.match(renderNarration("{{a:99}}", [a99], "sidebar"), />99<\/button>/);
 });
 test("asynchronous editor observation finishes before navigation changes the stop", async () => {
-  const { controller: c, published } = harness();
+  const { controller: c, published, loaded } = harness();
   await c.load({});
-  let release, started;
-  const ready = new Promise((resolve) => {
+  let release = () => {},
+    started = () => {};
+  const ready = new Promise<void>((resolve) => {
     started = resolve;
   });
   const observation = c.updatePresentation(async () => {
     started();
-    await new Promise((resolve) => {
+    await new Promise<void>((resolve) => {
       release = resolve;
     });
     assert.equal(c.snapshot().stop.id, "s1");
-    return { anchors: [], layout: { customized: true } };
+    return {
+      anchors: [],
+      layout: { ...uiSnapshot().presentation.layout, customized: true },
+    };
   });
   await ready;
   const navigation = c.navigate({ action: "nextStop" });
@@ -154,6 +189,9 @@ test("asynchronous editor observation finishes before navigation changes the sto
   release();
   await observation;
   await navigation;
-  assert.equal(published.at(-2).presentation.layout.customized, true);
+  assert.equal(
+    present(loaded(present(published.at(-2))).presentation.layout).customized,
+    true,
+  );
   assert.equal(c.snapshot().stop.id, "s2");
 });

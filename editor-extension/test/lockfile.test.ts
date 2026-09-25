@@ -1,11 +1,9 @@
-const { test } = require("node:test");
-const assert = require("node:assert");
-const fs = require("node:fs");
-const os = require("node:os");
-const path = require("node:path");
-const { writeLock, removeLock } = require("./compiled.js")(
-  "src/host/lockfile.js",
-);
+import { test } from "node:test";
+import assert = require("node:assert");
+import * as fs from "node:fs";
+import * as os from "node:os";
+import * as path from "node:path";
+import { writeLock, removeLock } from "../src/host/lockfile.js";
 
 const tmp = () => fs.mkdtempSync(path.join(os.tmpdir(), "tourlock-"));
 
@@ -33,6 +31,8 @@ test("creates the directory when it does not exist", () => {
     pid: 1,
     protocolVersion: 1,
     workspaceFolders: [],
+    ideName: "test",
+    extensionVersion: "test",
   });
   assert.ok(fs.existsSync(dir));
 });
@@ -44,6 +44,8 @@ test("the lock is not readable by other users", () => {
     pid: 1,
     protocolVersion: 1,
     workspaceFolders: [],
+    ideName: "test",
+    extensionVersion: "test",
   });
   assert.strictEqual(fs.statSync(p).mode & 0o077, 0);
 });
@@ -55,6 +57,8 @@ test("removeLock is idempotent", () => {
     pid: 1,
     protocolVersion: 1,
     workspaceFolders: [],
+    ideName: "test",
+    extensionVersion: "test",
   });
   removeLock(p);
   removeLock(p);

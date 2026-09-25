@@ -436,10 +436,7 @@ export function readCommand(value: unknown): Command {
   );
   return value as Command;
 }
-type AddInput = Extract<
-  Command,
-  { type: `Add${string}` | `Record${"Question" | "Concern"}` }
->;
+type AddInput = import("./types.js").AddEntityCommand;
 
 export function readMeta(value: unknown): MapMeta {
   invariant(

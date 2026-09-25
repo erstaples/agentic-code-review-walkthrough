@@ -1,13 +1,7 @@
 import type { TestContext } from "node:test";
 import type { Selection } from "../../generated/mcp/lib/review-map/types.js";
 import { errorFields } from "../../generated/mcp/lib/input.js";
-import {
-  record,
-  records,
-  string,
-  openedMap,
-  findings,
-} from "../../test/assertions.js";
+import { record, records, openedMap, findings } from "../../test/assertions.js";
 
 import { test } from "node:test";
 import * as assert from "node:assert/strict";

@@ -1,50 +1,81 @@
-"use strict";
-const test = require("node:test"),
-  assert = require("node:assert/strict");
-const { SHAPES, geometry, cramped, shapeFor } = require("./compiled.js")(
-  "src/host/layout-model.js",
-);
-const { createLayoutEngine } = require("./compiled.js")(
-  "src/host/layout-engine.js",
-);
+import {
+  anchor as makeAnchor,
+  stop as makeStop,
+  state as makeState,
+  uri,
+} from "./factories.js";
+import { present, record } from "../../test/assertions.js";
+import type { Uri } from "vscode";
+import type { AnchorRecord } from "../src/host/state.js";
+import type { AnchorOpener } from "../src/host/anchor-opener.js";
+import type { LayoutApi } from "../src/host/native.js";
+import type {
+  EditorLayout,
+  EditorGroupLayout,
+  LayoutOrientationSetting,
+} from "../src/shared/layout.js";
+import type { ViewportEditor } from "../src/host/layout-model.js";
+import {
+  createLayoutState,
+  type LayoutState,
+} from "../src/host/layout-state.js";
+type FakeTab = { owned?: boolean; isPreview: boolean; input: { uri: Uri } };
+type FakeGroup = { viewColumn: number; tabs: FakeTab[]; activeTab?: FakeTab };
+import test = require("node:test");
+import assert = require("node:assert/strict");
+import {
+  SHAPES,
+  geometry,
+  cramped,
+  shapeFor,
+} from "../src/host/layout-model.js";
+import { createLayoutEngine } from "../src/host/layout-engine.js";
 function fixture({
   cap = 3,
   orientation = "stacked",
   diff = false,
   storage,
+}: {
+  cap?: number;
+  orientation?: LayoutOrientationSetting;
+  diff?: boolean;
+  storage?: LayoutState;
 } = {}) {
   let layout = structuredClone(SHAPES.single.layout),
     current = 1;
-  const groups = [{ viewColumn: 1, tabs: [] }],
-    calls = [],
-    opened = [],
-    closed = [];
-  const records = Array.from({ length: 8 }, (_, i) => ({
-    anchor: {
+  const groups: FakeGroup[] = [{ viewColumn: 1, tabs: [] }];
+  const calls: EditorLayout[] = [],
+    opened: number[] = [],
+    closed: FakeTab[] = [];
+  const records: AnchorRecord[] = Array.from({ length: 8 }, (_, i) => ({
+    anchor: makeAnchor({
       n: i + 1,
       role: i % 2 ? "evidence" : "change",
       view: diff ? "diff" : "head",
       context: { startLine: 1, endLine: 3 },
-    },
-    target: { toString: () => `head:${i + 1}` },
+    }),
+    base: uri(`base:${i + 1}`),
+    head: uri(`head:${i + 1}`),
+    target: uri(`head:${i + 1}`),
   }));
   const opener = {
-    keep: (tab) => {
+    keep: (tab: FakeTab) => {
       tab.owned = false;
     },
-    disposable: (tab) => !!tab?.owned,
-    reshape: (action) => action(),
-    closeExcept: async (keep) => {
+    disposable: (tab: FakeTab | undefined) => !!tab?.owned,
+    reshape: (action: () => Promise<void>) => action(),
+    closeExcept: async (keep: (tab: FakeTab) => boolean) => {
       for (const g of groups) {
         g.tabs = g.tabs.filter(keep);
-        if (!g.tabs.includes(g.activeTab)) g.activeTab = g.tabs[0];
+        if (!g.activeTab || !g.tabs.includes(g.activeTab))
+          g.activeTab = g.tabs[0];
       }
     },
-    find: (r) =>
+    find: (r: AnchorRecord) =>
       groups
         .flatMap((g) => g.tabs.map((tab) => ({ tab, column: g.viewColumn })))
         .find((e) => e.tab.input.uri.toString() === r.target.toString()),
-    async open(r, column) {
+    async open(r: AnchorRecord, column: number) {
       const existing = this.find(r),
         g = groups.find((g) => g.viewColumn === (existing?.column ?? column));
       if (!g) return null;
@@ -60,16 +91,20 @@ function fixture({
   };
   const vscode = {
     workspace: {
-      getConfiguration: (section) => ({
-        get: (key, fallback) =>
-          ({ maxGroups: cap, orientation, renderSideBySide: diff })[key] ??
-          fallback,
+      getConfiguration: (_section: string) => ({
+        get: (key: string, fallback: unknown) =>
+          (
+            ({ maxGroups: cap, orientation, renderSideBySide: diff }) as Record<
+              string,
+              unknown
+            >
+          )[key] ?? fallback,
       }),
     },
     window: {
       tabGroups: {
         all: groups,
-        close: async (tab) => {
+        close: async (tab: FakeTab) => {
           for (const g of groups) {
             g.tabs = g.tabs.filter((t) => t !== tab);
             if (g.activeTab === tab) g.activeTab = g.tabs.at(-1);
@@ -77,38 +112,46 @@ function fixture({
           closed.push(tab);
         },
       },
-      visibleTextEditors: [],
+      visibleTextEditors: [] as ViewportEditor[],
     },
     commands: {
-      executeCommand: async (command, arg) => {
+      executeCommand: async (command: string, arg?: EditorLayout) => {
         if (command === "vscode.getEditorLayout")
           return structuredClone(layout);
         if (command === "vscode.setEditorLayout") {
+          assert.ok(arg);
           calls.push(arg);
           layout = structuredClone(arg);
-          const leaves = (n) =>
+          const leaves = (n: EditorGroupLayout): number =>
             n.groups ? n.groups.reduce((s, g) => s + leaves(g), 0) : 1;
           const count = leaves(arg);
           while (groups.length < count)
             groups.push({ viewColumn: groups.length + 1, tabs: [] });
           while (groups.length > count) {
-            const g = groups.pop();
+            const g = present(groups.pop());
             groups[0].tabs.push(...g.tabs);
           }
         }
       },
     },
   };
-  const engine = createLayoutEngine(vscode, opener, storage),
-    state = {
+  const engine = createLayoutEngine(
+      vscode as unknown as LayoutApi,
+      opener as unknown as AnchorOpener,
+      storage,
+    ),
+    state = makeState({
       tourId: "t",
       mode: "following",
       identity: "revision-1",
       workspace: "/fixture",
-      plan: { stops: [{ id: "a", anchors: records.map((r) => r.anchor) }] },
+      plan: {
+        presentationVersion: 2,
+        stops: [makeStop({ id: "a", anchors: records.map((r) => r.anchor) })],
+      },
       stopIndex: 0,
-    };
-  const apply = async (...numbers) => {
+    });
+  const apply = async (...numbers: number[]) => {
     await engine.begin(state, records);
     return engine.apply(
       state,
@@ -132,7 +175,7 @@ function fixture({
     reviewerTab(column = 1) {
       const g = groups[column - 1];
       g.activeTab = {
-        input: { uri: { toString: () => `user:${current++}` } },
+        input: { uri: uri(`user:${current++}`) },
         isPreview: true,
       };
       g.tabs.push(g.activeTab);
@@ -144,7 +187,7 @@ test("shape choice and viewport detection respect diff orientation, short files,
   assert.equal(shapeFor(2, "auto", false), "columns");
   assert.equal(shapeFor(2, "stacked", false), "stack");
   assert.equal(shapeFor(4, "stacked", false), "grid");
-  const e = (lineCount, start, end) => ({
+  const e = (lineCount: number, start: number, end: number) => ({
     document: { lineCount },
     visibleRanges: [{ start: { line: start }, end: { line: end } }],
   });
@@ -185,17 +228,17 @@ test("pins retain anchors through beats; all-pinned groups leave missing anchors
   assert.deepEqual(f.engine.snapshot().unplaced, [3, 4]);
   await f.engine.action({ action: "pin", anchor: 2, pinned: false }, f.state);
   await f.apply(3);
-  assert.equal(f.groups[0].activeTab.input.uri.toString(), "head:1");
-  assert.equal(f.groups[1].activeTab.input.uri.toString(), "head:3");
+  assert.equal(present(f.groups[0].activeTab).input.uri.toString(), "head:1");
+  assert.equal(present(f.groups[1].activeTab).input.uri.toString(), "head:3");
 });
 test("least recently active replacement reserves wanted sources before placing missing ones", async () => {
   const f = fixture({ cap: 3 });
   await f.apply(1, 2, 3);
   await f.apply(1);
   await f.apply(4, 1);
-  assert.equal(f.groups[0].activeTab.input.uri.toString(), "head:1");
-  assert.equal(f.groups[1].activeTab.input.uri.toString(), "head:4");
-  assert.equal(f.groups[2].activeTab.input.uri.toString(), "head:3");
+  assert.equal(present(f.groups[0].activeTab).input.uri.toString(), "head:1");
+  assert.equal(present(f.groups[1].activeTab).input.uri.toString(), "head:4");
+  assert.equal(present(f.groups[2].activeTab).input.uri.toString(), "head:3");
 });
 test("resize customizes while scroll does not; custom layouts cannot grow and Exploring does nothing", async () => {
   const f = fixture();
@@ -217,7 +260,7 @@ test("reviewer previews and existing groups beyond cap survive without any added
   f.reviewerTab();
   await f.apply(1, 2);
   assert.deepEqual(f.opened, []);
-  assert.equal(f.groups[0].activeTab.owned, undefined);
+  assert.equal(present(f.groups[0].activeTab).owned, undefined);
   assert.equal(f.engine.snapshot().customized, true);
 });
 test("explicit placement is validated, preserves pins, and remembers destination by role", async () => {
@@ -234,9 +277,9 @@ test("explicit placement is validated, preserves pins, and remembers destination
     f.state,
   );
   assert.equal(f.groups.length, 2);
-  assert.equal(f.engine.snapshot().preferences.evidence.slot, "bottom");
+  assert.equal(f.engine.snapshot().preferences.evidence?.slot, "bottom");
   await f.apply(1, 4);
-  assert.equal(f.groups[1].activeTab.input.uri.toString(), "head:4");
+  assert.equal(present(f.groups[1].activeTab).input.uri.toString(), "head:4");
   await f.engine.action({ action: "pin", anchor: 4, pinned: true }, f.state);
   await assert.rejects(
     f.engine.action(
@@ -287,6 +330,7 @@ test("picker previews show the actual resulting anchor slots and remove pinned r
   const option = f.engine
     .snapshot()
     .options[3].find((o) => o.kind === "beside" && o.of === 1);
+  assert.ok(option);
   assert.deepEqual(
     option.preview.map((c) => c.anchor),
     [1, 3, 2],
@@ -302,11 +346,15 @@ test("picker previews show the actual resulting anchor slots and remove pinned r
     f.engine.snapshot().options[1].map((o) => o.kind),
     ["auto", "peek"],
   );
-  assert.ok(!f.engine.snapshot().options[3].some((o) => o.of === 1));
+  assert.ok(
+    !f.engine.snapshot().options[3].some((o) => "of" in o && o.of === 1),
+  );
 });
 test("reset clears tour pins and customization but preserves role preferences and reviewer tabs", async () => {
   const f = fixture();
-  f.state.plan.stops[0].beats = [{ active: [1, 2] }];
+  f.state.plan.stops[0].beats = [
+    { id: "beat", narration: "Inspect {{a:1}}.", active: [1, 2] },
+  ];
   f.state.beatIndex = 0;
   await f.apply(1);
   await f.engine.action(
@@ -321,21 +369,21 @@ test("reset clears tour pins and customization but preserves role preferences an
   await f.engine.action({ action: "pin", anchor: 1, pinned: true }, f.state);
   await f.engine.action({ action: "reset" }, f.state);
   assert.ok(f.engine.snapshot().slots.every((s) => !s.pinned));
-  assert.equal(f.engine.snapshot().preferences.evidence.slot, "bottom");
+  assert.equal(f.engine.snapshot().preferences.evidence?.slot, "bottom");
   f.reviewerTab();
   const protectedTab = f.groups[0].activeTab;
   await f.engine.action({ action: "reset" }, f.state);
-  assert.ok(f.groups[0].tabs.includes(protectedTab));
+  assert.ok(f.groups[0].tabs.includes(present(protectedTab)));
 });
 
 function memory() {
-  const values = new Map();
-  return require("./compiled.js")("src/host/layout-state.js").createLayoutState(
-    {
-      get: (k) => values.get(k),
-      update: async (k, v) => values.set(k, structuredClone(v)),
+  const values = new Map<string, unknown>();
+  return createLayoutState({
+    get: (k) => values.get(k),
+    update: async (k, v) => {
+      values.set(k, structuredClone(v));
     },
-  );
+  });
 }
 test("returning to a stop restores its resized arrangement and excludes a closed anchor", async () => {
   const f = fixture({ storage: memory() });
@@ -349,7 +397,9 @@ test("returning to a stop restores its resized arrangement and excludes a closed
   );
   f.state = { ...f.state }; // apply uses the original state: change its stop selection below.
   const state = f.state;
-  state.plan.stops.push({ id: "b", anchors: f.records.map((r) => r.anchor) });
+  state.plan.stops.push(
+    makeStop({ id: "b", anchors: f.records.map((r) => r.anchor) }),
+  );
   await f.engine.begin({ ...state, stopIndex: 1 }, f.records);
   await f.engine.apply({ ...state, stopIndex: 1 }, [f.records[2]]);
   await f.engine.begin({ ...state, stopIndex: 0 }, f.records);
@@ -391,7 +441,7 @@ test("a new engine restores layout, pins and role preferences from profile stora
   );
   assert.equal(reloaded.engine.snapshot().slots[1].pinned, true);
   assert.equal(reloaded.engine.snapshot().customized, true);
-  assert.equal(reloaded.engine.snapshot().preferences.evidence.slot, "bottom");
+  assert.equal(reloaded.engine.snapshot().preferences.evidence?.slot, "bottom");
   assert.deepEqual(reloaded.engine.snapshot().unplaced, [3]);
 });
 test("changed sources, changed stop definitions and a smaller cap discard incompatible arrangements", async () => {
@@ -436,15 +486,17 @@ test("pause closes disposable previews, collapses empty groups, and resumes the 
   await f.engine.action({ action: "pin", anchor: 1, pinned: true }, f.state);
   const tab = f.groups[0].activeTab;
   await f.engine.suspend();
-  assert.ok(f.groups[0].tabs.includes(tab));
-  assert.equal(tab.owned, false);
+  assert.ok(f.groups[0].tabs.includes(present(tab)));
+  assert.equal(present(tab).owned, false);
 });
 test("visiting a saved stop while Exploring defers restoration until Following", async () => {
   const f = fixture({ storage: memory() });
   await f.apply(1, 2);
   f.resize();
   await f.engine.observe();
-  f.state.plan.stops.push({ id: "b", anchors: f.records.map((r) => r.anchor) });
+  f.state.plan.stops.push(
+    makeStop({ id: "b", anchors: f.records.map((r) => r.anchor) }),
+  );
   await f.engine.begin({ ...f.state, stopIndex: 1 }, f.records);
   await f.engine.apply({ ...f.state, stopIndex: 1 }, [f.records[2]]);
   const before = f.groups.map((g) => g.activeTab);
@@ -476,8 +528,10 @@ test("a corrupt saved root is discarded before any editor layout command", async
   const first = fixture({ storage });
   await first.apply(1);
   const value = storage.read(first.state);
-  value.layouts.a.layout = {};
-  await storage.write(first.state, value);
+  record(value.layouts.a).layout = {};
+  await storage.write(first.state, { ...value, layouts: {} });
+  // Inject malformed persisted data to exercise restoration checks.
+  storage.read = () => value;
   const next = fixture({ storage });
   await next.apply(2);
   assert.deepEqual(next.calls, []);

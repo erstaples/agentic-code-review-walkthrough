@@ -23,3 +23,8 @@ export function openedMap(value: ReturnType<ReviewMapService["open"]>) {
 export function findings(error: unknown) {
   return records(record(errorFields(error).details).findings);
 }
+
+export function present<T>(value: T | null | undefined): T {
+  assert.ok(value !== null && value !== undefined);
+  return value;
+}

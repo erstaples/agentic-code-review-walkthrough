@@ -1,3 +1,9 @@
+import type { MapRequests } from "./review-map/types.js";
+type ToolService = {
+  [K in keyof MapRequests]: (
+    args: MapRequests[K],
+  ) => K extends "loadTour" ? Record<string, unknown> : unknown;
+};
 import type { BridgeLock } from "./discovery.js";
 import { isRecord } from "./input.js";
 import { readMapRequest } from "./review-map/readers.js";
@@ -408,8 +414,10 @@ function createCallTool({
   resolveLock,
   mapService = new ReviewMapService(),
 }: {
-  resolveLock: (workspace: string | undefined) => BridgeLock;
-  mapService?: ReviewMapService;
+  resolveLock: (
+    workspace: string | undefined,
+  ) => Pick<BridgeLock, "port" | "authToken">;
+  mapService?: ToolService;
 }) {
   return async function callTool(name: string, args: Record<string, unknown>) {
     if (name === "kanko_map_open")

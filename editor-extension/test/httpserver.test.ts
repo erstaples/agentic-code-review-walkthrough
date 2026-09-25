@@ -1,10 +1,21 @@
-const { test } = require("node:test");
-const assert = require("node:assert");
-const { startServer } = require("./compiled.js")("src/host/httpserver.js");
+import { record } from "../../test/assertions.js";
+import * as net from "node:net";
+import { execFileSync } from "node:child_process";
+import * as path from "node:path";
+import { ERROR_CODES } from "../../generated/shared/protocol.js";
+import { test } from "node:test";
+import assert = require("node:assert");
+import { startServer } from "../src/host/httpserver.js";
 
 const TOKEN = "secret-token";
 
-async function withServer(handlers, fn) {
+async function withServer(
+  handlers: Parameters<typeof startServer>[0]["handlers"],
+  fn: (
+    base: string,
+    server: Awaited<ReturnType<typeof startServer>>,
+  ) => Promise<void>,
+) {
   const server = await startServer({
     handlers,
     authToken: TOKEN,
@@ -17,7 +28,12 @@ async function withServer(handlers, fn) {
   }
 }
 
-const post = (base, path, body, headers = {}) =>
+const post = (
+  base: string,
+  path: string,
+  body: Record<string, unknown>,
+  headers: Record<string, string> = {},
+) =>
   fetch(base + path, {
     method: "POST",
     headers: {
@@ -52,7 +68,7 @@ test("routes a GET to its handler and wraps the result in ok:true", async () => 
 
 test("routes a POST body to its handler", async () => {
   await withServer(
-    { "POST /focus": async (body) => ({ got: body.path }) },
+    { "POST /focus": async (body) => ({ got: record(body).path }) },
     async (base) => {
       const res = await post(base, "/focus", { path: "a.go" });
       assert.deepStrictEqual(await res.json(), { ok: true, got: "a.go" });
@@ -151,8 +167,7 @@ test("an unexpected handler error does not leak as a crash", async () => {
   );
 });
 
-test("recognised error codes come from the shared contract, not a local copy", async () => {
-  const { ERROR_CODES } = require("../../generated/shared/protocol.js");
+test("recognized error codes match the shared declarations", async () => {
   for (const code of ERROR_CODES) {
     const err = Object.assign(new Error(`synthetic ${code}`), { code });
     await withServer(
@@ -192,7 +207,6 @@ test("a request body over 1 MiB is rejected with a proper error response, not co
 });
 
 test("close() resolves even when a client is holding a half-sent request", async () => {
-  const net = require("node:net");
   const server = await startServer({
     handlers: {},
     authToken: TOKEN,
@@ -200,7 +214,7 @@ test("close() resolves even when a client is holding a half-sent request", async
   });
   const sock = net.connect(server.port, "127.0.0.1");
   try {
-    await new Promise((resolve, reject) => {
+    await new Promise<void>((resolve, reject) => {
       sock.once("connect", resolve);
       sock.once("error", reject);
     });
@@ -218,8 +232,7 @@ test("close() resolves even when a client is holding a half-sent request", async
 });
 
 test("a listening server does not on its own keep its host process alive", () => {
-  const { execFileSync } = require("node:child_process");
-  const script = `require(${JSON.stringify(require("./compiled.js").resolve("src/host/httpserver.js"))})
+  const script = `require(${JSON.stringify(path.resolve(__dirname, "../.test-dist/src/host/httpserver.js"))})
     .startServer({ handlers: {}, authToken: "t", protocolVersion: 1 });`;
   execFileSync(process.execPath, ["-e", script], { timeout: 5000 });
 });

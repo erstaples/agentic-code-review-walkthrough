@@ -78,7 +78,7 @@ The sidebar currently provides narration, citations, and navigation.
 Run the dependency-free suite from the repository root:
 
 ```sh
-node --test test/*.test.js mcp/test/*.test.js editor-extension/test/*.test.js
+npm --prefix editor-extension run test:all
 ```
 
 Run the native extension suite from `editor-extension` after installing locked

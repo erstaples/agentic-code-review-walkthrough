@@ -1,11 +1,14 @@
-"use strict";
-const { test } = require("node:test");
-const assert = require("node:assert/strict");
-const { createCallTool } = require("../../generated/mcp/lib/tools.js");
-const { startServer } = require("./compiled.js")("src/host/httpserver.js");
+import { record } from "../../test/assertions.js";
+import { ReviewMapService } from "../../generated/mcp/lib/review-map/service.js";
+import type { MapRequests } from "../../generated/mcp/lib/review-map/types.js";
+import { errorFields } from "../../generated/mcp/lib/input.js";
+import { test } from "node:test";
+import assert = require("node:assert/strict");
+import { createCallTool } from "../../generated/mcp/lib/tools.js";
+import { startServer } from "../src/host/httpserver.js";
 
 test("load validates the authored review map before sending it to the extension", async (t) => {
-  const seen = [],
+  const seen: unknown[] = [],
     payload = {
       workspace: "/repo",
       tourId: "map",
@@ -15,7 +18,7 @@ test("load validates the authored review map before sending it to the extension"
     authToken: "test",
     protocolVersion: 3,
     handlers: {
-      "POST /tour/load": async (body) => {
+      "POST /tour/load": async (body: unknown) => {
         seen.push(body);
         return { snapshot: { loaded: true }, findings: [] };
       },
@@ -27,27 +30,30 @@ test("load validates the authored review map before sending it to the extension"
       assert.equal(workspace, "/repo");
       return { port: server.port, authToken: "test" };
     },
-    mapService: {
-      loadTour: (args) => {
+    mapService: Object.assign(new ReviewMapService(), {
+      loadTour: (args: MapRequests["loadTour"]) => {
         assert.equal(args.mapId, "map");
         return payload;
       },
-    },
+    }),
   });
   assert.equal(
-    (await call("kanko_tour_load", { workspace: "/repo", mapId: "map" }))
-      .snapshot.loaded,
+    record(
+      record(
+        await call("kanko_tour_load", { workspace: "/repo", mapId: "map" }),
+      ).snapshot,
+    ).loaded,
     true,
   );
   assert.deepEqual(seen, [{ ...payload, protocolVersion: 3 }]);
 });
 test("navigation and presentation state go through the authenticated bridge", async (t) => {
-  const seen = [];
+  const seen: [string, Record<string, unknown>][] = [];
   const handlers = Object.fromEntries(
     ["/tour/navigate", "/tour/state", "/clear"].map((route) => [
       `POST ${route}`,
-      async (body) => {
-        seen.push([route, body]);
+      async (body: unknown) => {
+        seen.push([route, record(body)]);
         return { snapshot: { revision: seen.length } };
       },
     ]),
@@ -74,7 +80,9 @@ test("navigation and presentation state go through the authenticated bridge", as
   assert.equal(seen[0][1].protocolVersion, 3);
   assert.equal(seen[0][1].workspace, "/repo");
   assert.equal(
-    (await call("kanko_tour_status", { workspace: "/repo" })).snapshot.revision,
+    record(
+      record(await call("kanko_tour_status", { workspace: "/repo" })).snapshot,
+    ).revision,
     3,
   );
 });
@@ -101,7 +109,7 @@ test("extension findings survive HTTP and MCP error propagation", async (t) => {
   await assert.rejects(
     call("kanko_tour_navigate", { workspace: "/repo", action: "nextBeat" }),
     (e) =>
-      e.code === "invalid_tour_plan" &&
-      JSON.stringify(e.details) === JSON.stringify(details),
+      errorFields(e).code === "invalid_tour_plan" &&
+      JSON.stringify(errorFields(e).details) === JSON.stringify(details),
   );
 });

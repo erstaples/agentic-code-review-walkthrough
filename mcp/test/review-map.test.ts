@@ -1,11 +1,5 @@
 import { errorFields } from "../../generated/mcp/lib/input.js";
-import {
-  record,
-  records,
-  string,
-  openedMap,
-  findings,
-} from "../../test/assertions.js";
+import { record, string, openedMap } from "../../test/assertions.js";
 
 import { test } from "node:test";
 import * as assert from "node:assert";

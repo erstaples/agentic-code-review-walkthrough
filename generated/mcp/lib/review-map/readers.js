@@ -362,8 +362,8 @@ function readCommand(value) {
   ) {
     const noun = value.type.replace(/^(Add|Record)/, "");
     const key = noun[0].toLowerCase() + noun.slice(1);
-    readEntityInput(value.entity || value[key]);
-    return value;
+    const entity = readEntityInput(value.entity || value[key]);
+    return { type: value.type, entity };
   }
   const checks = {
     SetThesis: object({ thesis }),

@@ -1,77 +1,55 @@
-# Remaining JavaScript: TypeScript assessment
+# JavaScript and TypeScript status
 
-September 25, 2026. Assessment only; the readability slice does not convert these files.
+Updated September 25, 2026 after the readability and runtime conversion slices.
 
-## Recommendation
+The extension host, React sidebar, shared runtime and MCP implementation now use
+strict TypeScript. Repository tests, MCP tests, active extension unit tests and
+the shared native fixture are TypeScript too. No new application framework was
+needed.
 
-Convert the shared runtime first, then MCP, then the tests that exercise them.
-Keep the official VS Code API, React and esbuild. These conversions need clearer
-models and runtime input checks, not another extension framework.
+## Maintained source
 
-The extension's shipped host and sidebar source is already TypeScript. The
-remaining handwritten runtime is four shared modules and thirteen MCP modules.
-The largest benefit is in tour validation and the review map service: they pass
-complex, related objects between functions with little compiler checking today.
+| Area | Source | Build output |
+| --- | --- | --- |
+| Extension host and sidebar | `editor-extension/src/` | Two extension bundles |
+| Shared validation, source loading and narration | `shared/` | `generated/shared/` |
+| MCP server, storage, Git access and review maps | `mcp/**/*.ts` | `generated/mcp/` |
+| Active unit tests and fixtures | `test/`, `mcp/test/`, `editor-extension/test/` | Ignored `editor-extension/.test-dist/checks/` |
 
-## Inventory and order
+Both consumers use the generated shared implementation. Manual declarations and
+separately copied extension implementations have been removed. CI checks that
+rebuilding produces exactly the checked-in runtime files.
 
-Counts include handwritten `.js` and `.mjs` files after the readability slice;
-generated extension copies and build output are excluded.
+## JavaScript intentionally retained
 
-| Source | Files | Recommendation |
+Generated output is excluded from these counts.
+
+| Area | Files | Reason |
 | --- | ---: | --- |
-| Shared runtime | 4 | Convert first: protocol constants, tour validation, source loading and narration. Generate declarations from the implementations. |
-| MCP runtime | 13 | Convert next: start with errors, identifiers and RPC; then storage, Git access, review events, service and tool dispatch. |
-| Extension tests and fixtures | 33 | Convert current fixtures and fakes alongside their modules. These include four retired helper files and three spike files; decide whether those checks are still needed before spending time converting them. |
-| Repository and MCP tests | 11 | Convert with the corresponding runtime modules, keeping malformed-input cases explicitly typed as unknown. |
-| Build and maintenance scripts | 4 | Low priority: shared-source sync, release checks, formatting and the extension builder can remain short JavaScript scripts. |
+| MCP launcher | 1 | Preserves the existing Node entry point. |
+| Build and maintenance scripts | 5 | Small developer tools with little benefit from another compilation step. |
+| Native acceptance harness | 4 | Runs inside VS Code; still exercises the packaged extension. Its shared fixture is typed. |
+| Retired regression tests and helpers | 9 | Preserve historical checks without adding types to retired implementations. Includes the compiled-module loader. |
+| Layout spike | 3 | An isolated experiment, outside the shipped extension. |
 
-The generated files under `editor-extension/lib/` should have one maintained
-source. Converting a generated copy would introduce a second implementation.
+The next useful conversion would be the native harness if we extend it. Retired
+helpers and the spike should be evaluated for unique coverage before removal;
+converting them alone would add little value. There is no remaining handwritten
+JavaScript application logic in the shipped extension or MCP implementation.
 
-## Keep installation simple
+## Plugin startup and checks
 
-Today, `mcp.json` launches `node .../mcp/server.js`. The README promises Node 22+
-and no runtime dependency installation or compilation. The shared modules are
-also loaded directly by repository and MCP tests.
+`mcp/server.js` loads readable generated JavaScript. Plugin users still need
+Node 22 or newer, with no dependency installation or build. Developers regenerate
+output with `npm --prefix editor-extension run runtime:build`.
 
-Recommended approach: develop in TypeScript and generate readable JavaScript
-for the existing Node entry point. Developers run the build; plugin users do not.
-Because plugins currently run from a Git checkout, generated runtime files must
-remain available in that checkout until distribution changes. Keep them in a
-clearly marked generated directory, retain a small launcher, and make CI fail
-when rebuilding changes the checked-in output. Do not maintain both versions
-by hand or minify the generated MCP code.
+`npm --prefix editor-extension run typecheck` checks runtime source, active unit
+tests and type-only fixtures. `test:all` compiles and runs the Node tests. The
+checks include malformed requests, replay of events recorded by the previous
+JavaScript implementation, unchanged state and receipt hashes, generated-output
+drift, and MCP startup from a copy containing only the launcher and generated
+files. Native acceptance uses the extracted VSIX.
 
-The extension and MCP should build from the same shared TypeScript sources.
-Replace manual declarations and copying with generated output, and keep a check
-that both consumers use the same implementations.
-
-An alternative is direct TypeScript execution on Node 22.18+, which enables type
-stripping by default. That would raise the documented minimum and require
-compatible import paths and erasable syntax; Node does not type-check or read
-`tsconfig.json`. Keep a separate strict compiler check either way.
-[Node documentation](https://nodejs.org/api/typescript.html).
-
-I recommend generated JavaScript for now because it preserves the current
-runtime requirement and plugin launch path. Direct TypeScript is reasonable
-only if we deliberately raise and enforce the minimum Node version.
-
-## Proposed follow-up slices
-
-1. **Shared source and build.** Move the four shared modules to TypeScript,
-   generate their JavaScript and declarations, update both consumers, and prove
-   that a fresh checkout still launches MCP without installing dependencies.
-2. **MCP types.** Define request, event, stored-state and result types. Receive
-   outside JSON as `unknown`, validate it, and preserve existing error messages,
-   file formats and event replay. Convert tests and fixtures as each area moves.
-3. **Test cleanup.** Type the remaining active test helpers. Check the retired
-   helpers and spikes for unique coverage; preserve that coverage before removal.
-   Keep small maintenance scripts in JavaScript unless typing solves a specific
-   problem.
-
-Acceptance should include strict checks without blanket `any` or suppression,
-fresh-output comparisons, existing JSON and event fixtures, malformed requests,
-MCP stdio startup from an installation-free checkout, and packaged extension
-integration tests. The highest risk is changing persistence or validation while
-trying to satisfy the compiler; those behaviors must remain unchanged.
+External JSON is checked before entering typed code. Known fields with invalid
+types are rejected; additional entity metadata remains allowed. Existing valid
+stored events, serialized formats and protocol/schema versions are preserved.

@@ -1,10 +1,7 @@
-"use strict";
-const test = require("node:test");
-const assert = require("node:assert/strict");
-const { isReviewChange, isClaimSummary } = require("./compiled.js")(
-  "src/host/load-input.js",
-);
-const { tabInput } = require("./compiled.js")("src/host/native.js");
+import test = require("node:test");
+import assert = require("node:assert/strict");
+import { isReviewChange, isClaimSummary } from "../src/host/load-input.js";
+import { tabInput } from "../src/host/native.js";
 
 test("load metadata is checked before it reaches source readers", () => {
   const change = {

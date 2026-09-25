@@ -1,10 +1,18 @@
-const { test } = require("node:test");
-const assert = require("node:assert");
-const { formatCitation, selectedLines, shortRef } = require("./compiled.js")(
-  "src/host/citation.js",
-);
+import { errorFields } from "../../generated/mcp/lib/input.js";
+import { test } from "node:test";
+import assert = require("node:assert");
+import {
+  formatCitation,
+  selectedLines,
+  shortRef,
+} from "../src/host/citation.js";
 
-const selection = (startLine, startCharacter, endLine, endCharacter) => ({
+const selection = (
+  startLine: number,
+  startCharacter: number,
+  endLine: number,
+  endCharacter: number,
+) => ({
   isEmpty: startLine === endLine && startCharacter === endCharacter,
   start: { line: startLine, character: startCharacter },
   end: { line: endLine, character: endCharacter },
@@ -78,6 +86,6 @@ test("rejects an empty selection", () => {
         ref: null,
         selection: selection(2, 4, 2, 4),
       }),
-    (err) => err.code === "no_selection",
+    (err) => errorFields(err).code === "no_selection",
   );
 });

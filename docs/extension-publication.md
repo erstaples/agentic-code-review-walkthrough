@@ -122,7 +122,7 @@ From the repository root:
 
 ```sh
 ./scripts/build-vsix.sh
-node --test test/*.test.js mcp/test/*.test.js editor-extension/test/*.test.js
+npm --prefix editor-extension run test:all
 ```
 
 The rebuild script requires Node.js 22 or newer, npm, and Python 3.9 or newer.

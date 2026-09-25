@@ -13,16 +13,17 @@ npm run watch
 ```
 
 `watch` rebuilds both bundles as source changes. Run type checking separately;
-esbuild does not check types. `npm run format` formats handwritten JavaScript and TypeScript throughout the
-repository, plus TypeScript configurations. The root formatter settings also
-apply to MCP, tests and fixtures. Generated runtime files are excluded; rebuild them after editing their
-TypeScript sources. CI checks formatting
-before tests. `npm run test:unit` compiles once
-and runs the extension's existing Node test runner; `test:all` also runs the
-repository, shared protocol, and direct-Node MCP suites. Tests import compiled
-host modules through `test/compiled.js`. `.test-dist/` and `dist/` are disposable,
-ignored output. On macOS use `TMPDIR=/private/tmp npm run test:all` when Git and
-Node disagree about the system temporary directory's canonical path.
+esbuild does not check types. `npm run format` formats handwritten JavaScript,
+TypeScript and TypeScript configurations throughout the repository. Generated
+runtime files are excluded; rebuild them after editing their TypeScript sources.
+CI checks formatting before tests.
+
+`test:unit` compiles and runs extension tests; `test:all` also runs repository and
+MCP tests. Active tests import typed source and compile into `.test-dist/checks/`.
+The retired JavaScript tests use `test/compiled.js` for the remaining host helpers.
+`.test-dist/` and `dist/` are disposable, ignored output. On macOS use
+`TMPDIR=/private/tmp npm run test:all` when Git and Node disagree about the system
+temporary directory's canonical path.
 
 `src/shared/` defines tours, snapshots, layouts, saved layouts, and messages.
 `src/host/` contains the host implementation, including tab ownership and request
@@ -32,19 +33,20 @@ VS Code connection, rejects older snapshots, and adds the latest revision to
 requests. The host still owns editor movement and saved layouts.
 
 Host and browser configurations use separate Node/VS Code and DOM environments.
-The host, sidebar and shared runtime are strict TypeScript. Shared source lives
-in `../shared/`; `npm run runtime:build` generates JavaScript and declarations
-in `../generated/shared/`. MCP and the extension use that same output.
-`npm run runtime:check` rejects stale generated files before packaging.
+The host, sidebar, shared runtime and MCP implementation use strict TypeScript.
+Shared source lives in `../shared/` and MCP source in `../mcp/`.
+`npm run runtime:build` generates readable JavaScript and declarations under
+`../generated/`. MCP and the extension consume the same shared output.
+`npm run runtime:check` rejects stale, missing and extra generated files.
 
-`typecheck` also checks the shared runtime and compile-time tests. Those tests
-cover invalid messages, unchecked data, snapshots, and small injected API fakes.
-Runtime validation remains necessary for external input.
+`typecheck` also checks active unit tests and type-only fixtures. These cover
+invalid messages, unchecked data, snapshots and injected API fakes. Received JSON
+still needs runtime validation. Plugin users run the small `mcp/server.js`
+launcher without installing dependencies or compiling TypeScript.
 
-The retired presentation helpers live under `test/legacy/` solely for historical
-regression checks. They are not compiled into the extension. HTTP/MCP bridge
-tests live in the extension suite so they use the compiled server; standalone
-MCP tests still run with plain Node.
+Retired presentation helpers live under `test/legacy/` for historical regression
+checks and are not shipped. HTTP/MCP bridge tests exercise the server with real
+requests. The native harness remains JavaScript and uses the typed shared fixture.
 
 The pinned Node types target Node 22. As of September 24, npm publishes VS Code
 API types only through 1.138.0, so this slice uses that compatible subset while
@@ -79,7 +81,7 @@ can set `VSCODE_EXECUTABLE_PATH` to an installed VS Code executable. Set
 `KANKO_TOUR_OUTPUT` to retain native result JSON. Launching GUI applications may
 require permission outside a command sandbox.
 
-`test/sidebar-ui.test.js` runs rendered React interactions through Testing Library
+`test/sidebar-ui.test.ts` runs rendered React interactions through Testing Library
 and jsdom, with an explicit VS Code message fake. It covers current revisions,
 filtering, grouping, windowed keyboard navigation, picker focus and updates,
 disabled actions, escaped narration, and subscription cleanup. These tests run
@@ -105,4 +107,4 @@ slots and builds diagrams, `layout-editors.ts` handles native editor calls, and
 observations and storage writes inside the existing transaction order.
 
 The [remaining JavaScript assessment](../docs/javascript-typescript-assessment.md)
-describes the next conversion work and the plugin startup constraint.
+lists the files deliberately retained and the checks protecting plugin startup.

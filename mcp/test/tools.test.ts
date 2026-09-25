@@ -1,12 +1,5 @@
 import { ReviewMapService } from "../../generated/mcp/lib/review-map/service.js";
-import { errorFields } from "../../generated/mcp/lib/input.js";
-import {
-  record,
-  records,
-  string,
-  openedMap,
-  findings,
-} from "../../test/assertions.js";
+import { findings } from "../../test/assertions.js";
 import { test } from "node:test";
 import * as assert from "node:assert/strict";
 import { TOOLS, createCallTool } from "../../generated/mcp/lib/tools.js";
