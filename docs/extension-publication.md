@@ -1,7 +1,10 @@
 # Publishing the VS Code extension
 
-The extension identity is `getkankodev.kanko`. Its version comes from
-`editor-extension/package.json`; the agent plugin has its own version lifecycle.
+The extension identity is `getkankodev.kanko`. The extension, MCP runtime,
+Claude plugin, Codex plugin, and marketplace metadata share one release version.
+The only authoritative version is `version` in the root `plugin.json`.
+Required copies in other manifests and the generated runtime are maintained by
+`scripts/version.js`; do not bump them individually.
 The Marketplace package name is `kanko` and the display name is
 **Kankō**. The supplied Kankō logo assets are used for branding.
 
@@ -16,7 +19,7 @@ masters are retained as source assets for future use.
 ## Pipeline
 
 `.github/workflows/extension.yml` runs on pull requests, pushes to `main`,
-`extension-v*` tags, and manual dispatches. It:
+`v*` tags, and manual dispatches. It:
 
 1. Installs locked dependencies with Node.js 22 and `npm ci`.
 2. Checks the manifest, lockfile, changelog, and license; runs repository,
@@ -29,7 +32,7 @@ masters are retained as source assets for future use.
    Marketplace using the `VSCE_PAT` environment secret, then attaches it and its
    checksum to a GitHub release.
 
-Tags must match `extension-v<package version>` exactly and point to a commit
+Tags must match `v<plugin.json version>` exactly and point to a commit
 reachable from `origin/main`. Only stable `major.minor.patch` versions are
 accepted. Pre-release channels and Open VSX publishing are not configured.
 A failure in packaging or tests prevents publishing. PR jobs have read-only
@@ -47,7 +50,7 @@ Actions are pinned to commits and Dependabot proposes updates weekly.
    **Marketplace → Manage** under custom scopes. See Microsoft's
    [PAT instructions](https://code.visualstudio.com/api/working-with-extensions/publishing-extension#get-a-personal-access-token).
 3. In [GitHub environment settings](https://github.com/getkanko/kanko/settings/environments),
-   create or open `vscode-marketplace`. Restrict deployment tags to `extension-v*`
+   create or open `vscode-marketplace`. Restrict deployment tags to `v*`
    and add the PAT as an **environment secret** named `VSCE_PAT`. Add required
    reviewers if your release process needs manual approval. Never commit the token.
 4. Protect `main` and release tags with repository rulesets. Require the workflow's
@@ -66,31 +69,65 @@ before that deadline. This workflow does not currently use OIDC or Entra ID.
 
 ## Release procedure
 
-For a new release, update both version files and add the version's changelog
-entry in a PR:
+Prepare a release in a PR, from the repository root:
 
 ```sh
-cd editor-extension
-npm version patch --no-git-tag-version
-# Edit CHANGELOG.md: add a heading such as "## 0.1.1" and release notes.
-npm run check:release
+npm --prefix editor-extension ci
+# Add release notes under "## Unreleased" in editor-extension/CHANGELOG.md.
+node scripts/version.js bump patch
+# Or: bump minor, bump major, or bump an explicit stable version such as 1.2.3.
+node scripts/check-extension-release.js
+npm --prefix editor-extension run test:all
 ```
 
-The current Kankō extension version is `0.1.0`. Before tagging any release, confirm
-that its version has not already been published through the Marketplace UI.
-If it has, bump the version and add release notes before tagging.
+The bump command updates root `plugin.json`, synchronizes the extension manifest
+and both lockfile version fields, Claude/Codex manifests and marketplace entry,
+regenerates the checked-in MCP runtime, and promotes `## Unreleased` to the new
+version. It does not commit, tag, push, install, or publish. Commit the complete
+diff, including generated files, for review. A bump needs installed build
+dependencies; if runtime generation fails, fix the error and run
+`node scripts/version.js sync` to finish synchronizing the selected version.
+
+Use patch for fixes, minor for compatible features, and major for incompatible
+changes. During `0.x`, use minor for breaking changes and describe them in the
+release notes. Bump once when preparing a release; ordinary development commits
+can keep the current version and accumulate notes under `## Unreleased`.
+
+To repair drift without incrementing, run `node scripts/version.js sync`.
+`node scripts/version.js check` checks the manifest copies without writing;
+`npm --prefix editor-extension run runtime:check` also checks generated runtime
+files. CI and local packaging reject stale versions. Avoid `npm version` or
+`vsce publish patch/minor/major`, which only update the extension's version.
+
+Dependency versions (including `0.1.0` in transitive dependencies), historical
+changelog entries, and example/test fixture versions are not release inputs.
+Bridge protocol and saved-data schema versions describe compatibility and are
+changed only when those contracts change, independently of product releases.
+The legacy producer version used when replaying old review maps is also fixed;
+new maps store their creation version so future bumps preserve saved digests.
+The layout spike's private test extension also keeps its own fixture version.
+
+Before tagging, confirm that the selected version has not already been published
+in the Marketplace. Published versions cannot be reused.
 
 After merging and checking CI, tag the release from the updated `main`:
 
 ```sh
 git switch main
 git pull --ff-only
-version=$(node -p 'require("./editor-extension/package.json").version')
-git tag -a "extension-v$version" -m "Release kanko $version"
-git push origin "extension-v$version"
+version=$(node -p 'require("./plugin.json").version')
+git tag -a "v$version" -m "Release kanko $version"
+git push origin "v$version"
 ```
 
-Pushing this tag requests a public release. Ordinary commits and PRs only build
+Before the first release with this convention, update any existing
+`vscode-marketplace` environment tag policy and release-tag ruleset from
+`extension-v*` to `v*`. The Kankō publishing environment has been updated to
+allow `v*`; its old pattern is retained during the transition. For other
+repositories, these hosted settings must be configured separately.
+Old `extension-v*` tags remain historical and no longer trigger publishing.
+
+Pushing a `vX.Y.Z` tag requests a public release. Ordinary commits and PRs only build
 and test. To dry-run manually, select **VS Code extension → Run workflow** and
 leave **publish** unchecked. To retry publishing manually, select an existing
 release tag and check **publish**. Selecting a branch with **publish** checked

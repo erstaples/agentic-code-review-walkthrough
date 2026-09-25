@@ -38,7 +38,9 @@ function buildReceipt(state, sessionId, options = {}) {
   const previous = state.receipts.at(-1) || null;
   const receipt = {
     schemaVersion: domain_js_1.SCHEMA_VERSION,
-    producerVersion: domain_js_1.PRODUCER_VERSION,
+    // Receipts describe this map; rebuilding one must not depend on the
+    // currently installed runtime version.
+    producerVersion: state.producerVersion,
     id: options.receiptId || (0, canonical_js_1.id)("rcp"),
     mapId: state.id,
     reviewSessionId: session.id,

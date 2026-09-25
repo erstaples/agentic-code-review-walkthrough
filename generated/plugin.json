@@ -1,7 +1,8 @@
 {
+  "$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
   "name": "kanko",
-  "description": "Build a review map of code changes, then walk through it with editor navigation and evidence.",
   "version": "0.1.1",
+  "description": "Build a review map of code changes, then walk through it with editor navigation and evidence.",
   "author": {
     "name": "Kankō",
     "url": "https://github.com/getkanko"
@@ -13,8 +14,8 @@
     "code-review",
     "walkthrough",
     "diff",
-    "vscode",
     "tour",
-    "review-map"
+    "vscode",
+    "handoff"
   ]
 }

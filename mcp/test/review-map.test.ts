@@ -19,6 +19,8 @@ import {
 import { tourSources } from "../../generated/shared/tour-sources.js";
 import { hashText } from "../../generated/shared/tour.js";
 
+import { version } from "../../plugin.json";
+
 const actor = { kind: "agent", id: "test-agent" };
 const provenance = [
   {
@@ -156,6 +158,12 @@ function prepare(
 test("a committed review map survives service restart with a verified event chain", () => {
   const f = fixture();
   const opened = open(f);
+  const identity = repositoryIdentity(f.workspace);
+  const store = new FileReviewMapStore({ root: f.stateRoot });
+  assert.strictEqual(
+    store.load(identity.repositoryKey, opened.mapId).producerVersion,
+    version,
+  );
   const prepared = prepare(f, opened);
   const restarted = new ReviewMapService({ root: f.stateRoot });
   const overview = restarted.get({

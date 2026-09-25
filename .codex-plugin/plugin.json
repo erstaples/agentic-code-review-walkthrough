@@ -1,6 +1,6 @@
 {
   "name": "kanko",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Build a review map of code changes, then walk through it with editor navigation and evidence.",
   "author": {
     "name": "Kankō",

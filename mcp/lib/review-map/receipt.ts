@@ -2,7 +2,7 @@ import type { Aggregate, Entity } from "./types.js";
 
 import { canonicalize, digest, id } from "./canonical.js";
 import { invariant } from "./errors.js";
-import { PRODUCER_VERSION, SCHEMA_VERSION } from "./domain.js";
+import { SCHEMA_VERSION } from "./domain.js";
 import { renderNarration } from "../../../shared/narration.js";
 
 function sortedValues(collection: Record<string, Entity>) {
@@ -34,7 +34,9 @@ function buildReceipt(
   const previous = state.receipts.at(-1) || null;
   const receipt = {
     schemaVersion: SCHEMA_VERSION,
-    producerVersion: PRODUCER_VERSION,
+    // Receipts describe this map; rebuilding one must not depend on the
+    // currently installed runtime version.
+    producerVersion: state.producerVersion,
     id: options.receiptId || id("rcp"),
     mapId: state.id,
     reviewSessionId: session.id,

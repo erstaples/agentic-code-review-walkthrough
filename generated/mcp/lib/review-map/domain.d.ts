@@ -11,9 +11,10 @@ import type {
   StoredEvent,
 } from "./types.js";
 declare const SCHEMA_VERSION = 2;
-declare const PRODUCER_VERSION = "0.1.0";
+declare const PRODUCER_VERSION: string;
 declare function validateActor(actor: unknown): asserts actor is Actor;
 declare function newAggregate({
+  producerVersion,
   mapId,
   title,
   repository,
