@@ -3,7 +3,7 @@
 const fs = require("node:fs");
 const { FileReviewMapStore } = require("./file-store.js");
 const { resolveChange, repositoryIdentity, resolveCodeReference } = require("./git-adapter.js");
-const { eventForCommand, applyEvent, projectionOverview, findEntity, validateActor } = require("./domain.js");
+const { SCHEMA_VERSION, eventForCommand, applyEvent, projectionOverview, findEntity, validateActor } = require("./domain.js");
 const { buildReceipt, renderMarkdown } = require("./receipt.js");
 const { id } = require("./canonical.js");
 const { ReviewMapError, invariant } = require("./errors.js");
@@ -201,7 +201,7 @@ class ReviewMapService {
       try { findings = this.validateTour(state, plan).findings; }
       catch (error) { findings = [{ severity: "error", code: "source_unavailable", location: "stops", message: error.message }]; }
     }
-    return { ok: freshness.freshness === "current" && !findings.some((f) => f.severity === "error"), mapId: state.id, aggregateRevision: state.aggregateRevision, schemaValid: state.schemaVersion === 1, eventChainValid: true, ...freshness, findings };
+    return { ok: freshness.freshness === "current" && !findings.some((f) => f.severity === "error"), mapId: state.id, aggregateRevision: state.aggregateRevision, schemaValid: state.schemaVersion === SCHEMA_VERSION, eventChainValid: true, ...freshness, findings };
   }
 
   refresh(args) {

@@ -50,3 +50,15 @@ test('narration escapes hostile HTML and exposes only numbered focus intents', (
   assert.throws(() => renderNarration('{{a:2}}', [anchor], 'sidebar'), /Unknown anchor/);
   const a99 = { ...anchor, n: 99 }; assert.match(renderNarration('{{a:99}}', [a99], 'sidebar'), />99<\/button>/);
 });
+test('asynchronous editor observation finishes before navigation changes the stop',async()=>{
+  const {controller:c,published}=harness();await c.load({});
+  let release, started;
+  const ready=new Promise(resolve=>{started=resolve;});
+  const observation=c.updatePresentation(async()=>{started();await new Promise(resolve=>{release=resolve;});assert.equal(c.snapshot().stop.id,'s1');return {anchors:[],layout:{customized:true}};});
+  await ready;
+  const navigation=c.navigate({action:'nextStop'});
+  await Promise.resolve();assert.equal(c.snapshot().stop.id,'s1');
+  release();await observation;await navigation;
+  assert.equal(published.at(-2).presentation.layout.customized,true);
+  assert.equal(c.snapshot().stop.id,'s2');
+});

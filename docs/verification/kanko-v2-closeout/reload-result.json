@@ -1,0 +1,688 @@
+{
+  "ok": true,
+  "snapshot": {
+    "revision": 1,
+    "loaded": true,
+    "tourId": "map_c5df58f9-9c50-4ecd-8741-45bd47f3924d-manual-1790283403848",
+    "planId": "pln_d1526a2e-60bc-4401-87fe-d527582ab6c0",
+    "title": "A review that stays on track",
+    "mode": "following",
+    "stopIndex": 0,
+    "beatIndex": 0,
+    "stopCount": 2,
+    "beatCount": 2,
+    "stop": {
+      "anchors": [
+        {
+          "change": "modified",
+          "claimRefs": [],
+          "contentHash": "sha256:3deb012916d895ba2c177c04994b7f1fe4bf039b512f652500492148ec55edba",
+          "context": {
+            "endLine": 11,
+            "startLine": 1
+          },
+          "focus": [
+            {
+              "range": {
+                "endLine": 7,
+                "startLine": 5
+              },
+              "side": "head"
+            },
+            {
+              "kind": "removed",
+              "range": {
+                "endLine": 6,
+                "startLine": 6
+              },
+              "side": "base"
+            }
+          ],
+          "label": "Preserve the active review",
+          "n": 1,
+          "path": "service.js",
+          "rev": {
+            "base": "2f134a311e16f2b42bc80625b66aeec4c7957b0b",
+            "head": "2b9da379194940c6e2e9c1b6c06bf6d0aece90d4"
+          },
+          "role": "change",
+          "side": "head",
+          "view": "head"
+        },
+        {
+          "change": "added",
+          "claimRefs": [],
+          "contentHash": "sha256:6330f722f18a2e8b58fb3d393b210928fd5009f40a4f44540871532a8887e92b",
+          "context": {
+            "endLine": 12,
+            "startLine": 3
+          },
+          "focus": [
+            {
+              "range": {
+                "endLine": 12,
+                "startLine": 9
+              },
+              "side": "head"
+            }
+          ],
+          "label": "Rejected input regression",
+          "n": 2,
+          "path": "service.test.js",
+          "rev": {
+            "base": "2f134a311e16f2b42bc80625b66aeec4c7957b0b",
+            "head": "2b9da379194940c6e2e9c1b6c06bf6d0aece90d4"
+          },
+          "role": "evidence",
+          "side": "head",
+          "view": "head"
+        },
+        {
+          "change": "added",
+          "claimRefs": [],
+          "contentHash": "sha256:14db37ee679bc906872c761bd2b582ecb77ed3be2fa7c2bff36df42919b168f2",
+          "context": {
+            "endLine": 11,
+            "startLine": 1
+          },
+          "focus": [],
+          "label": "Advance the review",
+          "n": 3,
+          "path": "navigation.js",
+          "rev": {
+            "base": "2f134a311e16f2b42bc80625b66aeec4c7957b0b",
+            "head": "2b9da379194940c6e2e9c1b6c06bf6d0aece90d4"
+          },
+          "role": "caller",
+          "side": "head",
+          "view": "head"
+        },
+        {
+          "change": "added",
+          "claimRefs": [],
+          "contentHash": "sha256:faaf643c2843fc461c51d1af11e1a07b141ac0feca961946b9b420173c7f291c",
+          "context": {
+            "endLine": 2,
+            "startLine": 1
+          },
+          "focus": [],
+          "label": "Normalize the next candidate",
+          "n": 4,
+          "path": "source-1.js",
+          "rev": {
+            "base": "2f134a311e16f2b42bc80625b66aeec4c7957b0b",
+            "head": "2b9da379194940c6e2e9c1b6c06bf6d0aece90d4"
+          },
+          "role": "callee",
+          "side": "head",
+          "view": "head"
+        },
+        {
+          "change": "added",
+          "claimRefs": [],
+          "contentHash": "sha256:00d3d54f0ade7c0c59dd914aa6699dda8657230bdc2b0b5a5de3c18807e3a3e4",
+          "context": {
+            "endLine": 2,
+            "startLine": 1
+          },
+          "focus": [],
+          "label": "Choose the group limit",
+          "n": 5,
+          "path": "source-2.js",
+          "rev": {
+            "base": "2f134a311e16f2b42bc80625b66aeec4c7957b0b",
+            "head": "2b9da379194940c6e2e9c1b6c06bf6d0aece90d4"
+          },
+          "role": "config",
+          "side": "head",
+          "view": "head"
+        },
+        {
+          "change": "added",
+          "claimRefs": [],
+          "contentHash": "sha256:620486f94885020a532663359034ba8e0f85c34280a77ed150c20a22817c663d",
+          "context": {
+            "endLine": 2,
+            "startLine": 1
+          },
+          "focus": [],
+          "label": "Validate anchor roles",
+          "n": 6,
+          "path": "source-3.js",
+          "rev": {
+            "base": "2f134a311e16f2b42bc80625b66aeec4c7957b0b",
+            "head": "2b9da379194940c6e2e9c1b6c06bf6d0aece90d4"
+          },
+          "role": "schema",
+          "side": "head",
+          "view": "head"
+        },
+        {
+          "change": "added",
+          "claimRefs": [],
+          "contentHash": "sha256:7f2bcf8e36e6fe7f1999206a501f74d27008d9e405f063a77bb287d01c17d593",
+          "context": {
+            "endLine": 2,
+            "startLine": 1
+          },
+          "focus": [],
+          "label": "Explain the surrounding flow",
+          "n": 7,
+          "path": "source-4.js",
+          "rev": {
+            "base": "2f134a311e16f2b42bc80625b66aeec4c7957b0b",
+            "head": "2b9da379194940c6e2e9c1b6c06bf6d0aece90d4"
+          },
+          "role": "context",
+          "side": "head",
+          "view": "head"
+        },
+        {
+          "change": "added",
+          "claimRefs": [],
+          "contentHash": "sha256:9b10e69b18b7afc53dd102040ccf355a2d664d24b6582b3bec0c11cb6e9aa363",
+          "context": {
+            "endLine": 30,
+            "startLine": 1
+          },
+          "focus": [],
+          "label": "Another regression example",
+          "n": 8,
+          "path": "layout-a.js",
+          "rev": {
+            "base": "2f134a311e16f2b42bc80625b66aeec4c7957b0b",
+            "head": "2b9da379194940c6e2e9c1b6c06bf6d0aece90d4"
+          },
+          "role": "evidence",
+          "side": "head",
+          "view": "head"
+        },
+        {
+          "change": "added",
+          "claimRefs": [],
+          "contentHash": "sha256:c0a8c6067cae2010aab4ca7616f64150b4b32603c4c5eb8cd8c761fd9bf67d2f",
+          "context": {
+            "endLine": 30,
+            "startLine": 1
+          },
+          "focus": [],
+          "label": "A second caller",
+          "n": 9,
+          "path": "layout-b.js",
+          "rev": {
+            "base": "2f134a311e16f2b42bc80625b66aeec4c7957b0b",
+            "head": "2b9da379194940c6e2e9c1b6c06bf6d0aece90d4"
+          },
+          "role": "caller",
+          "side": "head",
+          "view": "head"
+        }
+      ],
+      "beats": [
+        {
+          "active": [
+            1,
+            2
+          ],
+          "id": "first",
+          "narration": "{{a:1}} preserves the review. {{a:2}} proves the rejected candidate is safe. The caller {{a:3}} is available in this stop, but is not open yet."
+        },
+        {
+          "active": [
+            4,
+            6,
+            8
+          ],
+          "id": "second",
+          "narration": "{{a:4}} normalizes the candidate. {{a:6}} defines the schema; {{a:8}} is another piece of evidence. The other files remain in the stop inventory."
+        }
+      ],
+      "coveredEntityIds": [],
+      "id": "sidebar",
+      "index": 3,
+      "reviewState": "not-visited",
+      "reviewedAtChangeRevisionId": null,
+      "risk": "high",
+      "title": "Keep every file in the stop visible",
+      "type": "context"
+    },
+    "beat": {
+      "active": [
+        1,
+        2
+      ],
+      "id": "first",
+      "narration": "{{a:1}} preserves the review. {{a:2}} proves the rejected candidate is safe. The caller {{a:3}} is available in this stop, but is not open yet."
+    },
+    "selectedAnchor": 1,
+    "findings": [
+      {
+        "severity": "warning",
+        "code": "anchor_budget",
+        "location": "stops[0].anchors",
+        "message": "Prefer at most 7 anchors per stop."
+      },
+      {
+        "severity": "warning",
+        "code": "observed_without_evidence",
+        "location": "stops",
+        "message": "Observed claim claim_guard needs an evidence-role anchor with this claim in claimRefs.",
+        "claimId": "claim_guard"
+      }
+    ],
+    "presentation": {
+      "layout": {
+        "shape": "stack",
+        "cap": 3,
+        "customized": true,
+        "sequence": false,
+        "sequenceOverride": false,
+        "unplaced": [
+          2
+        ],
+        "slots": [
+          {
+            "slot": "top",
+            "column": 1,
+            "anchor": 1,
+            "pinned": false
+          },
+          {
+            "slot": "bottom",
+            "column": 2,
+            "anchor": 3,
+            "pinned": true
+          }
+        ],
+        "options": {
+          "1": [
+            {
+              "kind": "auto",
+              "preview": []
+            },
+            {
+              "kind": "peek",
+              "preview": []
+            }
+          ],
+          "2": [
+            {
+              "kind": "auto",
+              "preview": []
+            },
+            {
+              "kind": "peek",
+              "preview": []
+            },
+            {
+              "kind": "beside",
+              "of": 1,
+              "preview": [
+                {
+                  "x": 0,
+                  "y": 0,
+                  "w": 0.5,
+                  "h": 0.53,
+                  "anchor": 1
+                },
+                {
+                  "x": 0.5,
+                  "y": 0,
+                  "w": 0.5,
+                  "h": 0.53,
+                  "anchor": 2
+                },
+                {
+                  "x": 0,
+                  "y": 0.53,
+                  "w": 1,
+                  "h": 0.47,
+                  "anchor": 3
+                }
+              ]
+            }
+          ],
+          "3": [
+            {
+              "kind": "auto",
+              "preview": []
+            },
+            {
+              "kind": "peek",
+              "preview": []
+            }
+          ],
+          "4": [
+            {
+              "kind": "auto",
+              "preview": []
+            },
+            {
+              "kind": "peek",
+              "preview": []
+            },
+            {
+              "kind": "beside",
+              "of": 1,
+              "preview": [
+                {
+                  "x": 0,
+                  "y": 0,
+                  "w": 0.5,
+                  "h": 0.53,
+                  "anchor": 1
+                },
+                {
+                  "x": 0.5,
+                  "y": 0,
+                  "w": 0.5,
+                  "h": 0.53,
+                  "anchor": 4
+                },
+                {
+                  "x": 0,
+                  "y": 0.53,
+                  "w": 1,
+                  "h": 0.47,
+                  "anchor": 3
+                }
+              ]
+            }
+          ],
+          "5": [
+            {
+              "kind": "auto",
+              "preview": []
+            },
+            {
+              "kind": "peek",
+              "preview": []
+            },
+            {
+              "kind": "beside",
+              "of": 1,
+              "preview": [
+                {
+                  "x": 0,
+                  "y": 0,
+                  "w": 0.5,
+                  "h": 0.53,
+                  "anchor": 1
+                },
+                {
+                  "x": 0.5,
+                  "y": 0,
+                  "w": 0.5,
+                  "h": 0.53,
+                  "anchor": 5
+                },
+                {
+                  "x": 0,
+                  "y": 0.53,
+                  "w": 1,
+                  "h": 0.47,
+                  "anchor": 3
+                }
+              ]
+            }
+          ],
+          "6": [
+            {
+              "kind": "auto",
+              "preview": []
+            },
+            {
+              "kind": "peek",
+              "preview": []
+            },
+            {
+              "kind": "beside",
+              "of": 1,
+              "preview": [
+                {
+                  "x": 0,
+                  "y": 0,
+                  "w": 0.5,
+                  "h": 0.53,
+                  "anchor": 1
+                },
+                {
+                  "x": 0.5,
+                  "y": 0,
+                  "w": 0.5,
+                  "h": 0.53,
+                  "anchor": 6
+                },
+                {
+                  "x": 0,
+                  "y": 0.53,
+                  "w": 1,
+                  "h": 0.47,
+                  "anchor": 3
+                }
+              ]
+            }
+          ],
+          "7": [
+            {
+              "kind": "auto",
+              "preview": []
+            },
+            {
+              "kind": "peek",
+              "preview": []
+            },
+            {
+              "kind": "beside",
+              "of": 1,
+              "preview": [
+                {
+                  "x": 0,
+                  "y": 0,
+                  "w": 0.5,
+                  "h": 0.53,
+                  "anchor": 1
+                },
+                {
+                  "x": 0.5,
+                  "y": 0,
+                  "w": 0.5,
+                  "h": 0.53,
+                  "anchor": 7
+                },
+                {
+                  "x": 0,
+                  "y": 0.53,
+                  "w": 1,
+                  "h": 0.47,
+                  "anchor": 3
+                }
+              ]
+            }
+          ],
+          "8": [
+            {
+              "kind": "auto",
+              "preview": []
+            },
+            {
+              "kind": "peek",
+              "preview": []
+            },
+            {
+              "kind": "beside",
+              "of": 1,
+              "preview": [
+                {
+                  "x": 0,
+                  "y": 0,
+                  "w": 0.5,
+                  "h": 0.53,
+                  "anchor": 1
+                },
+                {
+                  "x": 0.5,
+                  "y": 0,
+                  "w": 0.5,
+                  "h": 0.53,
+                  "anchor": 8
+                },
+                {
+                  "x": 0,
+                  "y": 0.53,
+                  "w": 1,
+                  "h": 0.47,
+                  "anchor": 3
+                }
+              ]
+            }
+          ],
+          "9": [
+            {
+              "kind": "auto",
+              "preview": []
+            },
+            {
+              "kind": "peek",
+              "preview": []
+            },
+            {
+              "kind": "beside",
+              "of": 1,
+              "preview": [
+                {
+                  "x": 0,
+                  "y": 0,
+                  "w": 0.5,
+                  "h": 0.53,
+                  "anchor": 1
+                },
+                {
+                  "x": 0.5,
+                  "y": 0,
+                  "w": 0.5,
+                  "h": 0.53,
+                  "anchor": 9
+                },
+                {
+                  "x": 0,
+                  "y": 0.53,
+                  "w": 1,
+                  "h": 0.47,
+                  "anchor": 3
+                }
+              ]
+            }
+          ]
+        },
+        "preferences": {
+          "caller": {
+            "kind": "replace",
+            "slot": "bottom"
+          }
+        }
+      },
+      "anchors": [
+        {
+          "n": 1,
+          "path": "service.js",
+          "status": "visible",
+          "column": 1,
+          "source": "file",
+          "companionColumn": null,
+          "removedCode": null
+        },
+        {
+          "n": 2,
+          "path": "service.test.js",
+          "status": "not-open",
+          "column": null,
+          "source": "file",
+          "companionColumn": null,
+          "removedCode": null
+        },
+        {
+          "n": 3,
+          "path": "navigation.js",
+          "status": "visible",
+          "column": 2,
+          "source": "file",
+          "companionColumn": null,
+          "removedCode": null
+        },
+        {
+          "n": 4,
+          "path": "source-1.js",
+          "status": "not-open",
+          "column": null,
+          "source": "file",
+          "companionColumn": null,
+          "removedCode": null
+        },
+        {
+          "n": 5,
+          "path": "source-2.js",
+          "status": "not-open",
+          "column": null,
+          "source": "file",
+          "companionColumn": null,
+          "removedCode": null
+        },
+        {
+          "n": 6,
+          "path": "source-3.js",
+          "status": "not-open",
+          "column": null,
+          "source": "file",
+          "companionColumn": null,
+          "removedCode": null
+        },
+        {
+          "n": 7,
+          "path": "source-4.js",
+          "status": "not-open",
+          "column": null,
+          "source": "file",
+          "companionColumn": null,
+          "removedCode": null
+        },
+        {
+          "n": 8,
+          "path": "layout-a.js",
+          "status": "not-open",
+          "column": null,
+          "source": "file",
+          "companionColumn": null,
+          "removedCode": null
+        },
+        {
+          "n": 9,
+          "path": "layout-b.js",
+          "status": "not-open",
+          "column": null,
+          "source": "file",
+          "companionColumn": null,
+          "removedCode": null
+        }
+      ]
+    },
+    "narrationHtml": "<button class=\"chip color-1\" data-anchor=\"1\" title=\"service.js:1–11 · Preserve the active review\" aria-label=\"Open anchor 1: service.js:1–11 · Preserve the active review\">1</button> preserves the review. <button class=\"chip color-2\" data-anchor=\"2\" title=\"service.test.js:3–12 · Rejected input regression\" aria-label=\"Open anchor 2: service.test.js:3–12 · Rejected input regression\">2</button> proves the rejected candidate is safe. The caller <button class=\"chip color-3\" data-anchor=\"3\" title=\"navigation.js:1–11 · Advance the review\" aria-label=\"Open anchor 3: navigation.js:1–11 · Advance the review\">3</button> is available in this stop, but is not open yet.",
+    "narration": "① service.js:1 preserves the review. ② service.test.js:3 proves the rejected candidate is safe. The caller ③ navigation.js:1 is available in this stop, but is not open yet.",
+    "receiptNarration": "① service.js:1–11 @2b9da37 preserves the review. ② service.test.js:3–12 @2b9da37 proves the rejected candidate is safe. The caller ③ navigation.js:1–11 @2b9da37 is available in this stop, but is not open yet."
+  },
+  "findings": [
+    {
+      "severity": "warning",
+      "code": "anchor_budget",
+      "location": "stops[0].anchors",
+      "message": "Prefer at most 7 anchors per stop."
+    },
+    {
+      "severity": "warning",
+      "code": "observed_without_evidence",
+      "location": "stops",
+      "message": "Observed claim claim_guard needs an evidence-role anchor with this claim in claimRefs.",
+      "claimId": "claim_guard"
+    }
+  ]
+}

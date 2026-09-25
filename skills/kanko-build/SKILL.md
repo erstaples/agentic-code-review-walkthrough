@@ -124,6 +124,18 @@ needs an id, risk, numbered source-backed anchors, and beats with `{{a:N}}`
 narration references and prioritized `active` numbers. Resolve validation
 findings; do not substitute unversioned or metadata-only stops.
 
+
+When authoring each stop:
+
+- Put the change at anchor 1, then list every file the reviewer needs in explanation order.
+- Use a role from `change`, `evidence`, `callee`, `caller`, `config`, `schema`, or `context`. Give each anchor a label of at most five words explaining why it is present.
+- Include the test or trace supporting a claim as an `evidence` anchor. Link the demonstrated claim with `claimRefs`; a path in prose or an unrelated evidence anchor is not coverage.
+- Refer to files in beat narration only with `{{a:N}}`, never raw paths or bare filenames. The editor and terminal render these into numbered file identities.
+- Keep each beat focused on one point, with at most three `active` anchors in priority order. Keep all of the stop's anchors in its inventory across beats, with stable numbers.
+- Aim for seven or fewer anchors. If more are needed, consider splitting by behavior or separating the change from its callers. The default hard limit is 24, configurable to at most 99; a higher limit is not a reason to make an unfocused stop.
+- Use `head` for added or unchanged files, `diff` for modified files, and `base` for deleted code. For renames use the destination path and the exact source pair. Keep context and focus ranges on their declared revision side.
+- Resolve validation errors before loading. Address warnings about broad stops, large active sets, and observed claims lacking their own evidence anchor; do not hide weak evidence by changing its truth status.
+
 Issue `MarkPrepared` only after the current review map has:
 
 - a truthful final thesis;

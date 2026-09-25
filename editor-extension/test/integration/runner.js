@@ -22,7 +22,7 @@ async function main() {
   await runTests({ vscodeExecutablePath: executable,
     extensionDevelopmentPath: process.env.EXTENSION_PATH || path.resolve(__dirname, '../..'), extensionTestsPath: path.join(__dirname, 'index.js'),
     extensionTestsEnv: { KANKO_TOUR_FIXTURE: path.join(f.root, 'fixture.json'), KANKO_TOUR_OUTPUT: output, KANKO_TOUR_MANUAL: process.env.KANKO_TOUR_MANUAL || '' },
-    launchArgs: [f.workspace, `--user-data-dir=${user}`, `--extensions-dir=${path.join(f.root, 'extensions')}`, '--disable-extensions', '--disable-gpu', '--use-inmemory-secretstorage', '--password-store=basic', '--skip-welcome', '--skip-release-notes'],
+    launchArgs: [f.workspace, `--user-data-dir=${user}`, `--shared-data-dir=${path.join(f.root, 'shared')}`, `--extensions-dir=${path.join(f.root, 'extensions')}`, '--disable-extensions', '--disable-gpu', '--use-inmemory-secretstorage', '--password-store=basic', '--skip-welcome', '--skip-release-notes'],
   });
 }
 main().catch(error => { console.error(error); process.exitCode = 1; });
