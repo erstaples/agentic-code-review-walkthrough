@@ -47,8 +47,20 @@ passes without Node globals and observes the ready handshake. The provider test
 also verifies the local script URI, resource roots and nonce CSP. The native host
 suite alone had not detected this browser failure.
 
-Final clean-checkout and extracted-package verification will be recorded here
-before the PR becomes ready.
+A separate clean clone of implementation commit `db28329` passed the entire
+Node 22 packaging path, with 229 Node tests, 6 archive tests, type/format/release
+checks and fresh-build archive comparison. Both generated bundles matched the
+working branch byte for byte. The clone remained clean afterward. `watch` built
+both bundles and stayed active until deliberately stopped.
+
+The VSIX from that clean clone was extracted into a new directory and tested in
+an isolated macOS VS Code 1.139.0 profile: **30/30 native tests passed**, exit 0.
+The exact baseline and candidate check names are recorded in
+[native-checks.json](native-checks.json). These cover navigation, modes, source
+identity, citations, placement, pins, dirty/reviewer tabs and saved arrangements.
+
+Linux CI is running at [workflow run 36077643567](https://github.com/getkanko/kanko/actions/runs/36077643567);
+the build job has passed. Its final native outcome will be recorded in the PR.
 
 ## Deliberate limits and follow-up
 

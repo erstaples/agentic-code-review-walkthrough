@@ -2,7 +2,7 @@
 
 Date: September 24, 2026
 
-Status: Slice 1 implemented; final clean-checkout and packaged acceptance in progress.
+Status: Slice 1 complete, including clean-checkout and packaged native acceptance.
 Slices 2–6 have not started.
 
 Baseline: `dev` at `4f66b0b` (merged v2 persistence and acceptance work)
