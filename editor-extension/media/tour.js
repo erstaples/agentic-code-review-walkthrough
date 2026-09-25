@@ -1,5 +1,6 @@
 "use strict";
-const vscode = acquireVsCodeApi(), model = SidebarModel;
+import * as model from "./sidebar-model.js";
+const vscode = acquireVsCodeApi();
 const byId = id => document.getElementById(id);
 let revision = 0, snapshot, rows = [], stopKey, order = "role", collapsed = {}, pickerAnchor = null;
 const send = message => vscode.postMessage({ ...message, revision });

@@ -4,7 +4,7 @@ const fs = require("node:fs");
 const os = require("node:os");
 const path = require("node:path");
 const cp = require("node:child_process");
-const { revParse, changedFiles, gitUriQuery, blobLines, hasBlob } = require("../lib/git.js");
+const { revParse, changedFiles, gitUriQuery, blobLines, hasBlob } = require("./compiled.js")("lib/git.js");
 
 let repo;
 let baseSha;

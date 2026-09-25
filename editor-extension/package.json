@@ -1,6 +1,6 @@
 {
   "name": "kanko",
-  "displayName": "Kankō",
+  "displayName": "Kank\u014d",
   "description": "Let your coding agent guide you through code changes with focused highlights, native diffs, and editor citations.",
   "version": "0.1.0",
   "publisher": "getkankodev",
@@ -19,7 +19,7 @@
   "activationEvents": [
     "onStartupFinished"
   ],
-  "main": "./extension.js",
+  "main": "./dist/extension.js",
   "contributes": {
     "colors": [
       {
@@ -254,7 +254,7 @@
       }
     ],
     "configuration": {
-      "title": "Kankō Presentation",
+      "title": "Kank\u014d Presentation",
       "properties": {
         "kanko.presentation.dimOpacity": {
           "type": "number",
@@ -311,23 +311,23 @@
     "commands": [
       {
         "command": "kanko.copyCitation",
-        "title": "Kankō: Copy Citation"
+        "title": "Kank\u014d: Copy Citation"
       },
       {
         "command": "kanko.tour.pinActive",
-        "title": "Kankō: Toggle Pin on Active Tour Anchor"
+        "title": "Kank\u014d: Toggle Pin on Active Tour Anchor"
       },
       {
         "command": "kanko.tour.overrideSequence",
-        "title": "Kankō: Show Multiple Groups for This Stop"
+        "title": "Kank\u014d: Show Multiple Groups for This Stop"
       },
       {
         "command": "kanko.tour.quickPick",
-        "title": "Kankō: Find File in Stop"
+        "title": "Kank\u014d: Find File in Stop"
       },
       {
         "command": "kanko.tour.resetLayout",
-        "title": "Kankō: Reset Stop Layout"
+        "title": "Kank\u014d: Reset Stop Layout"
       }
     ],
     "menus": {
@@ -343,7 +343,7 @@
       "secondarySidebar": [
         {
           "id": "kanko",
-          "title": "Kankō",
+          "title": "Kank\u014d",
           "icon": "assets/kanko-sidebar.svg"
         }
       ]
@@ -492,29 +492,42 @@
     ]
   },
   "devDependencies": {
+    "@types/node": "22.20.4",
+    "@types/vscode": "1.138.0",
     "@vscode/test-electron": "^3.1.0",
-    "@vscode/vsce": "4.0.0"
+    "@vscode/vsce": "4.0.0",
+    "esbuild": "0.28.2",
+    "prettier": "3.9.9",
+    "typescript": "5.9.3"
   },
   "scripts": {
-    "test:unit": "node --test 'test/*.test.js'",
+    "test:unit": "npm run build:test && node --test test/*.test.js",
     "test:integration": "node test/integration/runner.js",
     "package": "vsce package",
     "rebuild:vsix": "bash ../scripts/build-vsix.sh",
-    "check:release": "node ../scripts/check-extension-release.js"
+    "check:release": "node ../scripts/check-extension-release.js",
+    "build": "node scripts/build.mjs",
+    "watch": "node scripts/build.mjs --watch",
+    "typecheck": "tsc -p tsconfig.host.json && tsc -p tsconfig.webview.json",
+    "format:check": "prettier --check \"src/**/*.ts\" \"scripts/*.mjs\" \"tsconfig*.json\"",
+    "format": "prettier --write \"src/**/*.ts\" \"scripts/*.mjs\" \"tsconfig*.json\"",
+    "build:test": "node scripts/build.mjs --test",
+    "test:all": "npm run build:test && node --test ../test/*.test.js ../mcp/test/*.test.js test/*.test.js",
+    "vscode:prepublish": "npm run typecheck && npm run format:check && npm run build"
   },
   "homepage": "https://github.com/getkanko/kanko#readme",
   "bugs": {
     "url": "https://github.com/getkanko/kanko/issues"
   },
   "files": [
-    "extension.js",
-    "lib/**/*.js",
+    "dist/extension.js",
+    "dist/webview.js",
     "README.md",
     "CHANGELOG.md",
     "LICENSE",
     "assets/kanko-icon-256.png",
-    "media/*",
-    "assets/kanko-sidebar.svg"
+    "assets/kanko-sidebar.svg",
+    "media/tour.css"
   ],
   "icon": "assets/kanko-icon-256.png",
   "galleryBanner": {

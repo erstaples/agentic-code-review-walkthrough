@@ -15,9 +15,9 @@ function createTourView(vscode, extensionUri, controller) {
     resolveWebviewView(resolved) {
       view = resolved; ready = false;
       const media = vscode.Uri.joinPath(extensionUri, "media");
-      view.webview.options = { enableScripts: true, localResourceRoots: [media] };
-      const script = view.webview.asWebviewUri(vscode.Uri.joinPath(media, "tour.js"));
-      const model = view.webview.asWebviewUri(vscode.Uri.joinPath(media, "sidebar-model.js"));
+      const dist = vscode.Uri.joinPath(extensionUri, "dist");
+      view.webview.options = { enableScripts: true, localResourceRoots: [media, dist] };
+      const script = view.webview.asWebviewUri(vscode.Uri.joinPath(dist, "webview.js"));
       const css = view.webview.asWebviewUri(vscode.Uri.joinPath(media, "tour.css"));
       const nonce = crypto.randomBytes(24).toString("base64url");
       view.webview.html = `<!doctype html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src ${view.webview.cspSource}; script-src 'nonce-${nonce}';"><link rel="stylesheet" href="${css}"></head><body>
@@ -39,7 +39,7 @@ function createTourView(vscode, extensionUri, controller) {
         <p id="sequence-note" class="muted" hidden>Sequence mode keeps small editors readable. <button id="sequence-override">Show multiple groups</button></p>
         <p id="warnings" class="muted"></p><div class="navigation"><button id="previous-beat" data-action="previousBeat">← Previous beat</button><button id="next-beat" data-action="nextBeat">Next beat →</button></div>
         <div class="navigation stops"><button id="previous-stop" data-action="previousStop">Previous stop</button><button id="next-stop" data-action="nextStop">Next stop</button></div>
-        <button id="end-tour" class="end">End tour</button></section><p id="error" role="alert"></p></main><script nonce="${nonce}" src="${model}"></script><script nonce="${nonce}" src="${script}"></script></body></html>`;
+        <button id="end-tour" class="end">End tour</button></section><p id="error" role="alert"></p></main><script nonce="${nonce}" src="${script}"></script></body></html>`;
       const sub = view.webview.onDidReceiveMessage(async (message) => {
         if (!message || typeof message !== "object") return;
         try {

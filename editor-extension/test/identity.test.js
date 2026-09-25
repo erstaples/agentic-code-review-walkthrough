@@ -1,6 +1,6 @@
 const { test } = require("node:test");
 const assert = require("node:assert");
-const { createIdentity } = require("../lib/identity.js");
+const { createIdentity } = require("./compiled.js")("lib/identity.js");
 
 const base = { sha: "aaaa111", name: "main" };
 const head = { sha: "bbbb222", name: "HEAD" };

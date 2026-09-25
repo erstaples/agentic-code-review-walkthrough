@@ -1,6 +1,6 @@
 const { test } = require("node:test");
 const assert = require("node:assert");
-const { startServer } = require("../lib/httpserver.js");
+const { startServer } = require("./compiled.js")("lib/httpserver.js");
 
 const TOKEN = "secret-token";
 
@@ -103,7 +103,7 @@ test("an unexpected handler error does not leak as a crash", async () => {
 });
 
 test("recognised error codes come from the shared contract, not a local copy", async () => {
-  const { ERROR_CODES } = require("../lib/contract.js");
+  const { ERROR_CODES } = require("./compiled.js")("lib/contract.js");
   for (const code of ERROR_CODES) {
     const err = Object.assign(new Error(`synthetic ${code}`), { code });
     await withServer({ "POST /focus": async () => { throw err; } }, async (base) => {
@@ -147,7 +147,7 @@ test("close() resolves even when a client is holding a half-sent request", async
 
 test("a listening server does not on its own keep its host process alive", () => {
   const { execFileSync } = require("node:child_process");
-  const script = `require(${JSON.stringify(require.resolve("../lib/httpserver.js"))})
+  const script = `require(${JSON.stringify(require("./compiled.js").resolve("lib/httpserver.js"))})
     .startServer({ handlers: {}, authToken: "t", protocolVersion: 1 });`;
   execFileSync(process.execPath, ["-e", script], { timeout: 5000 });
 });

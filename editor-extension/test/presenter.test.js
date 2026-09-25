@@ -1,9 +1,9 @@
 "use strict";
 const test = require("node:test");
 const assert = require("node:assert/strict");
-const { createPresenter } = require("../lib/presenter.js");
-const { normalizeAnchor, checkAnchor, hashText } = require("../lib/anchors.js");
-const { parseHunks, seamLineFor, removedBaseLines0, mapRange } = require("../lib/hunks.js");
+const { createPresenter } = require("./compiled.js")("lib/presenter.js");
+const { normalizeAnchor, checkAnchor, hashText } = require("./compiled.js")("lib/anchors.js");
+const { parseHunks, seamLineFor, removedBaseLines0, mapRange } = require("./compiled.js")("lib/hunks.js");
 
 function fixture() {
   const vscode = {

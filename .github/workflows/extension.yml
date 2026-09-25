@@ -3,7 +3,7 @@ name: VS Code extension
 on:
   pull_request:
   push:
-    branches: [main]
+    branches: [main, dev]
     tags: ['extension-v*']
   workflow_dispatch:
     inputs:
@@ -47,7 +47,9 @@ jobs:
           node scripts/check-extension-release.js "$RELEASE_TAG"
           git merge-base --is-ancestor HEAD origin/main
       - name: Test repository and extension
-        run: node --test test/*.test.js mcp/test/*.test.js editor-extension/test/*.test.js
+        run: npm --prefix editor-extension run test:all
+      - name: Test archive rejection checks
+        run: python3 scripts/test_check_vsix.py
       - name: Package extension
         run: npm run package
         working-directory: editor-extension
